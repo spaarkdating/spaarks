@@ -35,23 +35,36 @@ const Auth = () => {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/onboarding`,
+        emailRedirectTo: `${window.location.origin}/dashboard`,
       },
     });
 
     setIsLoading(false);
 
     if (error) {
-      toast({
-        title: "Sign up failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      // Handle specific error for existing users
+      if (error.message.includes("already registered")) {
+        toast({
+          title: "Account already exists",
+          description: "Please log in instead or use a different email.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Sign up failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
     } else {
       toast({
         title: "Check your email!",
         description: "We've sent you a verification link to complete your registration.",
       });
+      // Clear form
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
     }
   };
 
