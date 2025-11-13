@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useNotifications } from "@/hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
 import { RealtimeChannel } from "@supabase/supabase-js";
 
@@ -22,6 +23,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate }: ChatWindo
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   const channelRef = useRef<RealtimeChannel | null>(null);
   const { toast } = useToast();
+  const { showNotification } = useNotifications();
 
   useEffect(() => {
     if (!match) return;
@@ -132,6 +134,15 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate }: ChatWindo
       });
 
       if (error) throw error;
+
+      // Create notification for receiver
+      await supabase.from("notifications").insert({
+        user_id: match.liked_user_id,
+        type: "message",
+        title: "New Message",
+        message: `You have a new message from ${match.profile.display_name}`,
+        data: { match_id: match.id, sender_id: currentUserId },
+      });
 
       setNewMessage("");
       if (channelRef.current) {
