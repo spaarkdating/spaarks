@@ -136,7 +136,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate }: ChatWindo
       if (error) throw error;
 
       // Create notification for receiver
-      await supabase.from("notifications").insert({
+      await (supabase as any).from("notifications").insert({
         user_id: match.liked_user_id,
         type: "message",
         title: "New Message",
