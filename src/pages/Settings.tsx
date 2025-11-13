@@ -14,7 +14,6 @@ const Settings = () => {
   const [user, setUser] = useState<any>(null);
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isResending, setIsResending] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -73,33 +72,6 @@ const Settings = () => {
     }
   };
 
-  const handleResendVerification = async () => {
-    if (!user?.email) return;
-
-    setIsResending(true);
-    
-    const { error } = await supabase.auth.resend({
-      type: 'signup',
-      email: user.email,
-      options: { emailRedirectTo: `${window.location.origin}/verify` },
-    });
-
-    setIsResending(false);
-
-    if (error) {
-      toast({
-        title: "Resend failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Verification email sent",
-        description: "Check your inbox for the verification link.",
-      });
-    }
-  };
-
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate("/");
@@ -131,13 +103,6 @@ const Settings = () => {
                 <User className="h-5 w-5" />
                 Profile Information
               </CardTitle>
-              <CardDescription>
-                {user.email_confirmed_at ? (
-                  <span className="text-green-600 font-medium">✓ Email verified</span>
-                ) : (
-                  <span className="text-yellow-600 font-medium">⚠ Email not verified</span>
-                )}
-              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -187,25 +152,6 @@ const Settings = () => {
                   {isLoading ? "Updating..." : "Update Email"}
                 </Button>
               </form>
-
-              {!user.email_confirmed_at && (
-                <>
-                  <Separator />
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">
-                      Haven't received the verification email?
-                    </p>
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={handleResendVerification}
-                      disabled={isResending}
-                    >
-                      {isResending ? "Sending..." : "Resend Verification Email"}
-                    </Button>
-                  </div>
-                </>
-              )}
             </CardContent>
           </Card>
 

@@ -14,7 +14,6 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isResending, setIsResending] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -36,7 +35,7 @@ const Auth = () => {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/verify`,
+        emailRedirectTo: `${window.location.origin}/dashboard`,
       },
     });
 
@@ -59,8 +58,8 @@ const Auth = () => {
       }
     } else {
       toast({
-        title: "Check your email!",
-        description: "We've sent you a verification link to complete your registration.",
+        title: "Account created!",
+        description: "You can now log in with your credentials.",
       });
       // Clear form
       setEmail("");
@@ -88,36 +87,6 @@ const Auth = () => {
       });
     } else {
       navigate("/dashboard");
-    }
-  };
-
-  const handleResendVerification = async () => {
-    if (!email) {
-      toast({
-        title: "Enter your email",
-        description: "Please enter the email you signed up with.",
-        variant: "destructive",
-      });
-      return;
-    }
-    setIsResending(true);
-    const { error } = await supabase.auth.resend({
-      type: 'signup',
-      email,
-      options: { emailRedirectTo: `${window.location.origin}/verify` },
-    });
-    setIsResending(false);
-    if (error) {
-      toast({
-        title: "Resend failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Verification email resent",
-        description: "Check your inbox for a new link.",
-      });
     }
   };
 
@@ -175,15 +144,6 @@ const Auth = () => {
                   >
                     {isLoading ? "Logging in..." : "Log In"}
                   </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full"
-                    onClick={handleResendVerification}
-                    disabled={isResending || !email}
-                  >
-                    {isResending ? "Resending..." : "Resend verification email"}
-                  </Button>
                 </form>
               </TabsContent>
 
@@ -228,15 +188,6 @@ const Auth = () => {
                     disabled={isLoading}
                   >
                     {isLoading ? "Creating account..." : "Sign Up"}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full"
-                    onClick={handleResendVerification}
-                    disabled={isResending || !email}
-                  >
-                    {isResending ? "Resending..." : "Resend verification email"}
                   </Button>
                 </form>
               </TabsContent>
