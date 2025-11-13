@@ -36,7 +36,7 @@ const Auth = () => {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/dashboard`,
+        emailRedirectTo: `${window.location.origin}/verify`,
       },
     });
 
@@ -104,7 +104,7 @@ const Auth = () => {
     const { error } = await supabase.auth.resend({
       type: 'signup',
       email,
-      options: { emailRedirectTo: `${window.location.origin}/dashboard` },
+      options: { emailRedirectTo: `${window.location.origin}/verify` },
     });
     setIsResending(false);
     if (error) {

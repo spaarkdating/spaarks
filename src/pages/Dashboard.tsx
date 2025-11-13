@@ -60,7 +60,7 @@ const Dashboard = () => {
             </span>
           </div>
           <div className="flex gap-2">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/settings")}>
               <Settings className="h-5 w-5" />
             </Button>
             <Button variant="ghost" size="icon" onClick={handleLogout}>
