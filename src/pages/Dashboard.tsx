@@ -3,25 +3,49 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
-import { Heart, MessageCircle, User as UserIcon, Settings, LogOut } from "lucide-react";
+import { Heart, MessageCircle, User as UserIcon, Settings, LogOut, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { SwipeCard } from "@/components/swipe/SwipeCard";
+import { SwipeActions } from "@/components/swipe/SwipeActions";
+import { MatchNotification } from "@/components/swipe/MatchNotification";
+import { AnimatePresence } from "framer-motion";
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
+  const [profiles, setProfiles] = useState<any[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [matchedProfile, setMatchedProfile] = useState<any>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const initUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         navigate("/auth");
-      } else {
-        setUser(session.user);
+        return;
       }
-    });
+      
+      setUser(session.user);
 
-    // Listen for auth changes
+      // Check if profile is complete
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", session.user.id)
+        .single();
+
+      if (!profile?.bio || !profile?.gender || !profile?.looking_for) {
+        navigate("/onboarding");
+        return;
+      }
+
+      fetchProfiles(session.user.id);
+    };
+
+    initUser();
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
         navigate("/auth");
@@ -32,6 +56,105 @@ const Dashboard = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  const fetchProfiles = async (userId: string) => {
+    setIsLoading(true);
+    
+    try {
+      // Get users already swiped on
+      const { data: swipedMatches } = await supabase
+        .from("matches")
+        .select("liked_user_id")
+        .eq("user_id", userId);
+
+      const swipedIds = swipedMatches?.map(m => m.liked_user_id) || [];
+
+      // Get potential matches
+      const { data: potentialMatches } = await supabase
+        .from("profiles")
+        .select(`
+          *,
+          photos(photo_url, display_order),
+          user_interests(interest:interests(*))
+        `)
+        .neq("id", userId)
+        .not("id", "in", `(${swipedIds.join(",")})`)
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      if (potentialMatches) {
+        // Sort photos by display_order
+        const sortedProfiles = potentialMatches.map(profile => ({
+          ...profile,
+          photos: (profile.photos || []).sort((a: any, b: any) => a.display_order - b.display_order)
+        }));
+        setProfiles(sortedProfiles);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error loading profiles",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSwipe = async (direction: "left" | "right" | "super") => {
+    if (!user || currentIndex >= profiles.length) return;
+
+    const likedProfile = profiles[currentIndex];
+    const isLike = direction === "right" || direction === "super";
+
+    try {
+      // Record the swipe
+      const { error } = await supabase.from("matches").insert({
+        user_id: user.id,
+        liked_user_id: likedProfile.id,
+        is_match: false,
+      });
+
+      if (error) throw error;
+
+      // Check if it's a mutual match
+      if (isLike) {
+        const { data: reverseMatch } = await supabase
+          .from("matches")
+          .select("*")
+          .eq("user_id", likedProfile.id)
+          .eq("liked_user_id", user.id)
+          .single();
+
+        if (reverseMatch) {
+          // It's a match! Update both records
+          await supabase
+            .from("matches")
+            .update({ is_match: true })
+            .eq("user_id", user.id)
+            .eq("liked_user_id", likedProfile.id);
+
+          await supabase
+            .from("matches")
+            .update({ is_match: true })
+            .eq("user_id", likedProfile.id)
+            .eq("liked_user_id", user.id);
+
+          // Show match notification
+          setMatchedProfile(likedProfile);
+        }
+      }
+
+      // Move to next profile
+      setCurrentIndex(currentIndex + 1);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -47,6 +170,9 @@ const Dashboard = () => {
   };
 
   if (!user) return null;
+
+  const currentProfile = profiles[currentIndex];
+  const hasMoreProfiles = currentIndex < profiles.length;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background">
@@ -71,90 +197,74 @@ const Dashboard = () => {
       </header>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-6">
-          {/* Swipe Card */}
-          <div className="md:col-span-2">
-            <div className="bg-card rounded-3xl shadow-xl border border-border overflow-hidden">
-              <div className="aspect-[3/4] bg-gradient-to-br from-primary/20 via-secondary/20 to-accent/20 flex items-center justify-center">
-                <div className="text-center p-8">
-                  <Heart className="h-24 w-24 text-primary/50 fill-primary/50 mx-auto mb-4" />
-                  <h3 className="text-2xl font-bold mb-2">Start Swiping!</h3>
-                  <p className="text-muted-foreground">
-                    Discover amazing people nearby
-                  </p>
-                </div>
-              </div>
-              <div className="p-6">
-                <h2 className="text-2xl font-bold mb-2">Welcome to Spaark!</h2>
-                <p className="text-muted-foreground mb-4">Complete your profile to start matching</p>
-                <div className="flex gap-3 justify-center">
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="flex-1 border-2 border-destructive text-destructive hover:bg-destructive/10"
-                  >
-                    <span className="text-2xl">✕</span>
-                  </Button>
-                  <Button
-                    size="lg"
-                    className="flex-1 bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground"
-                  >
-                    <Heart className="h-6 w-6 fill-current" />
-                  </Button>
-                </div>
-              </div>
+      <div className="container mx-auto px-4 py-8 max-h-[calc(100vh-80px)] flex items-center justify-center">
+        <div className="w-full max-w-md">
+          {isLoading ? (
+            <div className="text-center space-y-4">
+              <RefreshCw className="h-12 w-12 text-primary animate-spin mx-auto" />
+              <p className="text-muted-foreground">Finding matches for you...</p>
             </div>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Profile Card */}
-            <div className="bg-card rounded-2xl p-6 shadow-lg border border-border">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-                  <UserIcon className="h-8 w-8 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">{user.email?.split("@")[0]}</h3>
-                  <p className="text-sm text-muted-foreground">{user.email}</p>
-                </div>
+          ) : hasMoreProfiles ? (
+            <div className="space-y-6">
+              {/* Swipe Card Stack */}
+              <div className="relative h-[600px]">
+                <AnimatePresence>
+                  {profiles.slice(currentIndex, currentIndex + 2).map((profile, index) => (
+                    <SwipeCard
+                      key={profile.id}
+                      profile={profile}
+                      onSwipe={index === 0 ? handleSwipe : () => {}}
+                      style={{
+                        zIndex: 2 - index,
+                        scale: 1 - index * 0.05,
+                        opacity: 1 - index * 0.3,
+                      }}
+                    />
+                  ))}
+                </AnimatePresence>
               </div>
-              <Button className="w-full" variant="outline">
-                Complete Profile
+
+              {/* Swipe Actions */}
+              <SwipeActions
+                onDislike={() => handleSwipe("left")}
+                onLike={() => handleSwipe("right")}
+                onSuperLike={() => handleSwipe("super")}
+                disabled={!hasMoreProfiles}
+              />
+            </div>
+          ) : (
+            <div className="text-center space-y-4">
+              <Heart className="h-24 w-24 text-muted-foreground mx-auto" />
+              <h3 className="text-2xl font-bold">No more profiles</h3>
+              <p className="text-muted-foreground">
+                Check back later for new matches!
+              </p>
+              <Button
+                onClick={() => {
+                  if (user) {
+                    setCurrentIndex(0);
+                    fetchProfiles(user.id);
+                  }
+                }}
+                className="bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh
               </Button>
             </div>
-
-            {/* Matches Card */}
-            <div className="bg-card rounded-2xl p-6 shadow-lg border border-border">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold flex items-center gap-2">
-                  <Heart className="h-5 w-5 text-primary" />
-                  Matches
-                </h3>
-                <span className="text-sm text-muted-foreground">0</span>
-              </div>
-              <p className="text-sm text-muted-foreground text-center py-4">
-                Start swiping to get matches!
-              </p>
-            </div>
-
-            {/* Messages Card */}
-            <div className="bg-card rounded-2xl p-6 shadow-lg border border-border">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold flex items-center gap-2">
-                  <MessageCircle className="h-5 w-5 text-secondary" />
-                  Messages
-                </h3>
-                <span className="text-sm text-muted-foreground">0</span>
-              </div>
-              <p className="text-sm text-muted-foreground text-center py-4">
-                No messages yet
-              </p>
-            </div>
-          </div>
+          )}
         </div>
       </div>
+
+      {/* Match Notification */}
+      <AnimatePresence>
+        {matchedProfile && (
+          <MatchNotification
+            matchedProfile={matchedProfile}
+            onClose={() => setMatchedProfile(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
