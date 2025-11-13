@@ -186,6 +186,15 @@ const Dashboard = () => {
             </span>
           </div>
           <div className="flex gap-2">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/matches")}>
+              <Heart className="h-5 w-5" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={() => navigate("/messages")}>
+              <MessageCircle className="h-5 w-5" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={() => navigate("/profile")}>
+              <UserIcon className="h-5 w-5" />
+            </Button>
             <Button variant="ghost" size="icon" onClick={() => navigate("/settings")}>
               <Settings className="h-5 w-5" />
             </Button>
