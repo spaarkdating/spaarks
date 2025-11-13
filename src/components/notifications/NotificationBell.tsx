@@ -31,10 +31,10 @@ export const NotificationBell = ({ userId }: NotificationBellProps) => {
       .order("created_at", { ascending: false })
       .limit(10);
 
-    if (data) {
-      setNotifications(data);
-      setUnreadCount(data.filter((n) => !n.read).length);
-    }
+      if (data) {
+        setNotifications(data);
+        setUnreadCount(data.filter((n: any) => !n.read).length);
+      }
   };
 
   const setupRealtimeSubscription = () => {
@@ -70,7 +70,7 @@ export const NotificationBell = ({ userId }: NotificationBellProps) => {
 
   const markAsRead = async (notificationId: string) => {
     await supabase
-      .from("notifications")
+      .from("notifications" as any)
       .update({ read: true })
       .eq("id", notificationId);
 

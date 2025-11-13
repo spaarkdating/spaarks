@@ -17,7 +17,7 @@ const SupportTickets = () => {
   const { toast } = useToast();
 
   const fetchTickets = async () => {
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from("support_tickets")
       .select("*, profile:profiles!support_tickets_user_id_fkey(display_name, email)")
       .order("created_at", { ascending: false });
@@ -34,7 +34,7 @@ const SupportTickets = () => {
   const handleUpdateTicket = async () => {
     if (!selectedTicket) return;
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from("support_tickets")
       .update({
         admin_reply: reply,
