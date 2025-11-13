@@ -89,6 +89,22 @@ export const BasicInfoStep = ({ data, updateData }: BasicInfoStepProps) => {
           </SelectContent>
         </Select>
       </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="datingMode">Dating Preference *</Label>
+        <Select value={data.datingMode || "online"} onValueChange={(value) => updateData({ datingMode: value })}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select your dating preference" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="online">Online Dating - Meet people virtually first</SelectItem>
+            <SelectItem value="offline">Offline Dating - Prefer to meet in person</SelectItem>
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground">
+          You'll only see profiles of people with the same dating preference
+        </p>
+      </div>
     </div>
   );
 };

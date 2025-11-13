@@ -89,7 +89,8 @@ const Onboarding = () => {
           gender: formData.gender,
           location: formData.location,
           looking_for: formData.lookingFor,
-        })
+          dating_mode: formData.datingMode || "online",
+        } as any)
         .eq("id", userId);
 
       if (profileError) throw profileError;

@@ -64,6 +64,15 @@ const Dashboard = () => {
     setIsLoading(true);
     
     try {
+      // Get current user's dating mode
+      const { data: currentUserProfile } = await supabase
+        .from("profiles")
+        .select("dating_mode")
+        .eq("id", userId)
+        .single();
+
+      const userDatingMode = (currentUserProfile as any)?.dating_mode || "online";
+
       // Get users already swiped on
       const { data: swipedMatches } = await supabase
         .from("matches")
@@ -72,8 +81,8 @@ const Dashboard = () => {
 
       const swipedIds = swipedMatches?.map(m => m.liked_user_id) || [];
 
-      // Get potential matches
-      const { data: potentialMatches } = await supabase
+      // Get potential matches with same dating mode
+      const profileQuery: any = supabase
         .from("profiles")
         .select(`
           *,
@@ -84,6 +93,9 @@ const Dashboard = () => {
         .not("id", "in", `(${swipedIds.join(",")})`)
         .order("created_at", { ascending: false })
         .limit(20);
+      
+      profileQuery.eq("dating_mode", userDatingMode);
+      const { data: potentialMatches } = await profileQuery;
 
       if (potentialMatches) {
         // Sort photos by display_order
