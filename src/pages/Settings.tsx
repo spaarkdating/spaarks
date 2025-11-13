@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Mail, User, LogOut } from "lucide-react";
+import { ArrowLeft, Mail, User, LogOut, MessageSquare } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Settings = () => {
@@ -152,6 +152,109 @@ const Settings = () => {
                   {isLoading ? "Updating..." : "Update Email"}
                 </Button>
               </form>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-xl border-2">
+            <CardHeader>
+              <CardTitle className="text-destructive">Account Management</CardTitle>
+              <CardDescription>Manage your account status</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <h4 className="font-semibold mb-2">Deactivate Account</h4>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Your profile will be hidden from other users. You can reactivate anytime by logging in.
+                </p>
+                <Button
+                  variant="outline"
+                  className="w-full border-yellow-500 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950"
+                  onClick={async () => {
+                    if (window.confirm("Are you sure you want to deactivate your account?")) {
+                      const { error } = await supabase
+                        .from("profiles")
+                        .update({ account_status: "deactivated" })
+                        .eq("id", user.id);
+
+                      if (!error) {
+                        toast({
+                          title: "Account deactivated",
+                          description: "Your account has been deactivated.",
+                        });
+                        await supabase.auth.signOut();
+                        navigate("/");
+                      } else {
+                        toast({
+                          title: "Error",
+                          description: error.message,
+                          variant: "destructive",
+                        });
+                      }
+                    }
+                  }}
+                >
+                  Deactivate Account
+                </Button>
+              </div>
+
+              <Separator />
+
+              <div>
+                <h4 className="font-semibold mb-2 text-destructive">Delete Account</h4>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Permanently delete your account and all data. This action cannot be undone.
+                </p>
+                <Button
+                  variant="destructive"
+                  className="w-full"
+                  onClick={async () => {
+                    if (window.confirm("Are you sure you want to permanently delete your account? This action cannot be undone.")) {
+                      try {
+                        // Delete profile (cascade will handle related data)
+                        const { error } = await supabase
+                          .from("profiles")
+                          .delete()
+                          .eq("id", user.id);
+
+                        if (error) throw error;
+
+                        toast({
+                          title: "Account deleted",
+                          description: "Your account has been permanently deleted.",
+                        });
+
+                        await supabase.auth.signOut();
+                        navigate("/");
+                      } catch (error: any) {
+                        toast({
+                          title: "Error",
+                          description: "Could not delete account. Please contact support.",
+                          variant: "destructive",
+                        });
+                      }
+                    }
+                  }}
+                >
+                  Permanently Delete Account
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-xl border-2">
+            <CardHeader>
+              <CardTitle>Need Help?</CardTitle>
+              <CardDescription>Contact our support team</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => navigate("/support")}
+              >
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Contact Support
+              </Button>
             </CardContent>
           </Card>
 

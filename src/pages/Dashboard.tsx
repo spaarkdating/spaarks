@@ -5,9 +5,11 @@ import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Heart, MessageCircle, User as UserIcon, Settings, LogOut, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useNotifications } from "@/hooks/useNotifications";
 import { SwipeCard } from "@/components/swipe/SwipeCard";
 import { SwipeActions } from "@/components/swipe/SwipeActions";
 import { MatchNotification } from "@/components/swipe/MatchNotification";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { AnimatePresence } from "framer-motion";
 
 const Dashboard = () => {
@@ -18,6 +20,7 @@ const Dashboard = () => {
   const [matchedProfile, setMatchedProfile] = useState<any>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+  useNotifications(); // Enable browser notifications
 
   useEffect(() => {
     const initUser = async () => {
@@ -124,7 +127,7 @@ const Dashboard = () => {
           .select("*")
           .eq("user_id", likedProfile.id)
           .eq("liked_user_id", user.id)
-          .single();
+          .maybeSingle();
 
         if (reverseMatch) {
           // It's a match! Update both records
@@ -139,6 +142,24 @@ const Dashboard = () => {
             .update({ is_match: true })
             .eq("user_id", likedProfile.id)
             .eq("liked_user_id", user.id);
+
+          // Create notifications for both users
+          await supabase.from("notifications").insert([
+            {
+              user_id: user.id,
+              type: "match",
+              title: "It's a Match!",
+              message: `You and ${likedProfile.display_name} liked each other!`,
+              data: { match_id: likedProfile.id },
+            },
+            {
+              user_id: likedProfile.id,
+              type: "match",
+              title: "It's a Match!",
+              message: `You and ${user.email?.split("@")[0]} liked each other!`,
+              data: { match_id: user.id },
+            },
+          ]);
 
           // Show match notification
           setMatchedProfile(likedProfile);
@@ -186,6 +207,7 @@ const Dashboard = () => {
             </span>
           </div>
           <div className="flex gap-2">
+            <NotificationBell userId={user.id} />
             <Button variant="ghost" size="icon" onClick={() => navigate("/matches")}>
               <Heart className="h-5 w-5" />
             </Button>
