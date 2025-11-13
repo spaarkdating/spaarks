@@ -15,29 +15,38 @@ const Analytics = () => {
   });
 
   useEffect(() => {
-    const fetchStats = async () => {
-      // Fetch stats separately to avoid TypeScript inference issues
-      const totalUsersResult = await supabase.from("profiles").select("*", { count: "exact", head: true });
-      const activeUsersResult = await supabase.from("profiles").select("*", { count: "exact", head: true }).eq("account_status" as any, "active");
-      const bannedUsersResult = await supabase.from("profiles").select("*", { count: "exact", head: true }).eq("account_status" as any, "banned");
-      const totalMatchesResult = await supabase.from("matches").select("*", { count: "exact", head: true }).eq("is_match", true);
-      const totalMessagesResult = await supabase.from("messages").select("*", { count: "exact", head: true });
-      const pendingReportsResult = await (supabase as any).from("photo_reports").select("*", { count: "exact", head: true }).eq("status", "pending");
-      const openTicketsResult = await (supabase as any).from("support_tickets").select("*", { count: "exact", head: true }).in("status", ["open", "in_progress"]);
-
-      setStats({
-        totalUsers: totalUsersResult.count || 0,
-        activeUsers: activeUsersResult.count || 0,
-        bannedUsers: bannedUsersResult.count || 0,
-        totalMatches: totalMatchesResult.count || 0,
-        totalMessages: totalMessagesResult.count || 0,
-        pendingReports: pendingReportsResult.count || 0,
-        openTickets: openTicketsResult.count || 0,
-      });
-    };
-
     fetchStats();
   }, []);
+
+  const fetchStats = async () => {
+    try {
+      // Fetch all stats
+      const profilesResult: any = await supabase.from("profiles").select("*", { count: "exact", head: true });
+      const matchesResult: any = await supabase.from("matches").select("*", { count: "exact", head: true }).eq("is_match", true);
+      const messagesResult: any = await supabase.from("messages").select("*", { count: "exact", head: true });
+      
+      // Count active/banned manually from profiles
+      const { data: allProfiles } = await supabase.from("profiles").select("account_status");
+      const activeCount = allProfiles?.filter((p: any) => p.account_status === "active").length || 0;
+      const bannedCount = allProfiles?.filter((p: any) => p.account_status === "banned").length || 0;
+
+      // Count reports and tickets
+      const reportsResult: any = await (supabase as any).from("photo_reports").select("*", { count: "exact", head: true }).eq("status", "pending");
+      const ticketsResult: any = await (supabase as any).from("support_tickets").select("*", { count: "exact", head: true }).in("status", ["open", "in_progress"]);
+
+      setStats({
+        totalUsers: profilesResult.count || 0,
+        activeUsers: activeCount,
+        bannedUsers: bannedCount,
+        totalMatches: matchesResult.count || 0,
+        totalMessages: messagesResult.count || 0,
+        pendingReports: reportsResult.count || 0,
+        openTickets: ticketsResult.count || 0,
+      });
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+    }
+  };
 
   const statCards = [
     {
