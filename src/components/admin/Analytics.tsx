@@ -16,47 +16,23 @@ const Analytics = () => {
 
   useEffect(() => {
     const fetchStats = async () => {
-      const [
-        { count: totalUsers },
-        { count: activeUsers },
-        { count: bannedUsers },
-        { count: totalMatches },
-        { count: totalMessages },
-        { count: pendingReports },
-        { count: openTickets },
-      ] = await Promise.all([
-        supabase.from("profiles").select("*", { count: "exact", head: true }),
-        supabase
-          .from("profiles")
-          .select("*", { count: "exact", head: true })
-          .eq("account_status", "active"),
-        supabase
-          .from("profiles")
-          .select("*", { count: "exact", head: true })
-          .eq("account_status", "banned"),
-        supabase
-          .from("matches")
-          .select("*", { count: "exact", head: true })
-          .eq("is_match", true),
-        supabase.from("messages").select("*", { count: "exact", head: true }),
-        supabase
-          .from("photo_reports")
-          .select("*", { count: "exact", head: true })
-          .eq("status", "pending"),
-        supabase
-          .from("support_tickets")
-          .select("*", { count: "exact", head: true })
-          .in("status", ["open", "in_progress"]),
-      ]);
+      // Fetch stats separately to avoid TypeScript inference issues
+      const totalUsersResult = await supabase.from("profiles").select("*", { count: "exact", head: true });
+      const activeUsersResult = await supabase.from("profiles").select("*", { count: "exact", head: true }).eq("account_status" as any, "active");
+      const bannedUsersResult = await supabase.from("profiles").select("*", { count: "exact", head: true }).eq("account_status" as any, "banned");
+      const totalMatchesResult = await supabase.from("matches").select("*", { count: "exact", head: true }).eq("is_match", true);
+      const totalMessagesResult = await supabase.from("messages").select("*", { count: "exact", head: true });
+      const pendingReportsResult = await (supabase as any).from("photo_reports").select("*", { count: "exact", head: true }).eq("status", "pending");
+      const openTicketsResult = await (supabase as any).from("support_tickets").select("*", { count: "exact", head: true }).in("status", ["open", "in_progress"]);
 
       setStats({
-        totalUsers: totalUsers || 0,
-        activeUsers: activeUsers || 0,
-        bannedUsers: bannedUsers || 0,
-        totalMatches: totalMatches || 0,
-        totalMessages: totalMessages || 0,
-        pendingReports: pendingReports || 0,
-        openTickets: openTickets || 0,
+        totalUsers: totalUsersResult.count || 0,
+        activeUsers: activeUsersResult.count || 0,
+        bannedUsers: bannedUsersResult.count || 0,
+        totalMatches: totalMatchesResult.count || 0,
+        totalMessages: totalMessagesResult.count || 0,
+        pendingReports: pendingReportsResult.count || 0,
+        openTickets: openTicketsResult.count || 0,
       });
     };
 

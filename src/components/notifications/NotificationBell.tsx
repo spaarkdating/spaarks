@@ -24,7 +24,7 @@ export const NotificationBell = ({ userId }: NotificationBellProps) => {
   }, [userId]);
 
   const fetchNotifications = async () => {
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from("notifications")
       .select("*")
       .eq("user_id", userId)
@@ -81,7 +81,7 @@ export const NotificationBell = ({ userId }: NotificationBellProps) => {
   };
 
   const markAllAsRead = async () => {
-    await supabase
+    await (supabase as any)
       .from("notifications")
       .update({ read: true })
       .eq("user_id", userId)

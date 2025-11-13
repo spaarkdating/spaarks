@@ -48,7 +48,7 @@ const Support = () => {
   }, [navigate]);
 
   const fetchTickets = async (userId: string) => {
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from("support_tickets")
       .select("*")
       .eq("user_id", userId)
@@ -66,7 +66,7 @@ const Support = () => {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase.from("support_tickets").insert({
+      const { error } = await (supabase as any).from("support_tickets").insert({
         user_id: user.id,
         subject: newTicket.subject,
         message: newTicket.message,

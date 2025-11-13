@@ -173,7 +173,7 @@ const Settings = () => {
                     if (window.confirm("Are you sure you want to deactivate your account?")) {
                       const { error } = await supabase
                         .from("profiles")
-                        .update({ account_status: "deactivated" })
+                        .update({ account_status: "deactivated" } as any)
                         .eq("id", user.id);
 
                       if (!error) {

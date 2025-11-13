@@ -144,7 +144,7 @@ const Dashboard = () => {
             .eq("liked_user_id", user.id);
 
           // Create notifications for both users
-          await supabase.from("notifications").insert([
+          await (supabase as any).from("notifications").insert([
             {
               user_id: user.id,
               type: "match",
