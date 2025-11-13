@@ -15,7 +15,7 @@ const PhotoReports = () => {
   const { toast } = useToast();
 
   const fetchReports = async () => {
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from("photo_reports")
       .select(`
         *,
@@ -49,7 +49,7 @@ const PhotoReports = () => {
       return;
     }
 
-    const { error: updateError } = await supabase
+    const { error: updateError } = await (supabase as any)
       .from("photo_reports")
       .update({
         status: "approved",
@@ -76,7 +76,7 @@ const PhotoReports = () => {
   };
 
   const handleRejectReport = async (reportId: string) => {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from("photo_reports")
       .update({
         status: "rejected",

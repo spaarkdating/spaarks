@@ -22,7 +22,7 @@ const Admin = () => {
         return;
       }
 
-      const { data: adminData } = await supabase
+      const { data: adminData } = await (supabase as any)
         .from("admin_users")
         .select("role")
         .eq("user_id", user.id)

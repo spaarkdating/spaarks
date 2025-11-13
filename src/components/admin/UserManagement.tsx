@@ -33,7 +33,7 @@ const UserManagement = () => {
   const handleBanUser = async (userId: string) => {
     const { error } = await supabase
       .from("profiles")
-      .update({ account_status: "banned" })
+      .update({ account_status: "banned" } as any)
       .eq("id", userId);
 
     if (error) {
@@ -54,7 +54,7 @@ const UserManagement = () => {
   const handleUnbanUser = async (userId: string) => {
     const { error } = await supabase
       .from("profiles")
-      .update({ account_status: "active" })
+      .update({ account_status: "active" } as any)
       .eq("id", userId);
 
     if (error) {
