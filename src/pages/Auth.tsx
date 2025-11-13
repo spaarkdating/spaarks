@@ -14,6 +14,7 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -90,6 +91,36 @@ const Auth = () => {
     }
   };
 
+  const handleResendVerification = async () => {
+    if (!email) {
+      toast({
+        title: "Enter your email",
+        description: "Please enter the email you signed up with.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setIsResending(true);
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/dashboard` },
+    });
+    setIsResending(false);
+    if (error) {
+      toast({
+        title: "Resend failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Verification email resent",
+        description: "Check your inbox for a new link.",
+      });
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background flex items-center justify-center p-4">
@@ -144,6 +175,15 @@ const Auth = () => {
                   >
                     {isLoading ? "Logging in..." : "Log In"}
                   </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={handleResendVerification}
+                    disabled={isResending || !email}
+                  >
+                    {isResending ? "Resending..." : "Resend verification email"}
+                  </Button>
                 </form>
               </TabsContent>
 
@@ -188,6 +228,15 @@ const Auth = () => {
                     disabled={isLoading}
                   >
                     {isLoading ? "Creating account..." : "Sign Up"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={handleResendVerification}
+                    disabled={isResending || !email}
+                  >
+                    {isResending ? "Resending..." : "Resend verification email"}
                   </Button>
                 </form>
               </TabsContent>
