@@ -28,20 +28,24 @@ const Admin = () => {
         return;
       }
 
+      // First check via secure RPC (respects RLS safely)
+      const { data: isAdminResult, error: adminCheckError } = await supabase.rpc("is_admin");
+
+      if (adminCheckError || isAdminResult !== true) {
+        navigate("/dashboard");
+        return;
+      }
+
+      // Fetch admin metadata (role/email) for UI only
       const { data: adminData } = await (supabase as any)
         .from("admin_users")
         .select("role, email")
         .eq("user_id", user.id)
         .single();
 
-      if (!adminData) {
-        navigate("/dashboard");
-        return;
-      }
-
       setIsAdmin(true);
-      setAdminEmail(adminData.email);
-      setAdminRole(adminData.role);
+      setAdminEmail(adminData?.email || user.email || "");
+      setAdminRole(adminData?.role || "admin");
       setLoading(false);
     };
 

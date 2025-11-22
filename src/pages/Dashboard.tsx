@@ -30,14 +30,14 @@ const Dashboard = () => {
         return;
       }
       
-      // Check if user is admin
-      const { data: adminData } = await (supabase as any)
-        .from("admin_users")
-        .select("role")
-        .eq("user_id", session.user.id)
-        .maybeSingle();
+      // Check if user is admin (use secure RPC, does not rely on table RLS)
+      const { data: isAdmin, error: adminCheckError } = await supabase.rpc("is_admin");
 
-      if (adminData) {
+      if (adminCheckError) {
+        console.error("Error checking admin status:", adminCheckError);
+      }
+
+      if (isAdmin === true) {
         // Redirect admins to admin dashboard
         navigate("/admin");
         return;
@@ -111,19 +111,11 @@ const Dashboard = () => {
       const { data: potentialMatches } = await profileQuery;
 
       if (potentialMatches) {
-        // Get email verification status for all potential matches
-        const profileIds = potentialMatches.map(p => p.id);
-        const { data: { users: authUsers } } = await supabase.auth.admin.listUsers();
-        
-        // Sort photos by display_order and add email verification status
-        const sortedProfiles = potentialMatches.map(profile => {
-          const authUser = authUsers?.find((u: any) => u.id === profile.id);
-          return {
-            ...profile,
-            photos: (profile.photos || []).sort((a: any, b: any) => a.display_order - b.display_order),
-            email_verified: !!authUser?.email_confirmed_at,
-          };
-        });
+        // Sort photos by display_order
+        const sortedProfiles = potentialMatches.map((profile) => ({
+          ...profile,
+          photos: (profile.photos || []).sort((a: any, b: any) => a.display_order - b.display_order),
+        }));
         setProfiles(sortedProfiles);
       }
     } catch (error: any) {
