@@ -8,7 +8,11 @@ import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { AlertTriangle, CheckCircle, X } from "lucide-react";
 
-const PhotoReports = () => {
+interface PhotoReportsProps {
+  adminRole: "admin" | "moderator";
+}
+
+const PhotoReports = ({ adminRole }: PhotoReportsProps) => {
   const [reports, setReports] = useState<any[]>([]);
   const [selectedReport, setSelectedReport] = useState<any>(null);
   const [adminNotes, setAdminNotes] = useState("");
@@ -222,13 +226,23 @@ const PhotoReports = () => {
                     onChange={(e) => setAdminNotes(e.target.value)}
                     placeholder="Add notes about your decision..."
                     rows={4}
+                    disabled={adminRole === "moderator"}
                   />
                 </div>
+
+                {adminRole === "moderator" && (
+                  <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
+                    <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                      <strong>View Only:</strong> Moderators can view reports but cannot take action. Contact a full admin to approve or reject.
+                    </p>
+                  </div>
+                )}
 
                 <div className="flex gap-2">
                   <Button
                     onClick={() => handleApproveReport(selectedReport.id, selectedReport.photo_id)}
                     className="flex-1 bg-destructive hover:bg-destructive/90"
+                    disabled={adminRole === "moderator"}
                   >
                     <CheckCircle className="h-4 w-4 mr-2" />
                     Remove Photo
@@ -237,6 +251,7 @@ const PhotoReports = () => {
                     onClick={() => handleRejectReport(selectedReport.id)}
                     variant="outline"
                     className="flex-1"
+                    disabled={adminRole === "moderator"}
                   >
                     <X className="h-4 w-4 mr-2" />
                     Reject Report

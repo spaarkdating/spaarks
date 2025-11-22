@@ -513,6 +513,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
+      is_full_admin: { Args: never; Returns: boolean }
       update_last_online: { Args: never; Returns: undefined }
     }
     Enums: {
