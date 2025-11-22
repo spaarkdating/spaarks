@@ -116,21 +116,38 @@ const Auth = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    setIsLoading(false);
-
     if (error) {
+      setIsLoading(false);
       toast({
         title: "Login failed",
         description: error.message,
         variant: "destructive",
       });
-    } else {
-      navigate("/dashboard");
+      return;
+    }
+
+    // Check if user is admin
+    if (data.user) {
+      const { data: adminData } = await (supabase as any)
+        .from("admin_users")
+        .select("role")
+        .eq("user_id", data.user.id)
+        .maybeSingle();
+
+      setIsLoading(false);
+
+      if (adminData) {
+        // Redirect admin users to admin dashboard
+        navigate("/admin");
+      } else {
+        // Redirect regular users to regular dashboard
+        navigate("/dashboard");
+      }
     }
   };
 
