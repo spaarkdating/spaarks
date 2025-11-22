@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Heart } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +14,8 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminSecret, setAdminSecret] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -31,7 +34,7 @@ const Auth = () => {
 
     setIsLoading(true);
     
-    const { error } = await supabase.auth.signUp({
+    const { data: authData, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -39,9 +42,8 @@ const Auth = () => {
       },
     });
 
-    setIsLoading(false);
-
     if (error) {
+      setIsLoading(false);
       // Handle specific error for existing users
       if (error.message.includes("already registered")) {
         toast({
@@ -56,16 +58,58 @@ const Auth = () => {
           variant: "destructive",
         });
       }
+      return;
+    }
+
+    // If registering as admin, verify the secret code
+    if (isAdmin && authData.user) {
+      try {
+        const { data: verifyData, error: verifyError } = await supabase.functions.invoke(
+          "verify-admin-registration",
+          {
+            body: {
+              secretCode: adminSecret,
+              userId: authData.user.id,
+              email: email,
+            },
+          }
+        );
+
+        if (verifyError || (verifyData && verifyData.error)) {
+          // Admin verification failed - show error but account is still created
+          toast({
+            title: "Admin registration failed",
+            description: verifyData?.error || verifyError?.message || "Invalid admin secret code",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Admin account created!",
+            description: "Please check your email to verify your account. You now have admin privileges.",
+          });
+        }
+      } catch (err: any) {
+        console.error("Error verifying admin:", err);
+        toast({
+          title: "Admin verification error",
+          description: "Account created but admin verification failed. Contact support if you need admin access.",
+          variant: "destructive",
+        });
+      }
     } else {
       toast({
         title: "Account created!",
         description: "Please check your email to verify your account before logging in.",
       });
-      // Clear form
-      setEmail("");
-      setPassword("");
-      setConfirmPassword("");
     }
+
+    setIsLoading(false);
+    // Clear form
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+    setAdminSecret("");
+    setIsAdmin(false);
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -182,6 +226,41 @@ const Auth = () => {
                       required
                     />
                   </div>
+                  
+                  {/* Admin Registration Option */}
+                  <div className="space-y-4 pt-2 border-t">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="admin-checkbox"
+                        checked={isAdmin}
+                        onCheckedChange={(checked) => setIsAdmin(checked as boolean)}
+                      />
+                      <Label
+                        htmlFor="admin-checkbox"
+                        className="text-sm font-normal cursor-pointer"
+                      >
+                        Register as Admin
+                      </Label>
+                    </div>
+                    
+                    {isAdmin && (
+                      <div className="space-y-2 animate-fade-in">
+                        <Label htmlFor="admin-secret">Admin Secret Code</Label>
+                        <Input
+                          id="admin-secret"
+                          type="password"
+                          placeholder="Enter admin secret code"
+                          value={adminSecret}
+                          onChange={(e) => setAdminSecret(e.target.value)}
+                          required={isAdmin}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Only authorized personnel should have access to the admin secret code.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  
                   <Button
                     type="submit"
                     className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground"
