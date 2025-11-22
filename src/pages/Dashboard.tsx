@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
-import { Heart, MessageCircle, User as UserIcon, Settings, LogOut, RefreshCw } from "lucide-react";
+import { Heart, MessageCircle, User as UserIcon, Settings, LogOut, RefreshCw, Eye, HelpCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/useNotifications";
 import { SwipeCard } from "@/components/swipe/SwipeCard";
@@ -233,6 +233,9 @@ const Dashboard = () => {
           </div>
           <div className="flex gap-2">
             <NotificationBell userId={user.id} />
+            <Button variant="ghost" size="icon" onClick={() => navigate("/profile-views")} title="Profile Views">
+              <Eye className="h-5 w-5" />
+            </Button>
             <Button variant="ghost" size="icon" onClick={() => navigate("/matches")}>
               <Heart className="h-5 w-5" />
             </Button>
@@ -241,6 +244,9 @@ const Dashboard = () => {
             </Button>
             <Button variant="ghost" size="icon" onClick={() => navigate("/profile")}>
               <UserIcon className="h-5 w-5" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={() => navigate("/faq")} title="FAQ">
+              <HelpCircle className="h-5 w-5" />
             </Button>
             <Button variant="ghost" size="icon" onClick={() => navigate("/settings")}>
               <Settings className="h-5 w-5" />

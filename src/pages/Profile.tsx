@@ -6,6 +6,7 @@ import { Heart, ArrowLeft, Settings as SettingsIcon, LogOut, Edit } from "lucide
 import { useToast } from "@/hooks/use-toast";
 import { ProfileView } from "@/components/profile/ProfileView";
 import { ProfileEdit } from "@/components/profile/ProfileEdit";
+import ProfileCompletion from "@/components/profile/ProfileCompletion";
 
 const Profile = () => {
   const [user, setUser] = useState<any>(null);
@@ -131,12 +132,19 @@ const Profile = () => {
             onCancel={() => setIsEditing(false)}
           />
         ) : (
-          <ProfileView
-            profile={profile}
-            photos={photos}
-            interests={interests}
-            emailVerified={emailVerified}
-          />
+          <div className="space-y-6">
+            <ProfileCompletion 
+              profile={profile} 
+              photos={photos} 
+              interests={interests}
+            />
+            <ProfileView
+              profile={profile}
+              photos={photos}
+              interests={interests}
+              emailVerified={emailVerified}
+            />
+          </div>
         )}
       </div>
     </div>
