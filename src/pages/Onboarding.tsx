@@ -64,6 +64,38 @@ const Onboarding = () => {
   };
 
   const handleNext = () => {
+    // Validate step before proceeding
+    if (currentStep === 2 && formData.photos.length < 5) {
+      toast({
+        title: "More photos needed",
+        description: "Please upload at least 5 photos before continuing.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (currentStep === 3) {
+      if (!formData.displayName || !formData.bio || !formData.dateOfBirth || !formData.gender) {
+        toast({
+          title: "Required fields",
+          description: "Please fill in all fields before continuing.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    if (currentStep === 5) {
+      if (!formData.lookingFor || !formData.location) {
+        toast({
+          title: "Missing preferences",
+          description: "Please fill in all fields before continuing.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     if (currentStep < steps.length) {
       setCurrentStep(currentStep + 1);
     }
@@ -77,6 +109,26 @@ const Onboarding = () => {
 
   const handleComplete = async () => {
     if (!userId) return;
+
+    // Validate required fields
+    if (!formData.displayName || !formData.bio || !formData.dateOfBirth || 
+        !formData.gender || !formData.lookingFor || !formData.location) {
+      toast({
+        title: "Missing information",
+        description: "Please fill in all required fields before completing your profile.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.photos.length < 5) {
+      toast({
+        title: "More photos needed",
+        description: "Please upload at least 5 photos to complete your profile.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       // Update profile
