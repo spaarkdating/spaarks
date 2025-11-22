@@ -7,14 +7,17 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Mail, User, LogOut, MessageSquare, Heart } from "lucide-react";
+import { ArrowLeft, Mail, User, LogOut, MessageSquare, Heart, Filter } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Settings = () => {
   const [user, setUser] = useState<any>(null);
   const [email, setEmail] = useState("");
   const [datingMode, setDatingMode] = useState<string>("online");
+  const [minAge, setMinAge] = useState<number>(18);
+  const [maxAge, setMaxAge] = useState<number>(99);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -29,15 +32,17 @@ const Settings = () => {
       setUser(user);
       setEmail(user.email || "");
 
-      // Fetch user profile for dating mode
+      // Fetch user profile for dating mode and age preferences
       const { data: profile } = await supabase
         .from("profiles")
-        .select("dating_mode")
+        .select("dating_mode, min_age, max_age")
         .eq("id", user.id)
         .single();
       
-      if (profile?.dating_mode) {
-        setDatingMode(profile.dating_mode);
+      if (profile) {
+        if (profile.dating_mode) setDatingMode(profile.dating_mode);
+        if (profile.min_age) setMinAge(profile.min_age);
+        if (profile.max_age) setMaxAge(profile.max_age);
       }
     };
 
@@ -107,6 +112,34 @@ const Settings = () => {
       toast({
         title: "Dating mode updated",
         description: `Your dating mode has been changed to "${newMode}".`,
+      });
+    }
+  };
+
+  const handleUpdateAgeRange = async () => {
+    if (!user) return;
+
+    setIsLoading(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ 
+        min_age: minAge,
+        max_age: maxAge
+      } as any)
+      .eq("id", user.id);
+
+    setIsLoading(false);
+
+    if (error) {
+      toast({
+        title: "Update failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Age range updated",
+        description: `You will now see profiles aged ${minAge}-${maxAge}.`,
       });
     }
   };
@@ -183,6 +216,54 @@ const Settings = () => {
                 <p className="text-xs text-muted-foreground">
                   You will only see profiles of users with the same dating mode preference
                 </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-xl border-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Filter className="h-5 w-5" />
+                Discovery Filters
+              </CardTitle>
+              <CardDescription>Set your age preferences for potential matches</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label>Age Range: {minAge} - {maxAge}</Label>
+                </div>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Minimum Age: {minAge}</Label>
+                    <Slider
+                      value={[minAge]}
+                      onValueChange={(value) => setMinAge(value[0])}
+                      min={18}
+                      max={maxAge - 1}
+                      step={1}
+                      className="w-full"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Maximum Age: {maxAge}</Label>
+                    <Slider
+                      value={[maxAge]}
+                      onValueChange={(value) => setMaxAge(value[0])}
+                      min={minAge + 1}
+                      max={99}
+                      step={1}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+                <Button 
+                  onClick={handleUpdateAgeRange} 
+                  disabled={isLoading}
+                  className="w-full bg-gradient-to-r from-primary to-secondary"
+                >
+                  {isLoading ? "Updating..." : "Update Age Range"}
+                </Button>
               </div>
             </CardContent>
           </Card>

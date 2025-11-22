@@ -14,6 +14,8 @@ import Messages from "./pages/Messages";
 import Profile from "./pages/Profile";
 import Support from "./pages/Support";
 import Admin from "./pages/Admin";
+import FAQ from "./pages/FAQ";
+import ProfileViews from "./pages/ProfileViews";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,8 +35,10 @@ const App = () => (
           <Route path="/matches" element={<Matches />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/profile-views" element={<ProfileViews />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/support" element={<Support />} />
+          <Route path="/faq" element={<FAQ />} />
           <Route path="/admin" element={<Admin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
