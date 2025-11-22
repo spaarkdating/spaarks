@@ -30,6 +30,19 @@ const Dashboard = () => {
         return;
       }
       
+      // Check if user is admin
+      const { data: adminData } = await (supabase as any)
+        .from("admin_users")
+        .select("role")
+        .eq("user_id", session.user.id)
+        .maybeSingle();
+
+      if (adminData) {
+        // Redirect admins to admin dashboard
+        navigate("/admin");
+        return;
+      }
+
       setUser(session.user);
 
       // Check if profile is complete

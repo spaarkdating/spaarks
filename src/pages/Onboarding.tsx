@@ -44,6 +44,13 @@ const Onboarding = () => {
       }
       setUserId(user.id);
 
+      // Check if user is admin
+      const { data: adminData } = await (supabase as any)
+        .from("admin_users")
+        .select("role")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
       // Check if profile is already complete
       const { data: profile } = await supabase
         .from("profiles")
@@ -52,7 +59,12 @@ const Onboarding = () => {
         .single();
 
       if (profile?.bio && profile?.gender && profile?.looking_for) {
-        navigate("/dashboard");
+        // Redirect to appropriate dashboard based on admin status
+        if (adminData) {
+          navigate("/admin");
+        } else {
+          navigate("/dashboard");
+        }
       }
     };
 
@@ -175,7 +187,18 @@ const Onboarding = () => {
         description: "Welcome to Spaark! Start swiping to find your match.",
       });
 
-      navigate("/dashboard");
+      // Check if user is admin and redirect accordingly
+      const { data: adminData } = await (supabase as any)
+        .from("admin_users")
+        .select("role")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (adminData) {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (error: any) {
       toast({
         title: "Error",
