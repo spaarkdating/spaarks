@@ -14,6 +14,7 @@ const Profile = () => {
   const [interests, setInterests] = useState<any[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [emailVerified, setEmailVerified] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -25,6 +26,7 @@ const Profile = () => {
         return;
       }
       setUser(user);
+      setEmailVerified(!!user.email_confirmed_at);
       fetchProfile(user.id);
     };
 
@@ -133,6 +135,7 @@ const Profile = () => {
             profile={profile}
             photos={photos}
             interests={interests}
+            emailVerified={emailVerified}
           />
         )}
       </div>
