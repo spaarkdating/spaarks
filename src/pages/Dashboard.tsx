@@ -10,7 +10,9 @@ import { SwipeCard } from "@/components/swipe/SwipeCard";
 import { SwipeActions } from "@/components/swipe/SwipeActions";
 import { MatchNotification } from "@/components/swipe/MatchNotification";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { ActivityFeed } from "@/components/activity/ActivityFeed";
 import { AnimatePresence } from "framer-motion";
+import { calculateCompatibilityScore } from "@/lib/compatibility";
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -18,6 +20,8 @@ const Dashboard = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [matchedProfile, setMatchedProfile] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [compatibilityScores, setCompatibilityScores] = useState<Record<string, number>>({});
   const navigate = useNavigate();
   const { toast } = useToast();
   useNotifications(); // Enable browser notifications
@@ -77,12 +81,23 @@ const Dashboard = () => {
     setIsLoading(true);
     
     try {
-      // Get current user's dating mode
+      // Get current user's profile with interests
       const { data: currentUserProfile } = await supabase
         .from("profiles")
-        .select("dating_mode")
+        .select(`
+          *,
+          user_interests(interest:interests(*))
+        `)
         .eq("id", userId)
         .single();
+
+      if (currentUserProfile) {
+        const userInterests = (currentUserProfile as any).user_interests?.map((ui: any) => ui.interest.name) || [];
+        setUserProfile({
+          ...currentUserProfile,
+          interests: userInterests,
+        });
+      }
 
       const userDatingMode = (currentUserProfile as any)?.dating_mode || "online";
 
@@ -110,12 +125,31 @@ const Dashboard = () => {
       profileQuery.eq("dating_mode", userDatingMode);
       const { data: potentialMatches } = await profileQuery;
 
-      if (potentialMatches) {
-        // Sort photos by display_order
-        const sortedProfiles = potentialMatches.map((profile) => ({
-          ...profile,
-          photos: (profile.photos || []).sort((a: any, b: any) => a.display_order - b.display_order),
-        }));
+      if (potentialMatches && currentUserProfile) {
+        // Sort photos by display_order and calculate compatibility
+        const userInterests = (currentUserProfile as any).user_interests?.map((ui: any) => ui.interest.name) || [];
+        const scores: Record<string, number> = {};
+        const sortedProfiles = potentialMatches.map((profile) => {
+          const otherInterests = profile.user_interests?.map((ui: any) => ui.interest.name) || [];
+          const score = calculateCompatibilityScore(
+            { 
+              ...currentUserProfile,
+              interests: userInterests,
+            },
+            { 
+              ...profile,
+              interests: otherInterests,
+            }
+          );
+          scores[profile.id] = score;
+          
+          return {
+            ...profile,
+            photos: (profile.photos || []).sort((a: any, b: any) => a.display_order - b.display_order),
+          };
+        });
+        
+        setCompatibilityScores(scores);
         setProfiles(sortedProfiles);
       }
     } catch (error: any) {
@@ -223,35 +257,35 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background">
       {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+      <header className="border-b border-border/50 bg-card/80 backdrop-blur-md sticky top-0 z-10 shadow-sm">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Heart className="h-8 w-8 text-primary fill-primary" />
-            <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          <div className="flex items-center gap-2 animate-fade-in">
+            <Heart className="h-8 w-8 text-primary fill-primary animate-heartbeat" />
+            <span className="text-2xl font-bold gradient-text">
               Spaark
             </span>
           </div>
           <div className="flex gap-2">
             <NotificationBell userId={user.id} />
-            <Button variant="ghost" size="icon" onClick={() => navigate("/profile-views")} title="Profile Views">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/profile-views")} title="Profile Views" className="hover:scale-110 transition-transform">
               <Eye className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => navigate("/matches")}>
+            <Button variant="ghost" size="icon" onClick={() => navigate("/matches")} className="hover:scale-110 transition-transform">
               <Heart className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => navigate("/messages")}>
+            <Button variant="ghost" size="icon" onClick={() => navigate("/messages")} className="hover:scale-110 transition-transform">
               <MessageCircle className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => navigate("/profile")}>
+            <Button variant="ghost" size="icon" onClick={() => navigate("/profile")} className="hover:scale-110 transition-transform">
               <UserIcon className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => navigate("/faq")} title="FAQ">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/faq")} title="FAQ" className="hover:scale-110 transition-transform">
               <HelpCircle className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => navigate("/settings")}>
+            <Button variant="ghost" size="icon" onClick={() => navigate("/settings")} className="hover:scale-110 transition-transform">
               <Settings className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={handleLogout}>
+            <Button variant="ghost" size="icon" onClick={handleLogout} className="hover:scale-110 transition-transform">
               <LogOut className="h-5 w-5" />
             </Button>
           </div>
@@ -259,62 +293,75 @@ const Dashboard = () => {
       </header>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8 max-h-[calc(100vh-80px)] flex items-center justify-center">
-        <div className="w-full max-w-md">
-          {isLoading ? (
-            <div className="text-center space-y-4">
-              <RefreshCw className="h-12 w-12 text-primary animate-spin mx-auto" />
-              <p className="text-muted-foreground">Finding matches for you...</p>
-            </div>
-          ) : hasMoreProfiles ? (
-            <div className="space-y-6">
-              {/* Swipe Card Stack */}
-              <div className="relative h-[600px]">
-                <AnimatePresence>
-                  {profiles.slice(currentIndex, currentIndex + 2).map((profile, index) => (
-                    <SwipeCard
-                      key={profile.id}
-                      profile={profile}
-                      onSwipe={index === 0 ? handleSwipe : () => {}}
-                      style={{
-                        zIndex: 2 - index,
-                        scale: 1 - index * 0.05,
-                        opacity: 1 - index * 0.3,
-                      }}
-                    />
-                  ))}
-                </AnimatePresence>
-              </div>
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid lg:grid-cols-[1fr_400px] gap-8 max-w-7xl mx-auto">
+          {/* Main Swipe Area */}
+          <div className="flex items-center justify-center">
+            <div className="w-full max-w-md">
+              {isLoading ? (
+                <div className="text-center space-y-4 animate-fade-in">
+                  <RefreshCw className="h-12 w-12 text-primary animate-spin mx-auto" />
+                  <p className="text-muted-foreground">Finding matches for you...</p>
+                </div>
+              ) : hasMoreProfiles ? (
+                <div className="space-y-6 animate-fade-in">
+                  {/* Swipe Card Stack */}
+                  <div className="relative h-[600px]">
+                    <AnimatePresence>
+                      {profiles.slice(currentIndex, currentIndex + 2).map((profile, index) => (
+                        <SwipeCard
+                          key={profile.id}
+                          profile={profile}
+                          onSwipe={index === 0 ? handleSwipe : () => {}}
+                          compatibilityScore={compatibilityScores[profile.id]}
+                          style={{
+                            zIndex: 2 - index,
+                            scale: 1 - index * 0.05,
+                            opacity: 1 - index * 0.3,
+                          }}
+                        />
+                      ))}
+                    </AnimatePresence>
+                  </div>
 
-              {/* Swipe Actions */}
-              <SwipeActions
-                onDislike={() => handleSwipe("left")}
-                onLike={() => handleSwipe("right")}
-                onSuperLike={() => handleSwipe("super")}
-                disabled={!hasMoreProfiles}
-              />
+                  {/* Swipe Actions */}
+                  <SwipeActions
+                    onDislike={() => handleSwipe("left")}
+                    onLike={() => handleSwipe("right")}
+                    onSuperLike={() => handleSwipe("super")}
+                    disabled={!hasMoreProfiles}
+                  />
+                </div>
+              ) : (
+                <div className="text-center space-y-4 animate-scale-in">
+                  <Heart className="h-24 w-24 text-muted-foreground mx-auto animate-pulse" />
+                  <h3 className="text-2xl font-bold gradient-text">No more profiles</h3>
+                  <p className="text-muted-foreground">
+                    Check back later for new matches!
+                  </p>
+                  <Button
+                    onClick={() => {
+                      if (user) {
+                        setCurrentIndex(0);
+                        fetchProfiles(user.id);
+                      }
+                    }}
+                    className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 shadow-lg hover:shadow-xl transition-all"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Refresh
+                  </Button>
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="text-center space-y-4">
-              <Heart className="h-24 w-24 text-muted-foreground mx-auto" />
-              <h3 className="text-2xl font-bold">No more profiles</h3>
-              <p className="text-muted-foreground">
-                Check back later for new matches!
-              </p>
-              <Button
-                onClick={() => {
-                  if (user) {
-                    setCurrentIndex(0);
-                    fetchProfiles(user.id);
-                  }
-                }}
-                className="bg-gradient-to-r from-primary to-secondary hover:opacity-90"
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Refresh
-              </Button>
+          </div>
+
+          {/* Activity Feed Sidebar */}
+          <div className="hidden lg:block">
+            <div className="sticky top-24 animate-slide-in">
+              <ActivityFeed />
             </div>
-          )}
+          </div>
         </div>
       </div>
 

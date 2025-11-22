@@ -1,62 +1,97 @@
 import { Button } from "@/components/ui/button";
-import { Heart, Sparkles, MessageCircle, Shield } from "lucide-react";
+import { Heart, Sparkles, MessageCircle, Shield, Zap, Users, Star } from "lucide-react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 
 const Landing = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background overflow-hidden">
+      {/* Animated background gradient */}
+      <div className="fixed inset-0 bg-[var(--gradient-glow)] pointer-events-none" />
+      
       {/* Header */}
-      <header className="container mx-auto px-4 py-6 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <Heart className="h-8 w-8 text-primary fill-primary" />
-          <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+      <header className="container mx-auto px-4 py-6 flex justify-between items-center relative z-10">
+        <motion.div 
+          className="flex items-center gap-2"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Heart className="h-8 w-8 text-primary fill-primary animate-heartbeat" />
+          <span className="text-2xl font-bold gradient-text">
             Spaark
           </span>
-        </div>
-        <div className="flex gap-3">
+        </motion.div>
+        <motion.div 
+          className="flex gap-3"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
           <Link to="/auth">
-            <Button variant="ghost" className="text-foreground hover:text-primary">
+            <Button variant="ghost" className="text-foreground hover:text-primary transition-colors">
               Log In
             </Button>
           </Link>
           <Link to="/auth">
-            <Button className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground shadow-lg">
+            <Button className="bg-gradient-to-r from-primary via-primary-glow to-secondary hover:opacity-90 text-primary-foreground shadow-lg hover:shadow-[var(--shadow-soft)] transition-all">
               Sign Up
             </Button>
           </Link>
-        </div>
+        </motion.div>
       </header>
 
       {/* Hero Section */}
-      <section className="container mx-auto px-4 py-20 text-center">
-        <div className="max-w-3xl mx-auto space-y-6">
-          <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full text-primary text-sm font-medium mb-4">
-            <Sparkles className="h-4 w-4" />
+      <section className="container mx-auto px-4 py-20 text-center relative">
+        <div className="max-w-4xl mx-auto space-y-8">
+          <motion.div 
+            className="inline-flex items-center gap-2 bg-primary/10 backdrop-blur-sm px-4 py-2 rounded-full text-primary text-sm font-medium mb-4 border border-primary/20"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <Sparkles className="h-4 w-4 animate-pulse" />
             Find Your Perfect Match
-          </div>
+          </motion.div>
           
-          <h1 className="text-5xl md:text-7xl font-bold leading-tight">
+          <motion.h1 
+            className="text-6xl md:text-8xl font-bold leading-tight"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+          >
             Ignite Your{" "}
-            <span className="bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
+            <span className="gradient-text animate-shimmer bg-gradient-to-r from-primary via-accent to-secondary bg-[length:200%_auto]">
               Love Story
             </span>
-          </h1>
+          </motion.h1>
           
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <motion.p 
+            className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
             Discover meaningful connections with people who share your interests and values. 
             Swipe, match, and chat your way to finding that special someone.
-          </p>
+          </motion.p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
+          <motion.div 
+            className="flex flex-col sm:flex-row gap-4 justify-center pt-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+          >
             <Link to="/auth">
-              <Button size="lg" className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground shadow-lg text-lg px-8 py-6">
+              <Button size="lg" className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-glow)] text-lg px-10 py-7 transition-all card-hover">
+                <Sparkles className="h-5 w-5 mr-2" />
                 Get Started Free
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="border-2 border-primary text-primary hover:bg-primary/5 text-lg px-8 py-6">
+            <Button size="lg" variant="outline" className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground text-lg px-10 py-7 transition-all card-hover">
               Learn More
             </Button>
-          </div>
+          </motion.div>
         </div>
 
         {/* Hero Image Placeholder */}

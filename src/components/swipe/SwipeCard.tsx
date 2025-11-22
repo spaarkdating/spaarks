@@ -2,6 +2,8 @@ import { useState } from "react";
 import { motion, useMotionValue, useTransform, PanInfo } from "framer-motion";
 import { Heart, X, Star, MapPin, Briefcase, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { OnlineStatus } from "@/components/profile/OnlineStatus";
+import { CompatibilityBadge } from "@/components/swipe/CompatibilityBadge";
 
 interface Profile {
   id: string;
@@ -12,15 +14,18 @@ interface Profile {
   photos: { photo_url: string }[];
   interests: { interest: { name: string } }[];
   email_verified?: boolean;
+  gender?: string;
+  looking_for?: string;
 }
 
 interface SwipeCardProps {
   profile: Profile;
   onSwipe: (direction: "left" | "right" | "super") => void;
   style?: any;
+  compatibilityScore?: number;
 }
 
-export const SwipeCard = ({ profile, onSwipe, style }: SwipeCardProps) => {
+export const SwipeCard = ({ profile, onSwipe, style, compatibilityScore }: SwipeCardProps) => {
   const [exitX, setExitX] = useState(0);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const x = useMotionValue(0);
@@ -64,7 +69,7 @@ export const SwipeCard = ({ profile, onSwipe, style }: SwipeCardProps) => {
       animate={exitX !== 0 ? { x: exitX } : {}}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
     >
-      <div className="w-full h-full bg-card rounded-3xl shadow-2xl overflow-hidden border-2 border-border">
+      <div className="w-full h-full bg-card rounded-3xl overflow-hidden border-2 border-border/50 shadow-[var(--shadow-elevated)]">
         {/* Photo */}
         <div className="relative h-2/3 bg-gradient-to-br from-primary/20 via-secondary/20 to-accent/20">
           <img
@@ -73,9 +78,19 @@ export const SwipeCard = ({ profile, onSwipe, style }: SwipeCardProps) => {
             className="w-full h-full object-cover"
           />
           
+          {/* Compatibility & Online Status Badges */}
+          <div className="absolute top-4 left-4 right-4 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              {compatibilityScore !== undefined && (
+                <CompatibilityBadge score={compatibilityScore} className="animate-fade-in-scale" />
+              )}
+              <OnlineStatus userId={profile.id} showLabel />
+            </div>
+          </div>
+          
           {/* Photo indicators */}
           {photos.length > 1 && (
-            <div className="absolute top-4 left-0 right-0 flex gap-1 px-4">
+            <div className="absolute top-16 left-0 right-0 flex gap-1 px-4">
               {photos.map((_, index) => (
                 <div
                   key={index}
@@ -89,13 +104,13 @@ export const SwipeCard = ({ profile, onSwipe, style }: SwipeCardProps) => {
 
           {/* Swipe indicators */}
           <motion.div
-            className="absolute top-1/4 left-8 text-6xl font-bold text-green-500 border-4 border-green-500 rounded-2xl px-6 py-2 rotate-12"
+            className="absolute top-1/4 left-8 text-5xl font-bold text-primary border-4 border-primary rounded-2xl px-6 py-3 rotate-12 bg-card/90 backdrop-blur-sm shadow-lg"
             style={{ opacity: useTransform(x, [0, 150], [0, 1]) }}
           >
             LIKE
           </motion.div>
           <motion.div
-            className="absolute top-1/4 right-8 text-6xl font-bold text-red-500 border-4 border-red-500 rounded-2xl px-6 py-2 -rotate-12"
+            className="absolute top-1/4 right-8 text-5xl font-bold text-destructive border-4 border-destructive rounded-2xl px-6 py-3 -rotate-12 bg-card/90 backdrop-blur-sm shadow-lg"
             style={{ opacity: useTransform(x, [-150, 0], [1, 0]) }}
           >
             NOPE
@@ -117,15 +132,15 @@ export const SwipeCard = ({ profile, onSwipe, style }: SwipeCardProps) => {
         </div>
 
         {/* Info */}
-        <div className="h-1/3 p-6 overflow-y-auto">
+        <div className="h-1/3 p-6 overflow-y-auto bg-gradient-to-b from-card to-card/80">
           <div className="flex items-center gap-2 mb-2">
-            <h2 className="text-2xl font-bold flex items-center gap-2">
+            <h2 className="text-2xl font-bold flex items-center gap-2 gradient-text">
               <span>
                 {profile.display_name}
-                {age && <span className="text-muted-foreground">, {age}</span>}
+                {age && <span className="text-foreground/70">, {age}</span>}
               </span>
               {profile.email_verified && (
-                <CheckCircle className="h-5 w-5 text-primary fill-primary" />
+                <CheckCircle className="h-5 w-5 text-primary fill-primary animate-pulse" />
               )}
             </h2>
           </div>
@@ -137,12 +152,16 @@ export const SwipeCard = ({ profile, onSwipe, style }: SwipeCardProps) => {
             </div>
           )}
 
-          <p className="text-sm text-muted-foreground mb-3">{profile.bio}</p>
+          <p className="text-sm text-foreground/80 mb-4 leading-relaxed">{profile.bio}</p>
 
           {profile.interests && profile.interests.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {profile.interests.slice(0, 6).map((userInterest, index) => (
-                <Badge key={index} variant="secondary" className="text-xs">
+                <Badge 
+                  key={index} 
+                  variant="secondary" 
+                  className="text-xs bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
+                >
                   {userInterest.interest.name}
                 </Badge>
               ))}
