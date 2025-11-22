@@ -44,14 +44,19 @@ const Onboarding = () => {
       }
       setUserId(user.id);
 
-      // Check if user is admin
+      // Check if user is admin – admins should never go through onboarding
       const { data: adminData } = await (supabase as any)
         .from("admin_users")
         .select("role")
         .eq("user_id", user.id)
         .maybeSingle();
 
-      // Check if profile is already complete
+      if (adminData) {
+        navigate("/admin");
+        return;
+      }
+
+      // Check if profile is already complete (regular users only)
       const { data: profile } = await supabase
         .from("profiles")
         .select("*")
@@ -59,12 +64,7 @@ const Onboarding = () => {
         .single();
 
       if (profile?.bio && profile?.gender && profile?.looking_for) {
-        // Redirect to appropriate dashboard based on admin status
-        if (adminData) {
-          navigate("/admin");
-        } else {
-          navigate("/dashboard");
-        }
+        navigate("/dashboard");
       }
     };
 
