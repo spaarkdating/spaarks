@@ -6,13 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Mail, User, LogOut, MessageSquare } from "lucide-react";
+import { ArrowLeft, Mail, User, LogOut, MessageSquare, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Settings = () => {
   const [user, setUser] = useState<any>(null);
   const [email, setEmail] = useState("");
+  const [datingMode, setDatingMode] = useState<string>("online");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -26,6 +28,17 @@ const Settings = () => {
       }
       setUser(user);
       setEmail(user.email || "");
+
+      // Fetch user profile for dating mode
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("dating_mode")
+        .eq("id", user.id)
+        .single();
+      
+      if (profile?.dating_mode) {
+        setDatingMode(profile.dating_mode);
+      }
     };
 
     getUser();
@@ -68,6 +81,32 @@ const Settings = () => {
       toast({
         title: "Verification email sent",
         description: "Check your new email address to confirm the change.",
+      });
+    }
+  };
+
+  const handleUpdateDatingMode = async (newMode: string) => {
+    if (!user) return;
+
+    setIsLoading(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ dating_mode: newMode } as any)
+      .eq("id", user.id);
+
+    setIsLoading(false);
+
+    if (error) {
+      toast({
+        title: "Update failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      setDatingMode(newMode);
+      toast({
+        title: "Dating mode updated",
+        description: `Your dating mode has been changed to "${newMode}".`,
       });
     }
   };
@@ -116,6 +155,33 @@ const Settings = () => {
                 <Label>Account Created</Label>
                 <p className="text-sm text-muted-foreground mt-1">
                   {new Date(user.created_at).toLocaleDateString()}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-xl border-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Heart className="h-5 w-5" />
+                Dating Preferences
+              </CardTitle>
+              <CardDescription>Choose how you want to meet people</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="dating-mode">Dating Mode</Label>
+                <Select value={datingMode} onValueChange={handleUpdateDatingMode} disabled={isLoading}>
+                  <SelectTrigger id="dating-mode">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="online">Date Online</SelectItem>
+                    <SelectItem value="offline">Date Offline</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  You will only see profiles of users with the same dating mode preference
                 </p>
               </div>
             </CardContent>
