@@ -8,6 +8,7 @@ import UserManagement from "@/components/admin/UserManagement";
 import SupportTickets from "@/components/admin/SupportTickets";
 import PhotoReports from "@/components/admin/PhotoReports";
 import Analytics from "@/components/admin/Analytics";
+import Revenue from "@/components/admin/Revenue";
 
 const Admin = () => {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -81,8 +82,9 @@ const Admin = () => {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="analytics" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="revenue">Revenue</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="tickets">Support Tickets</TabsTrigger>
             <TabsTrigger value="reports">Photo Reports</TabsTrigger>
@@ -90,6 +92,10 @@ const Admin = () => {
 
           <TabsContent value="analytics">
             <Analytics />
+          </TabsContent>
+
+          <TabsContent value="revenue">
+            <Revenue />
           </TabsContent>
 
           <TabsContent value="users">
