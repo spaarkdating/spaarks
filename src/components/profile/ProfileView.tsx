@@ -1,15 +1,16 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Calendar, Heart } from "lucide-react";
+import { MapPin, Calendar, Heart, CheckCircle } from "lucide-react";
 import { format } from "date-fns";
 
 interface ProfileViewProps {
   profile: any;
   photos: any[];
   interests: any[];
+  emailVerified?: boolean;
 }
 
-export const ProfileView = ({ profile, photos, interests }: ProfileViewProps) => {
+export const ProfileView = ({ profile, photos, interests, emailVerified = false }: ProfileViewProps) => {
   const calculateAge = (dateOfBirth: string) => {
     const today = new Date();
     const birthDate = new Date(dateOfBirth);
@@ -53,9 +54,14 @@ export const ProfileView = ({ profile, photos, interests }: ProfileViewProps) =>
         <CardContent className="p-6">
           <div className="space-y-4">
             <div>
-              <h2 className="text-3xl font-bold mb-1">
-                {profile.display_name}
-                {age && <span className="text-muted-foreground">, {age}</span>}
+              <h2 className="text-3xl font-bold mb-1 flex items-center gap-2">
+                <span>
+                  {profile.display_name}
+                  {age && <span className="text-muted-foreground">, {age}</span>}
+                </span>
+                {emailVerified && (
+                  <CheckCircle className="h-6 w-6 text-primary fill-primary" />
+                )}
               </h2>
               <p className="text-muted-foreground capitalize">{profile.gender}</p>
             </div>

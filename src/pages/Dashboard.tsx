@@ -98,11 +98,19 @@ const Dashboard = () => {
       const { data: potentialMatches } = await profileQuery;
 
       if (potentialMatches) {
-        // Sort photos by display_order
-        const sortedProfiles = potentialMatches.map(profile => ({
-          ...profile,
-          photos: (profile.photos || []).sort((a: any, b: any) => a.display_order - b.display_order)
-        }));
+        // Get email verification status for all potential matches
+        const profileIds = potentialMatches.map(p => p.id);
+        const { data: { users: authUsers } } = await supabase.auth.admin.listUsers();
+        
+        // Sort photos by display_order and add email verification status
+        const sortedProfiles = potentialMatches.map(profile => {
+          const authUser = authUsers?.find((u: any) => u.id === profile.id);
+          return {
+            ...profile,
+            photos: (profile.photos || []).sort((a: any, b: any) => a.display_order - b.display_order),
+            email_verified: !!authUser?.email_confirmed_at,
+          };
+        });
         setProfiles(sortedProfiles);
       }
     } catch (error: any) {

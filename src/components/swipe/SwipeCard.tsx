@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, useMotionValue, useTransform, PanInfo } from "framer-motion";
-import { Heart, X, Star, MapPin, Briefcase } from "lucide-react";
+import { Heart, X, Star, MapPin, Briefcase, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface Profile {
@@ -11,6 +11,7 @@ interface Profile {
   location: string;
   photos: { photo_url: string }[];
   interests: { interest: { name: string } }[];
+  email_verified?: boolean;
 }
 
 interface SwipeCardProps {
@@ -118,9 +119,14 @@ export const SwipeCard = ({ profile, onSwipe, style }: SwipeCardProps) => {
         {/* Info */}
         <div className="h-1/3 p-6 overflow-y-auto">
           <div className="flex items-center gap-2 mb-2">
-            <h2 className="text-2xl font-bold">
-              {profile.display_name}
-              {age && <span className="text-muted-foreground">, {age}</span>}
+            <h2 className="text-2xl font-bold flex items-center gap-2">
+              <span>
+                {profile.display_name}
+                {age && <span className="text-muted-foreground">, {age}</span>}
+              </span>
+              {profile.email_verified && (
+                <CheckCircle className="h-5 w-5 text-primary fill-primary" />
+              )}
             </h2>
           </div>
 
