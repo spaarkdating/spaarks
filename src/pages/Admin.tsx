@@ -16,6 +16,7 @@ const Admin = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [adminEmail, setAdminEmail] = useState("");
+  const [adminRole, setAdminRole] = useState<"admin" | "moderator">("moderator");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -40,6 +41,7 @@ const Admin = () => {
 
       setIsAdmin(true);
       setAdminEmail(adminData.email);
+      setAdminRole(adminData.role);
       setLoading(false);
     };
 
@@ -90,10 +92,16 @@ const Admin = () => {
               <Shield className="h-6 w-6 text-primary animate-pulse" />
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-lg font-bold text-primary">ADMIN MODE</span>
-                  <Badge variant="destructive" className="animate-pulse">RESTRICTED ACCESS</Badge>
+                  <span className="text-lg font-bold text-primary">
+                    {adminRole === "admin" ? "ADMIN MODE" : "MODERATOR MODE"}
+                  </span>
+                  <Badge variant={adminRole === "admin" ? "destructive" : "secondary"} className="animate-pulse">
+                    {adminRole === "admin" ? "FULL ACCESS" : "LIMITED ACCESS"}
+                  </Badge>
                 </div>
-                <p className="text-sm text-muted-foreground">Logged in as: {adminEmail}</p>
+                <p className="text-sm text-muted-foreground">
+                  Logged in as: {adminEmail} ({adminRole})
+                </p>
               </div>
             </div>
             <Button variant="outline" size="sm" onClick={handleLogout} className="gap-2">
@@ -115,33 +123,39 @@ const Admin = () => {
       </header>
 
       <div className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="analytics" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="revenue">Revenue</TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
+        <Tabs defaultValue={adminRole === "admin" ? "analytics" : "tickets"} className="space-y-6">
+          <TabsList className={adminRole === "admin" ? "grid w-full grid-cols-5" : "grid w-full grid-cols-2"}>
+            {adminRole === "admin" && <TabsTrigger value="analytics">Analytics</TabsTrigger>}
+            {adminRole === "admin" && <TabsTrigger value="revenue">Revenue</TabsTrigger>}
+            {adminRole === "admin" && <TabsTrigger value="users">Users</TabsTrigger>}
             <TabsTrigger value="tickets">Support Tickets</TabsTrigger>
             <TabsTrigger value="reports">Photo Reports</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="analytics">
-            <Analytics />
-          </TabsContent>
+          {adminRole === "admin" && (
+            <TabsContent value="analytics">
+              <Analytics />
+            </TabsContent>
+          )}
 
-          <TabsContent value="revenue">
-            <Revenue />
-          </TabsContent>
+          {adminRole === "admin" && (
+            <TabsContent value="revenue">
+              <Revenue />
+            </TabsContent>
+          )}
 
-          <TabsContent value="users">
-            <UserManagement />
-          </TabsContent>
+          {adminRole === "admin" && (
+            <TabsContent value="users">
+              <UserManagement />
+            </TabsContent>
+          )}
 
           <TabsContent value="tickets">
-            <SupportTickets />
+            <SupportTickets adminRole={adminRole} />
           </TabsContent>
 
           <TabsContent value="reports">
-            <PhotoReports />
+            <PhotoReports adminRole={adminRole} />
           </TabsContent>
         </Tabs>
       </div>

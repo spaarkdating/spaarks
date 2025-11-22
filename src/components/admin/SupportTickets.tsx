@@ -9,7 +9,11 @@ import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { MessageSquare } from "lucide-react";
 
-const SupportTickets = () => {
+interface SupportTicketsProps {
+  adminRole: "admin" | "moderator";
+}
+
+const SupportTickets = ({ adminRole }: SupportTicketsProps) => {
   const [tickets, setTickets] = useState<any[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const [reply, setReply] = useState("");
@@ -165,7 +169,7 @@ const SupportTickets = () => {
 
             <div className="space-y-2">
               <label className="text-sm font-semibold">Status</label>
-              <Select value={newStatus} onValueChange={setNewStatus}>
+              <Select value={newStatus} onValueChange={setNewStatus} disabled={adminRole === "moderator"}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -185,12 +189,22 @@ const SupportTickets = () => {
                 onChange={(e) => setReply(e.target.value)}
                 placeholder="Type your response to the user..."
                 rows={6}
+                disabled={adminRole === "moderator"}
               />
             </div>
+
+            {adminRole === "moderator" && (
+              <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
+                <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                  <strong>View Only:</strong> Moderators can view tickets but cannot update them. Contact a full admin to make changes.
+                </p>
+              </div>
+            )}
 
             <Button
               onClick={handleUpdateTicket}
               className="w-full bg-gradient-to-r from-primary to-secondary"
+              disabled={adminRole === "moderator"}
             >
               Update Ticket
             </Button>

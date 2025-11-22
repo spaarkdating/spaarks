@@ -13,9 +13,9 @@ serve(async (req) => {
   }
 
   try {
-    const { secretCode, userId, email } = await req.json();
+    const { secretCode, userId, email, role } = await req.json();
 
-    console.log("Admin registration request received for user:", userId);
+    console.log("Admin registration request received for user:", userId, "role:", role || "admin");
 
     // Validate input
     if (!secretCode || !userId || !email) {
@@ -27,6 +27,10 @@ serve(async (req) => {
         }
       );
     }
+
+    // Validate role if provided
+    const validRoles = ["admin", "moderator"];
+    const assignedRole = role && validRoles.includes(role) ? role : "admin";
 
     // Check the admin secret code
     const adminSecret = Deno.env.get("ADMIN_SECRET_CODE");
@@ -71,7 +75,7 @@ serve(async (req) => {
       .insert({
         user_id: userId,
         email: email,
-        role: "admin",
+        role: assignedRole,
       });
 
     if (insertError) {
@@ -79,12 +83,12 @@ serve(async (req) => {
       throw insertError;
     }
 
-    console.log("Admin role successfully assigned to user:", userId);
+    console.log(`${assignedRole} role successfully assigned to user:`, userId);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: "Admin role successfully assigned" 
+        message: `${assignedRole} role successfully assigned` 
       }),
       { 
         status: 200, 
