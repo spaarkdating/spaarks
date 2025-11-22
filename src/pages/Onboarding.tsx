@@ -45,13 +45,13 @@ const Onboarding = () => {
       setUserId(user.id);
 
       // Check if user is admin – admins should never go through onboarding
-      const { data: adminData } = await (supabase as any)
-        .from("admin_users")
-        .select("role")
-        .eq("user_id", user.id)
-        .maybeSingle();
+      const { data: isAdmin, error: adminCheckError } = await supabase.rpc("is_admin");
 
-      if (adminData) {
+      if (adminCheckError) {
+        console.error("Error checking admin status:", adminCheckError);
+      }
+
+      if (isAdmin === true) {
         navigate("/admin");
         return;
       }

@@ -131,23 +131,22 @@ const Auth = () => {
       return;
     }
 
-    // Check if user is admin
-    if (data.user) {
-      const { data: adminData } = await (supabase as any)
-        .from("admin_users")
-        .select("role")
-        .eq("user_id", data.user.id)
-        .maybeSingle();
+    // Check if user is admin using secure database function
+    const { data: isAdmin, error: adminCheckError } = await supabase.rpc("is_admin");
 
-      setIsLoading(false);
+    setIsLoading(false);
 
-      if (adminData) {
-        // Redirect admin users to admin dashboard
-        navigate("/admin");
-      } else {
-        // Redirect regular users to regular dashboard
-        navigate("/dashboard");
-      }
+    if (adminCheckError) {
+      console.error("Error checking admin status:", adminCheckError);
+      // Fallback to normal dashboard on error
+      navigate("/dashboard");
+      return;
+    }
+
+    if (isAdmin === true) {
+      navigate("/admin");
+    } else {
+      navigate("/dashboard");
     }
   };
 
