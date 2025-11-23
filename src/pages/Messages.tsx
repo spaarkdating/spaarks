@@ -7,6 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import { ConversationList } from "@/components/messages/ConversationList";
 import { ChatWindow } from "@/components/messages/ChatWindow";
 import { MobileNav } from "@/components/navigation/MobileNav";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { PullToRefreshIndicator } from "@/components/navigation/PullToRefreshIndicator";
 
 const Messages = () => {
   const [user, setUser] = useState<any>(null);
@@ -15,6 +17,20 @@ const Messages = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const handleRefresh = async () => {
+    if (user) {
+      await fetchMatches(user.id);
+      toast({
+        title: "Refreshed!",
+        description: "Messages updated.",
+      });
+    }
+  };
+
+  const { containerRef, pullDistance, isRefreshing, shouldTrigger } = usePullToRefresh({
+    onRefresh: handleRefresh,
+  });
 
   useEffect(() => {
     const initUser = async () => {
@@ -106,7 +122,12 @@ const Messages = () => {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background">
+    <div ref={containerRef} className="min-h-screen bg-gradient-to-br from-background via-muted to-background">
+      <PullToRefreshIndicator
+        pullDistance={pullDistance}
+        isRefreshing={isRefreshing}
+        shouldTrigger={shouldTrigger}
+      />
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-3 md:py-4 flex justify-between items-center">
           <div className="flex items-center gap-2 md:gap-4">

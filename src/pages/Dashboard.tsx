@@ -14,6 +14,8 @@ import { ActivityFeed } from "@/components/activity/ActivityFeed";
 import { AnimatePresence } from "framer-motion";
 import { calculateCompatibilityScore } from "@/lib/compatibility";
 import { MobileNav } from "@/components/navigation/MobileNav";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { PullToRefreshIndicator } from "@/components/navigation/PullToRefreshIndicator";
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -28,6 +30,20 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   useNotifications(); // Enable browser notifications
+
+  const handleRefresh = async () => {
+    if (user) {
+      await fetchProfiles(user.id);
+      toast({
+        title: "Refreshed!",
+        description: "Found new profiles for you.",
+      });
+    }
+  };
+
+  const { containerRef, pullDistance, isRefreshing, shouldTrigger } = usePullToRefresh({
+    onRefresh: handleRefresh,
+  });
 
   useEffect(() => {
     const initUser = async () => {
@@ -298,7 +314,12 @@ const Dashboard = () => {
   const hasMoreProfiles = currentIndex < profiles.length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background">
+    <div ref={containerRef} className="min-h-screen bg-gradient-to-br from-background via-muted to-background">
+      <PullToRefreshIndicator
+        pullDistance={pullDistance}
+        isRefreshing={isRefreshing}
+        shouldTrigger={shouldTrigger}
+      />
       {/* Header */}
       <header className="border-b border-border/50 bg-card/80 backdrop-blur-md sticky top-0 z-10 shadow-sm">
         <div className="container mx-auto px-4 py-3 md:py-4 flex justify-between items-center">
