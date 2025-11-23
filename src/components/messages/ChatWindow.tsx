@@ -142,7 +142,23 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate }: ChatWindo
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase function error:", error);
+        throw error;
+      }
+
+      if (data?.error) {
+        console.error("Video room error from edge function:", data);
+        toast({
+          title: "Failed to start video call",
+          description:
+            data.details ||
+            data.error ||
+            "Please check that your Daily.co API key is valid and try again.",
+          variant: "destructive",
+        });
+        return;
+      }
 
       if (data?.roomUrl) {
         setVideoRoomUrl(data.roomUrl);
