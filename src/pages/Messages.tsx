@@ -138,7 +138,7 @@ const Messages = () => {
         </div>
       </header>
 
-      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 h-[calc(100vh-64px)] sm:h-[calc(100vh-80px)]">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 h-[calc(100vh-64px)] sm:h-[calc(100vh-80px)] pb-24 md:pb-6">
         <div className="grid md:grid-cols-[350px,1fr] gap-2 sm:gap-4 h-full">
           {/* Hide conversation list on mobile when a chat is selected */}
           <div className={selectedMatch ? "hidden md:block" : "block"}>

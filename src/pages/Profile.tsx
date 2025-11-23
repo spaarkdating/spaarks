@@ -138,7 +138,7 @@ const Profile = () => {
         </div>
       </header>
 
-      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-4xl">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 pb-24 md:pb-8 max-w-4xl">
         {isEditing ? (
           <ProfileEdit
             profile={profile}
