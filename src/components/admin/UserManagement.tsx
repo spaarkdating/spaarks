@@ -86,18 +86,20 @@ const UserManagement = () => {
   };
 
   const handleDeleteUser = async (userId: string, userName: string) => {
-    const { error } = await supabase
-      .from("profiles")
-      .delete()
-      .eq("id", userId);
-
-    if (error) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
+    try {
+      // Call edge function to delete user from auth.users
+      const { data, error: functionError } = await supabase.functions.invoke("delete-user", {
+        body: { userId },
       });
-    } else {
+
+      if (functionError) {
+        throw functionError;
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
       await logAdminAction({
         actionType: "user_delete",
         targetUserId: userId,
@@ -106,9 +108,16 @@ const UserManagement = () => {
 
       toast({
         title: "User deleted",
-        description: "User has been deleted successfully.",
+        description: "User and their account have been completely removed.",
       });
       fetchUsers();
+    } catch (error: any) {
+      console.error("Delete user error:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete user",
+        variant: "destructive",
+      });
     }
   };
 
