@@ -2,11 +2,12 @@ import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, MessageCircle } from "lucide-react";
+import { Send, MessageCircle, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
 import { RealtimeChannel } from "@supabase/supabase-js";
+import { getRandomIcebreakers } from "@/data/icebreakers";
 
 interface ChatWindowProps {
   match: any;
@@ -19,6 +20,8 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate }: ChatWindo
   const [newMessage, setNewMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [showIcebreakers, setShowIcebreakers] = useState(false);
+  const [icebreakers, setIcebreakers] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   const channelRef = useRef<RealtimeChannel | null>(null);
@@ -29,6 +32,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate }: ChatWindo
     if (!match) return;
 
     fetchMessages();
+    setIcebreakers(getRandomIcebreakers(3));
     setupRealtimeSubscription();
 
     return () => {
@@ -227,28 +231,107 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate }: ChatWindo
       </div>
 
       {/* Input */}
-      <form onSubmit={handleSendMessage} className="p-4 border-t border-border">
-        <div className="flex gap-2">
-          <Input
-            value={newMessage}
-            onChange={(e) => {
-              setNewMessage(e.target.value);
-              handleTyping();
-            }}
-            placeholder="Type a message..."
-            className="flex-1"
-            disabled={isSending}
-          />
-          <Button
-            type="submit"
-            size="icon"
-            disabled={!newMessage.trim() || isSending}
-            className="bg-gradient-to-r from-primary to-secondary hover:opacity-90"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
-        </div>
-      </form>
+      <div className="p-4 border-t border-border space-y-3">
+        {messages.length === 0 && (
+          <div className="mb-2">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm font-medium text-muted-foreground">Quick Icebreakers</p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIcebreakers(getRandomIcebreakers(3))}
+                className="h-7 text-xs hover:bg-primary/10"
+              >
+                <Sparkles className="h-3 w-3 mr-1" />
+                Refresh
+              </Button>
+            </div>
+            <div className="flex flex-col gap-2">
+              {icebreakers.map((icebreaker, idx) => (
+                <Button
+                  key={idx}
+                  variant="outline"
+                  className="justify-start text-left h-auto py-2 px-3 hover:bg-primary/10 hover:border-primary/50 transition-all animate-fade-in"
+                  style={{ animationDelay: `${idx * 100}ms` }}
+                  onClick={() => {
+                    setNewMessage(icebreaker);
+                  }}
+                >
+                  <Sparkles className="h-3 w-3 mr-2 flex-shrink-0 text-primary" />
+                  <span className="text-sm">{icebreaker}</span>
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <form onSubmit={handleSendMessage}>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Input
+                value={newMessage}
+                onChange={(e) => {
+                  setNewMessage(e.target.value);
+                  handleTyping();
+                }}
+                placeholder="Type a message..."
+                disabled={isSending}
+                className="pr-10"
+              />
+              {messages.length > 0 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 hover:bg-primary/10"
+                  onClick={() => setShowIcebreakers(!showIcebreakers)}
+                >
+                  <Sparkles className="h-4 w-4 text-primary" />
+                </Button>
+              )}
+            </div>
+            <Button 
+              type="submit" 
+              disabled={!newMessage.trim() || isSending} 
+              className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 shadow-lg hover:shadow-primary/50 transition-all"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
+        </form>
+
+        {showIcebreakers && messages.length > 0 && (
+          <div className="p-3 bg-muted/50 rounded-lg border animate-slide-up">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs font-medium text-muted-foreground">Conversation Starters</p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIcebreakers(getRandomIcebreakers(3))}
+                className="h-6 text-xs hover:bg-primary/10"
+              >
+                <Sparkles className="h-3 w-3 mr-1" />
+                Refresh
+              </Button>
+            </div>
+            <div className="flex flex-col gap-1">
+              {icebreakers.map((icebreaker, idx) => (
+                <Button
+                  key={idx}
+                  variant="ghost"
+                  className="justify-start text-left h-auto py-1.5 px-2 text-xs hover:bg-primary/10"
+                  onClick={() => {
+                    setNewMessage(icebreaker);
+                    setShowIcebreakers(false);
+                  }}
+                >
+                  {icebreaker}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

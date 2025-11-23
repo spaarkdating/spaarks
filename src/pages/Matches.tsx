@@ -173,13 +173,14 @@ const Matches = () => {
                 const lastMessage = match.lastMessage;
 
                 return (
-                  <Card key={match.id} className="overflow-hidden hover:shadow-xl transition-shadow">
-                    <div className="relative h-64 bg-gradient-to-br from-primary/20 to-secondary/20">
+                  <Card key={match.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 animate-fade-in">
+                    <div className="relative h-64 bg-gradient-to-br from-primary/20 to-secondary/20 overflow-hidden group">
                       <img
                         src={photo}
                         alt={profile.display_name}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                       />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       <div className="absolute top-3 right-3 bg-primary/90 backdrop-blur-sm px-3 py-1 rounded-full">
                         <p className="text-xs text-primary-foreground font-semibold">
                           {formatDistanceToNow(new Date(match.created_at), { addSuffix: true })}
@@ -230,7 +231,7 @@ const Matches = () => {
 
                       <Button
                         onClick={() => navigate(`/messages?match=${match.id}`)}
-                        className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+                        className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 shadow-lg hover:shadow-primary/50 transition-all"
                       >
                         <MessageCircle className="h-4 w-4 mr-2" />
                         {lastMessage ? "Continue Chat" : "Send Message"}
