@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Heart, Sparkles, MessageCircle, Shield, Zap, Users, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { MobileNav } from "@/components/navigation/MobileNav";
 
 const Landing = () => {
   return (
@@ -17,13 +18,13 @@ const Landing = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Heart className="h-8 w-8 text-primary fill-primary animate-heartbeat" />
-          <span className="text-2xl font-bold gradient-text">
+          <Heart className="h-6 w-6 md:h-8 md:w-8 text-primary fill-primary animate-heartbeat" />
+          <span className="text-xl md:text-2xl font-bold gradient-text">
             Spaark
           </span>
         </motion.div>
         <motion.div 
-          className="flex gap-3"
+          className="hidden md:flex gap-3"
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
@@ -38,6 +39,14 @@ const Landing = () => {
               Sign Up
             </Button>
           </Link>
+        </motion.div>
+        <motion.div
+          className="md:hidden"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <MobileNav />
         </motion.div>
       </header>
 
@@ -55,7 +64,7 @@ const Landing = () => {
           </motion.div>
           
           <motion.h1 
-            className="text-6xl md:text-8xl font-bold leading-tight"
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold leading-tight"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
@@ -67,7 +76,7 @@ const Landing = () => {
           </motion.h1>
           
           <motion.p 
-            className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed"
+            className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
@@ -77,18 +86,18 @@ const Landing = () => {
           </motion.p>
           
           <motion.div 
-            className="flex flex-col sm:flex-row gap-4 justify-center pt-6"
+            className="flex flex-col sm:flex-row gap-4 justify-center pt-6 px-4"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
           >
-            <Link to="/auth">
-              <Button size="lg" className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-glow)] text-lg px-10 py-7 transition-all card-hover">
+            <Link to="/auth" className="w-full sm:w-auto">
+              <Button size="lg" className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-glow)] text-base sm:text-lg px-8 sm:px-10 py-6 sm:py-7 transition-all card-hover">
                 <Sparkles className="h-5 w-5 mr-2" />
                 Get Started Free
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground text-lg px-10 py-7 transition-all card-hover">
+            <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground text-base sm:text-lg px-8 sm:px-10 py-6 sm:py-7 transition-all card-hover">
               Learn More
             </Button>
           </motion.div>

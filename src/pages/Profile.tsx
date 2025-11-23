@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ProfileView } from "@/components/profile/ProfileView";
 import { ProfileEdit } from "@/components/profile/ProfileEdit";
 import ProfileCompletion from "@/components/profile/ProfileCompletion";
+import { MobileNav } from "@/components/navigation/MobileNav";
 
 const Profile = () => {
   const [user, setUser] = useState<any>(null);
@@ -86,19 +87,19 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background">
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
-              <ArrowLeft className="h-5 w-5" />
+        <div className="container mx-auto px-4 py-3 md:py-4 flex justify-between items-center">
+          <div className="flex items-center gap-2 md:gap-4">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")} className="h-9 w-9 md:h-10 md:w-10">
+              <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
             </Button>
             <div className="flex items-center gap-2">
-              <Heart className="h-8 w-8 text-primary fill-primary" />
-              <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              <Heart className="h-6 w-6 md:h-8 md:w-8 text-primary fill-primary" />
+              <span className="text-lg md:text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 Profile
               </span>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="hidden md:flex gap-2">
             {!isEditing && (
               <Button
                 variant="outline"
@@ -115,10 +116,29 @@ const Profile = () => {
               <LogOut className="h-5 w-5" />
             </Button>
           </div>
+          <div className="flex md:hidden gap-2 items-center">
+            {!isEditing && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsEditing(true)}
+                className="h-9"
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+            )}
+            <MobileNav
+              isAuthenticated
+              onLogout={handleLogout}
+              links={[
+                { to: "/settings", label: "Settings", icon: <SettingsIcon className="h-5 w-5" />, onClick: () => navigate("/settings") },
+              ]}
+            />
+          </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-4xl">
         {isEditing ? (
           <ProfileEdit
             profile={profile}
