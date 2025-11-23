@@ -77,6 +77,47 @@ export type Database = {
           },
         ]
       }
+      boost_purchases: {
+        Row: {
+          amount_paid: number
+          created_at: string | null
+          duration_minutes: number
+          expires_at: string
+          id: string
+          started_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount_paid: number
+          created_at?: string | null
+          duration_minutes: number
+          expires_at: string
+          id?: string
+          started_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount_paid?: number
+          created_at?: string | null
+          duration_minutes?: number
+          expires_at?: string
+          id?: string
+          started_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "boost_purchases_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interests: {
         Row: {
           category: string | null
@@ -415,6 +456,8 @@ export type Database = {
           gender: string | null
           id: string
           last_online: string | null
+          last_swipe_match_id: string | null
+          last_swipe_timestamp: string | null
           location: string | null
           looking_for: string | null
           max_age: number | null
@@ -432,6 +475,8 @@ export type Database = {
           gender?: string | null
           id: string
           last_online?: string | null
+          last_swipe_match_id?: string | null
+          last_swipe_timestamp?: string | null
           location?: string | null
           looking_for?: string | null
           max_age?: number | null
@@ -449,13 +494,23 @@ export type Database = {
           gender?: string | null
           id?: string
           last_online?: string | null
+          last_swipe_match_id?: string | null
+          last_swipe_timestamp?: string | null
           location?: string | null
           looking_for?: string | null
           max_age?: number | null
           min_age?: number | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_last_swipe_match_id_fkey"
+            columns: ["last_swipe_match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscriptions: {
         Row: {
@@ -593,6 +648,7 @@ export type Database = {
         Args: { _user1_id: string; _user2_id: string }
         Returns: boolean
       }
+      has_active_boost: { Args: { user_profile_id: string }; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
       is_full_admin: { Args: never; Returns: boolean }
       update_last_online: { Args: never; Returns: undefined }

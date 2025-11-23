@@ -22,6 +22,8 @@ const Dashboard = () => {
   const [matchedProfile, setMatchedProfile] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [compatibilityScores, setCompatibilityScores] = useState<Record<string, number>>({});
+  const [lastSwipe, setLastSwipe] = useState<{ matchId: string; profileIndex: number } | null>(null);
+  const [canRewind, setCanRewind] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   useNotifications(); // Enable browser notifications
@@ -163,11 +165,47 @@ const Dashboard = () => {
     }
   };
 
+  const handleRewind = async () => {
+    if (!lastSwipe || !user) return;
+
+    try {
+      // Delete the last swipe from database
+      const { error } = await supabase
+        .from("matches")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("liked_user_id", profiles[lastSwipe.profileIndex]?.id);
+
+      if (error) throw error;
+
+      // Move back to previous profile
+      setCurrentIndex(lastSwipe.profileIndex);
+      setLastSwipe(null);
+      setCanRewind(false);
+
+      toast({
+        title: "Swipe undone!",
+        description: "You can now swipe on this profile again.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to undo swipe. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSwipe = async (direction: "left" | "right" | "super") => {
     if (!user || currentIndex >= profiles.length) return;
 
     const likedProfile = profiles[currentIndex];
     const isLike = direction === "right" || direction === "super";
+    const currentProfileIndex = currentIndex;
+
+    // Reset rewind state
+    setLastSwipe(null);
+    setCanRewind(false);
 
     try {
       // Record the swipe
@@ -178,6 +216,10 @@ const Dashboard = () => {
       });
 
       if (error) throw error;
+
+      // Enable rewind for this swipe
+      setLastSwipe({ matchId: likedProfile.id, profileIndex: currentProfileIndex });
+      setCanRewind(true);
 
       // Check if it's a mutual match
       if (isLike) {
@@ -329,7 +371,9 @@ const Dashboard = () => {
                     onDislike={() => handleSwipe("left")}
                     onLike={() => handleSwipe("right")}
                     onSuperLike={() => handleSwipe("super")}
+                    onRewind={handleRewind}
                     disabled={!hasMoreProfiles}
+                    canRewind={canRewind}
                   />
                 </div>
               ) : (
