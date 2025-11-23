@@ -648,9 +648,13 @@ export type Database = {
         Args: { _user1_id: string; _user2_id: string }
         Returns: boolean
       }
+      get_admin_role: { Args: never; Returns: string }
       has_active_boost: { Args: { user_profile_id: string }; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
       is_full_admin: { Args: never; Returns: boolean }
+      is_moderator: { Args: never; Returns: boolean }
+      is_super_admin: { Args: never; Returns: boolean }
+      is_support: { Args: never; Returns: boolean }
       update_last_online: { Args: never; Returns: undefined }
     }
     Enums: {
