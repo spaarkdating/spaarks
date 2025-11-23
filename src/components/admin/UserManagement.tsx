@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Ban, CheckCircle, UserX } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
+import { logAdminAction } from "@/lib/auditLog";
 
 const UserManagement = () => {
   const [users, setUsers] = useState<any[]>([]);
@@ -30,7 +31,7 @@ const UserManagement = () => {
     fetchUsers();
   }, []);
 
-  const handleBanUser = async (userId: string) => {
+  const handleBanUser = async (userId: string, userName: string) => {
     const { error } = await supabase
       .from("profiles")
       .update({ account_status: "banned" } as any)
@@ -43,6 +44,12 @@ const UserManagement = () => {
         variant: "destructive",
       });
     } else {
+      await logAdminAction({
+        actionType: "user_ban",
+        targetUserId: userId,
+        details: { user_name: userName, reason: "Admin action" },
+      });
+      
       toast({
         title: "User banned",
         description: "User has been banned successfully.",
@@ -51,7 +58,7 @@ const UserManagement = () => {
     }
   };
 
-  const handleUnbanUser = async (userId: string) => {
+  const handleUnbanUser = async (userId: string, userName: string) => {
     const { error } = await supabase
       .from("profiles")
       .update({ account_status: "active" } as any)
@@ -64,6 +71,12 @@ const UserManagement = () => {
         variant: "destructive",
       });
     } else {
+      await logAdminAction({
+        actionType: "user_unban",
+        targetUserId: userId,
+        details: { user_name: userName },
+      });
+
       toast({
         title: "User unbanned",
         description: "User has been unbanned successfully.",
@@ -72,7 +85,7 @@ const UserManagement = () => {
     }
   };
 
-  const handleDeleteUser = async (userId: string) => {
+  const handleDeleteUser = async (userId: string, userName: string) => {
     const { error } = await supabase
       .from("profiles")
       .delete()
@@ -85,6 +98,12 @@ const UserManagement = () => {
         variant: "destructive",
       });
     } else {
+      await logAdminAction({
+        actionType: "user_delete",
+        targetUserId: userId,
+        details: { user_name: userName },
+      });
+
       toast({
         title: "User deleted",
         description: "User has been deleted successfully.",
@@ -161,7 +180,7 @@ const UserManagement = () => {
                       <Button
                         size="sm"
                         variant="destructive"
-                        onClick={() => handleBanUser(user.id)}
+                        onClick={() => handleBanUser(user.id, user.display_name || user.email)}
                       >
                         <Ban className="h-4 w-4 mr-1" />
                         Ban
@@ -170,7 +189,7 @@ const UserManagement = () => {
                       <Button
                         size="sm"
                         variant="default"
-                        onClick={() => handleUnbanUser(user.id)}
+                        onClick={() => handleUnbanUser(user.id, user.display_name || user.email)}
                       >
                         <CheckCircle className="h-4 w-4 mr-1" />
                         Unban
@@ -179,7 +198,7 @@ const UserManagement = () => {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => handleDeleteUser(user.id)}
+                      onClick={() => handleDeleteUser(user.id, user.display_name || user.email)}
                     >
                       <UserX className="h-4 w-4 mr-1" />
                       Delete

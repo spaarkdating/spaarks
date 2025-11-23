@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { MessageSquare } from "lucide-react";
+import { logAdminAction } from "@/lib/auditLog";
 
 interface SupportTicketsProps {
   adminRole: "admin" | "moderator";
@@ -53,6 +54,17 @@ const SupportTickets = ({ adminRole }: SupportTicketsProps) => {
         variant: "destructive",
       });
     } else {
+      await logAdminAction({
+        actionType: newStatus === "resolved" ? "ticket_resolve" : newStatus === "closed" ? "ticket_close" : "ticket_update",
+        targetUserId: selectedTicket.user_id,
+        targetResourceId: selectedTicket.id,
+        details: {
+          subject: selectedTicket.subject,
+          status: newStatus || selectedTicket.status,
+          reply: reply,
+        },
+      });
+
       toast({
         title: "Ticket updated",
         description: "Support ticket has been updated successfully.",

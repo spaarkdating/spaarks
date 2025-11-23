@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_logs: {
+        Row: {
+          action_type: Database["public"]["Enums"]["admin_action_type"]
+          admin_user_id: string
+          created_at: string
+          details: Json | null
+          id: string
+          ip_address: string | null
+          target_resource_id: string | null
+          target_user_id: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action_type: Database["public"]["Enums"]["admin_action_type"]
+          admin_user_id: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          target_resource_id?: string | null
+          target_user_id?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action_type?: Database["public"]["Enums"]["admin_action_type"]
+          admin_user_id?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          target_resource_id?: string | null
+          target_user_id?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_audit_logs_target_user_id_fkey"
+            columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_users: {
         Row: {
           created_at: string | null
@@ -658,7 +702,18 @@ export type Database = {
       update_last_online: { Args: never; Returns: undefined }
     }
     Enums: {
-      [_ in never]: never
+      admin_action_type:
+        | "user_ban"
+        | "user_unban"
+        | "user_delete"
+        | "ticket_update"
+        | "ticket_resolve"
+        | "ticket_close"
+        | "report_approve"
+        | "report_reject"
+        | "role_change"
+        | "admin_create"
+        | "admin_delete"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -785,6 +840,20 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      admin_action_type: [
+        "user_ban",
+        "user_unban",
+        "user_delete",
+        "ticket_update",
+        "ticket_resolve",
+        "ticket_close",
+        "report_approve",
+        "report_reject",
+        "role_change",
+        "admin_create",
+        "admin_delete",
+      ],
+    },
   },
 } as const
