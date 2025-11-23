@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { AlertTriangle, CheckCircle, X } from "lucide-react";
+import { logAdminAction } from "@/lib/auditLog";
 
 interface PhotoReportsProps {
   adminRole: "admin" | "moderator";
@@ -39,6 +40,8 @@ const PhotoReports = ({ adminRole }: PhotoReportsProps) => {
   }, []);
 
   const handleApproveReport = async (reportId: string, photoId: string) => {
+    const reportData = reports.find((r) => r.id === reportId);
+    
     const { error: deletePhotoError } = await supabase
       .from("photos")
       .delete()
@@ -69,6 +72,17 @@ const PhotoReports = ({ adminRole }: PhotoReportsProps) => {
         variant: "destructive",
       });
     } else {
+      await logAdminAction({
+        actionType: "report_approve",
+        targetUserId: reportData?.reported_user_id,
+        targetResourceId: reportId,
+        details: {
+          reason: reportData?.reason,
+          photo_id: photoId,
+          admin_notes: adminNotes,
+        },
+      });
+
       toast({
         title: "Report approved",
         description: "Photo has been removed and report marked as approved.",
@@ -80,6 +94,8 @@ const PhotoReports = ({ adminRole }: PhotoReportsProps) => {
   };
 
   const handleRejectReport = async (reportId: string) => {
+    const reportData = reports.find((r) => r.id === reportId);
+    
     const { error } = await (supabase as any)
       .from("photo_reports")
       .update({
@@ -96,6 +112,16 @@ const PhotoReports = ({ adminRole }: PhotoReportsProps) => {
         variant: "destructive",
       });
     } else {
+      await logAdminAction({
+        actionType: "report_reject",
+        targetUserId: reportData?.reported_user_id,
+        targetResourceId: reportId,
+        details: {
+          reason: reportData?.reason,
+          admin_notes: adminNotes,
+        },
+      });
+
       toast({
         title: "Report rejected",
         description: "Report has been marked as rejected.",
