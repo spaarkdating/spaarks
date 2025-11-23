@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Heart, Mail } from "lucide-react";
+import { Heart, Mail, Phone } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -13,6 +13,9 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -126,6 +129,66 @@ const Auth = () => {
     // Note: User will be redirected to Google, so we don't set loading to false here
   };
 
+  const handlePhoneSendOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    const { error } = await supabase.auth.signInWithOtp({
+      phone,
+      options: {
+        channel: 'sms',
+      },
+    });
+
+    if (error) {
+      setIsLoading(false);
+      toast({
+        title: "Failed to send code",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setOtpSent(true);
+    setIsLoading(false);
+    toast({
+      title: "Code sent!",
+      description: "Check your phone for the verification code.",
+    });
+  };
+
+  const handlePhoneVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    const { data, error } = await supabase.auth.verifyOtp({
+      phone,
+      token: otp,
+      type: 'sms',
+    });
+
+    if (error) {
+      setIsLoading(false);
+      toast({
+        title: "Verification failed",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if user is admin
+    const { data: isAdmin } = await supabase.rpc("is_admin");
+    setIsLoading(false);
+
+    if (isAdmin === true) {
+      navigate("/admin");
+    } else {
+      navigate("/dashboard");
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background flex items-center justify-center p-4">
@@ -144,9 +207,10 @@ const Auth = () => {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsList className="grid w-full grid-cols-3 mb-6">
                 <TabsTrigger value="login">Log In</TabsTrigger>
                 <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                <TabsTrigger value="phone">Phone</TabsTrigger>
               </TabsList>
 
               <TabsContent value="login">
@@ -301,6 +365,72 @@ const Auth = () => {
                   </svg>
                   Continue with Google
                 </Button>
+              </TabsContent>
+
+              <TabsContent value="phone">
+                {!otpSent ? (
+                  <form onSubmit={handlePhoneSendOTP} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Phone Number</Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="+1234567890"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        required
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Include country code (e.g., +1 for US)
+                      </p>
+                    </div>
+                    <Button
+                      type="submit"
+                      className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground"
+                      disabled={isLoading}
+                    >
+                      <Phone className="mr-2 h-4 w-4" />
+                      {isLoading ? "Sending..." : "Send Code"}
+                    </Button>
+                  </form>
+                ) : (
+                  <form onSubmit={handlePhoneVerify} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="otp">Verification Code</Label>
+                      <Input
+                        id="otp"
+                        type="text"
+                        placeholder="123456"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value)}
+                        maxLength={6}
+                        required
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Enter the 6-digit code sent to {phone}
+                      </p>
+                    </div>
+                    <Button
+                      type="submit"
+                      className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Verifying..." : "Verify & Login"}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => {
+                        setOtpSent(false);
+                        setOtp("");
+                      }}
+                      disabled={isLoading}
+                    >
+                      Use Different Number
+                    </Button>
+                  </form>
+                )}
               </TabsContent>
             </Tabs>
           </CardContent>
