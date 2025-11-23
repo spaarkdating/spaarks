@@ -2,12 +2,13 @@ import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, MessageCircle, Sparkles } from "lucide-react";
+import { Send, MessageCircle, Sparkles, Video } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { getRandomIcebreakers } from "@/data/icebreakers";
+import { VideoCall } from "./VideoCall";
 
 interface ChatWindowProps {
   match: any;
@@ -22,6 +23,8 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate }: ChatWindo
   const [isSending, setIsSending] = useState(false);
   const [showIcebreakers, setShowIcebreakers] = useState(false);
   const [icebreakers, setIcebreakers] = useState<string[]>([]);
+  const [videoRoomUrl, setVideoRoomUrl] = useState<string | null>(null);
+  const [isCreatingRoom, setIsCreatingRoom] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   const channelRef = useRef<RealtimeChannel | null>(null);
@@ -124,6 +127,52 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate }: ChatWindo
     }
   };
 
+  const handleStartVideoCall = async () => {
+    if (!match || isCreatingRoom) return;
+
+    setIsCreatingRoom(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("create-video-room", {
+        body: {
+          matchId: match.id,
+          userId: currentUserId,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.roomUrl) {
+        setVideoRoomUrl(data.roomUrl);
+        
+        // Send a message to notify the other user
+        await supabase.from("messages").insert({
+          sender_id: currentUserId,
+          receiver_id: match.liked_user_id,
+          content: `📹 Video call started: ${data.roomUrl}`,
+        });
+
+        // Create notification
+        await (supabase as any).from("notifications").insert({
+          user_id: match.liked_user_id,
+          type: "message",
+          title: "Video Call",
+          message: `${match.profile.display_name} started a video call`,
+          data: { match_id: match.id, room_url: data.roomUrl },
+        });
+      }
+    } catch (error: any) {
+      console.error("Error creating video room:", error);
+      toast({
+        title: "Failed to start video call",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingRoom(false);
+    }
+  };
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !match || isSending) return;
@@ -184,18 +233,28 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate }: ChatWindo
   return (
     <div className="bg-card rounded-2xl border border-border flex flex-col h-full">
       {/* Chat Header */}
-      <div className="p-4 border-b border-border flex items-center gap-3">
-        <img
-          src={photo}
-          alt={profile.display_name}
-          className="w-12 h-12 rounded-full object-cover"
-        />
-        <div>
-          <h2 className="font-semibold">{profile.display_name}</h2>
-          {isTyping && (
-            <p className="text-sm text-muted-foreground animate-pulse">typing...</p>
-          )}
+      <div className="p-4 border-b border-border flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <img
+            src={photo}
+            alt={profile.display_name}
+            className="w-12 h-12 rounded-full object-cover"
+          />
+          <div>
+            <h2 className="font-semibold">{profile.display_name}</h2>
+            {isTyping && (
+              <p className="text-sm text-muted-foreground animate-pulse">typing...</p>
+            )}
+          </div>
         </div>
+        <Button
+          onClick={handleStartVideoCall}
+          disabled={isCreatingRoom}
+          className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 shadow-lg hover:shadow-primary/50 transition-all"
+        >
+          <Video className="h-4 w-4 mr-2" />
+          {isCreatingRoom ? "Starting..." : "Video Call"}
+        </Button>
       </div>
 
       {/* Messages */}
@@ -332,6 +391,11 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate }: ChatWindo
           </div>
         )}
       </div>
+
+      {/* Video Call Modal */}
+      {videoRoomUrl && (
+        <VideoCall roomUrl={videoRoomUrl} onClose={() => setVideoRoomUrl(null)} />
+      )}
     </div>
   );
 };
