@@ -6,6 +6,7 @@ import { Heart, ArrowLeft, Settings, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ConversationList } from "@/components/messages/ConversationList";
 import { ChatWindow } from "@/components/messages/ChatWindow";
+import { MobileNav } from "@/components/navigation/MobileNav";
 
 const Messages = () => {
   const [user, setUser] = useState<any>(null);
@@ -107,19 +108,19 @@ const Messages = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background">
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
-              <ArrowLeft className="h-5 w-5" />
+        <div className="container mx-auto px-4 py-3 md:py-4 flex justify-between items-center">
+          <div className="flex items-center gap-2 md:gap-4">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")} className="h-9 w-9 md:h-10 md:w-10">
+              <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
             </Button>
             <div className="flex items-center gap-2">
-              <Heart className="h-8 w-8 text-primary fill-primary" />
-              <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              <Heart className="h-6 w-6 md:h-8 md:w-8 text-primary fill-primary" />
+              <span className="text-lg md:text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 Messages
               </span>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="hidden md:flex gap-2">
             <Button variant="ghost" size="icon" onClick={() => navigate("/settings")}>
               <Settings className="h-5 w-5" />
             </Button>
@@ -127,25 +128,37 @@ const Messages = () => {
               <LogOut className="h-5 w-5" />
             </Button>
           </div>
+          <MobileNav
+            isAuthenticated
+            onLogout={handleLogout}
+            links={[
+              { to: "/settings", label: "Settings", icon: <Settings className="h-5 w-5" />, onClick: () => navigate("/settings") },
+            ]}
+          />
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-6 h-[calc(100vh-80px)]">
-        <div className="grid md:grid-cols-[350px,1fr] gap-4 h-full">
-          <ConversationList
-            matches={matches}
-            selectedMatch={selectedMatch}
-            onSelectMatch={(match) => {
-              setSelectedMatch(match);
-              setSearchParams({ match: match.id });
-            }}
-            currentUserId={user.id}
-          />
-          <ChatWindow
-            match={selectedMatch}
-            currentUserId={user.id}
-            onMessagesUpdate={() => fetchMatches(user.id)}
-          />
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 h-[calc(100vh-64px)] sm:h-[calc(100vh-80px)]">
+        <div className="grid md:grid-cols-[350px,1fr] gap-2 sm:gap-4 h-full">
+          {/* Hide conversation list on mobile when a chat is selected */}
+          <div className={selectedMatch ? "hidden md:block" : "block"}>
+            <ConversationList
+              matches={matches}
+              selectedMatch={selectedMatch}
+              onSelectMatch={(match) => {
+                setSelectedMatch(match);
+                setSearchParams({ match: match.id });
+              }}
+              currentUserId={user.id}
+            />
+          </div>
+          <div className={selectedMatch ? "block" : "hidden md:block"}>
+            <ChatWindow
+              match={selectedMatch}
+              currentUserId={user.id}
+              onMessagesUpdate={() => fetchMatches(user.id)}
+            />
+          </div>
         </div>
       </div>
     </div>

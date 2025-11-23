@@ -13,6 +13,7 @@ import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { ActivityFeed } from "@/components/activity/ActivityFeed";
 import { AnimatePresence } from "framer-motion";
 import { calculateCompatibilityScore } from "@/lib/compatibility";
+import { MobileNav } from "@/components/navigation/MobileNav";
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -300,14 +301,16 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background">
       {/* Header */}
       <header className="border-b border-border/50 bg-card/80 backdrop-blur-md sticky top-0 z-10 shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+        <div className="container mx-auto px-4 py-3 md:py-4 flex justify-between items-center">
           <div className="flex items-center gap-2 animate-fade-in">
-            <Heart className="h-8 w-8 text-primary fill-primary animate-heartbeat" />
-            <span className="text-2xl font-bold gradient-text">
+            <Heart className="h-6 w-6 md:h-8 md:w-8 text-primary fill-primary animate-heartbeat" />
+            <span className="text-xl md:text-2xl font-bold gradient-text">
               Spaark
             </span>
           </div>
-          <div className="flex gap-2">
+          
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex gap-2">
             <NotificationBell userId={user.id} />
             <Button variant="ghost" size="icon" onClick={() => navigate("/profile-views")} title="Profile Views" className="hover:scale-110 transition-transform">
               <Eye className="h-5 w-5" />
@@ -331,12 +334,26 @@ const Dashboard = () => {
               <LogOut className="h-5 w-5" />
             </Button>
           </div>
+
+          {/* Mobile Navigation */}
+          <MobileNav
+            isAuthenticated
+            onLogout={handleLogout}
+            links={[
+              { to: "/profile-views", label: "Profile Views", icon: <Eye className="h-5 w-5" />, onClick: () => navigate("/profile-views") },
+              { to: "/matches", label: "Matches", icon: <Heart className="h-5 w-5" />, onClick: () => navigate("/matches") },
+              { to: "/messages", label: "Messages", icon: <MessageCircle className="h-5 w-5" />, onClick: () => navigate("/messages") },
+              { to: "/profile", label: "Profile", icon: <UserIcon className="h-5 w-5" />, onClick: () => navigate("/profile") },
+              { to: "/faq", label: "FAQ", icon: <HelpCircle className="h-5 w-5" />, onClick: () => navigate("/faq") },
+              { to: "/settings", label: "Settings", icon: <Settings className="h-5 w-5" />, onClick: () => navigate("/settings") },
+            ]}
+          />
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid lg:grid-cols-[1fr_400px] gap-8 max-w-7xl mx-auto">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
+        <div className="grid lg:grid-cols-[1fr_400px] gap-4 sm:gap-8 max-w-7xl mx-auto">
           {/* Main Swipe Area */}
           <div className="flex items-center justify-center">
             <div className="w-full max-w-md">
@@ -346,9 +363,9 @@ const Dashboard = () => {
                   <p className="text-muted-foreground">Finding matches for you...</p>
                 </div>
               ) : hasMoreProfiles ? (
-                <div className="space-y-6 animate-fade-in">
+                <div className="space-y-4 sm:space-y-6 animate-fade-in">
                   {/* Swipe Card Stack */}
-                  <div className="relative h-[600px]">
+                  <div className="relative h-[500px] sm:h-[600px]">
                     <AnimatePresence>
                       {profiles.slice(currentIndex, currentIndex + 2).map((profile, index) => (
                         <SwipeCard
