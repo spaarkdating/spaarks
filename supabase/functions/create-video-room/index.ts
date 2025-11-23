@@ -44,9 +44,20 @@ serve(async (req) => {
     });
 
     if (!roomResponse.ok) {
-      const error = await roomResponse.text();
-      console.error('Daily.co API error:', error);
-      throw new Error('Failed to create video room');
+      const errorText = await roomResponse.text();
+      console.error('Daily.co API error:', errorText);
+
+      return new Response(
+        JSON.stringify({
+          error: 'daily_api_error',
+          status: roomResponse.status,
+          details: errorText,
+        }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     const roomData = await roomResponse.json();
@@ -64,9 +75,9 @@ serve(async (req) => {
   } catch (error: any) {
     console.error('Error creating video room:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error.message || 'unknown_error' }),
       {
-        status: 500,
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
