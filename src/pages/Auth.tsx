@@ -255,15 +255,6 @@ const Auth = () => {
                       required
                     />
                   </div>
-                  {/* Admin Registration Link - Removed inline checkbox */}
-                  <div className="pt-4 border-t">
-                    <p className="text-xs text-center text-muted-foreground">
-                      Need admin access?{" "}
-                      <Link to="/admin/register" className="text-primary hover:underline font-medium">
-                        Register as Admin
-                      </Link>
-                    </p>
-                  </div>
                   
                   <Button
                     type="submit"
