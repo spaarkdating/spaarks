@@ -9,6 +9,7 @@ import { formatDistanceToNow } from "date-fns";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { getRandomIcebreakers } from "@/data/icebreakers";
 import { VideoCall } from "./VideoCall";
+import { VirtualDateMode } from "./VirtualDateMode";
 
 interface ChatWindowProps {
   match: any;
@@ -27,6 +28,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate }: ChatWindo
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
   const [activeCallUrl, setActiveCallUrl] = useState<string | null>(null);
   const [showVideoCall, setShowVideoCall] = useState(false);
+  const [callStartTime, setCallStartTime] = useState<Date | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   const channelRef = useRef<RealtimeChannel | null>(null);
@@ -164,6 +166,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate }: ChatWindo
         setVideoRoomUrl(data.roomUrl);
         setActiveCallUrl(data.roomUrl);
         setShowVideoCall(true);
+        setCallStartTime(new Date());
         
         // Send a message to notify the other user
         await supabase.from("messages").insert({
@@ -251,7 +254,12 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate }: ChatWindo
   const photo = profile?.photos?.[0]?.photo_url || "/placeholder.svg";
 
   return (
-    <div className="bg-card rounded-2xl border border-border flex flex-col h-full">
+    <div className="bg-card rounded-2xl border border-border flex flex-col h-full relative overflow-hidden">
+      {/* Virtual Date Mode Overlay */}
+      {activeCallUrl && callStartTime && (
+        <VirtualDateMode startTime={callStartTime} />
+      )}
+
       {/* Chat Header */}
       <div className="p-4 border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -307,7 +315,10 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate }: ChatWindo
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setActiveCallUrl(null)}
+                onClick={() => {
+                  setActiveCallUrl(null);
+                  setCallStartTime(null);
+                }}
                 className="hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
               >
                 End
@@ -459,7 +470,8 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate }: ChatWindo
           onClose={() => {
             setVideoRoomUrl(null);
             setShowVideoCall(false);
-          }} 
+            // Keep activeCallUrl and callStartTime so banner shows after closing video
+          }}
         />
       )}
     </div>
