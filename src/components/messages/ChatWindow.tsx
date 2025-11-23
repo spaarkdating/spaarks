@@ -25,6 +25,8 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate }: ChatWindo
   const [icebreakers, setIcebreakers] = useState<string[]>([]);
   const [videoRoomUrl, setVideoRoomUrl] = useState<string | null>(null);
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
+  const [activeCallUrl, setActiveCallUrl] = useState<string | null>(null);
+  const [showVideoCall, setShowVideoCall] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   const channelRef = useRef<RealtimeChannel | null>(null);
@@ -144,12 +146,14 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate }: ChatWindo
 
       if (data?.roomUrl) {
         setVideoRoomUrl(data.roomUrl);
+        setActiveCallUrl(data.roomUrl);
+        setShowVideoCall(true);
         
         // Send a message to notify the other user
         await supabase.from("messages").insert({
           sender_id: currentUserId,
           receiver_id: match.liked_user_id,
-          content: `📹 Video call started: ${data.roomUrl}`,
+          content: `📹 Video call started`,
         });
 
         // Create notification
@@ -256,6 +260,46 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate }: ChatWindo
           {isCreatingRoom ? "Starting..." : "Video Call"}
         </Button>
       </div>
+
+      {/* Active Call Banner */}
+      {activeCallUrl && !showVideoCall && (
+        <div className="mx-4 mt-4 p-3 bg-gradient-to-r from-primary/20 to-secondary/20 border border-primary/30 rounded-xl animate-slide-up">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <Video className="h-5 w-5 text-primary" />
+                <div className="absolute -top-1 -right-1 h-3 w-3 bg-online rounded-full animate-pulse" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-foreground">Video call active</p>
+                <p className="text-xs text-muted-foreground">Call in progress</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setVideoRoomUrl(activeCallUrl);
+                  setShowVideoCall(true);
+                }}
+                className="bg-primary/10 hover:bg-primary/20 text-primary"
+              >
+                <Video className="h-4 w-4 mr-2" />
+                Rejoin
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setActiveCallUrl(null)}
+                className="hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+              >
+                End
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -393,8 +437,14 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate }: ChatWindo
       </div>
 
       {/* Video Call Modal */}
-      {videoRoomUrl && (
-        <VideoCall roomUrl={videoRoomUrl} onClose={() => setVideoRoomUrl(null)} />
+      {videoRoomUrl && showVideoCall && (
+        <VideoCall 
+          roomUrl={videoRoomUrl} 
+          onClose={() => {
+            setVideoRoomUrl(null);
+            setShowVideoCall(false);
+          }} 
+        />
       )}
     </div>
   );
