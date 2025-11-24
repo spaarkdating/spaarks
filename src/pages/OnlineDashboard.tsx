@@ -16,6 +16,9 @@ import { calculateCompatibilityScore } from "@/lib/compatibility";
 import { MobileNav } from "@/components/navigation/MobileNav";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/navigation/PullToRefreshIndicator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ProfileView } from "@/components/profile/ProfileView";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface OnlineDashboardProps {
   user: User;
@@ -30,6 +33,10 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
   const [compatibilityScores, setCompatibilityScores] = useState<Record<string, number>>({});
   const [lastSwipe, setLastSwipe] = useState<{ matchId: string; profileIndex: number } | null>(null);
   const [canRewind, setCanRewind] = useState(false);
+  const [selectedProfile, setSelectedProfile] = useState<any>(null);
+  const [profilePhotos, setProfilePhotos] = useState<any[]>([]);
+  const [profileInterests, setProfileInterests] = useState<any[]>([]);
+  const [isProfileLoading, setIsProfileLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   useNotifications();
@@ -113,6 +120,35 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleProfileClick = async (profile: any) => {
+    setIsProfileLoading(true);
+    setSelectedProfile(profile);
+    
+    try {
+      const { data: photos } = await supabase
+        .from("photos")
+        .select("*")
+        .eq("user_id", profile.id)
+        .order("display_order", { ascending: true });
+
+      const { data: userInterests } = await supabase
+        .from("user_interests")
+        .select("interest:interests(*)")
+        .eq("user_id", profile.id);
+
+      setProfilePhotos(photos || []);
+      setProfileInterests(userInterests?.map((ui: any) => ui.interest) || []);
+    } catch (error: any) {
+      toast({
+        title: "Error loading profile",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsProfileLoading(false);
     }
   };
 
@@ -297,6 +333,7 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
                           profile={profile}
                           onSwipe={index === 0 ? handleSwipe : () => {}}
                           compatibilityScore={compatibilityScores[profile.id]}
+                          onProfileClick={index === 0 ? () => handleProfileClick(profile) : undefined}
                           style={{
                             zIndex: 2 - index,
                             scale: 1 - index * 0.05,
@@ -354,6 +391,28 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
           />
         )}
       </AnimatePresence>
+
+      <Dialog open={!!selectedProfile} onOpenChange={(open) => !open && setSelectedProfile(null)}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle>Profile Details</DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="max-h-[calc(90vh-100px)] pr-4">
+            {isProfileLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <RefreshCw className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : selectedProfile ? (
+              <ProfileView
+                profile={selectedProfile}
+                photos={profilePhotos}
+                interests={profileInterests}
+                emailVerified={selectedProfile.email_verified}
+              />
+            ) : null}
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
