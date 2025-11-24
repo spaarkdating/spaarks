@@ -15,6 +15,7 @@ import AuditLogs from "@/components/admin/AuditLogs";
 import AdminRoleManagement from "@/components/admin/AdminRoleManagement";
 import { TestimonialManagement } from "@/components/admin/TestimonialManagement";
 import { NewsletterManagement } from "@/components/admin/NewsletterManagement";
+import { NewsletterHistory } from "@/components/admin/NewsletterHistory";
 import DangerZone from "@/components/admin/DangerZone";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminRole } from "@/hooks/useAdminRole";
@@ -146,7 +147,12 @@ const Admin = () => {
           {isSuperAdmin && (
             <>
               <TabsContent value="testimonials"><TestimonialManagement /></TabsContent>
-              <TabsContent value="newsletter"><NewsletterManagement /></TabsContent>
+              <TabsContent value="newsletter">
+                <div className="space-y-6">
+                  <NewsletterManagement />
+                  <NewsletterHistory />
+                </div>
+              </TabsContent>
               <TabsContent value="roles"><AdminRoleManagement /></TabsContent>
               <TabsContent value="audit"><AuditLogs /></TabsContent>
               <TabsContent value="danger"><DangerZone /></TabsContent>

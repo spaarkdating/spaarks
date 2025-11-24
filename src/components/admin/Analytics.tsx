@@ -22,7 +22,22 @@ const Analytics = () => {
     try {
       // Fetch all stats
       const profilesResult: any = await supabase.from("profiles").select("*", { count: "exact", head: true });
-      const matchesResult: any = await supabase.from("matches").select("*", { count: "exact", head: true }).eq("is_match", true);
+      
+      // Count unique mutual matches (each match creates 2 rows, one for each user)
+      // We need to count distinct pairs to avoid double-counting
+      const { data: matchData } = await supabase
+        .from("matches")
+        .select("user_id, liked_user_id")
+        .eq("is_match", true);
+      
+      // Count unique pairs by creating a consistent pair identifier
+      const uniquePairs = new Set<string>();
+      matchData?.forEach((match: any) => {
+        const [id1, id2] = [match.user_id, match.liked_user_id].sort();
+        uniquePairs.add(`${id1}-${id2}`);
+      });
+      const uniqueMatchesCount = uniquePairs.size;
+      
       const messagesResult: any = await supabase.from("messages").select("*", { count: "exact", head: true });
       
       // Count active/banned manually from profiles
@@ -31,14 +46,14 @@ const Analytics = () => {
       const bannedCount = allProfiles?.filter((p: any) => p.account_status === "banned").length || 0;
 
       // Count reports and tickets
-      const reportsResult: any = await (supabase as any).from("photo_reports").select("*", { count: "exact", head: true }).eq("status", "pending");
-      const ticketsResult: any = await (supabase as any).from("support_tickets").select("*", { count: "exact", head: true }).in("status", ["open", "in_progress"]);
+      const reportsResult: any = await supabase.from("photo_reports").select("*", { count: "exact", head: true }).eq("status", "pending");
+      const ticketsResult: any = await supabase.from("support_tickets").select("*", { count: "exact", head: true }).in("status", ["open", "in_progress"]);
 
       setStats({
         totalUsers: profilesResult.count || 0,
         activeUsers: activeCount,
         bannedUsers: bannedCount,
-        totalMatches: matchesResult.count || 0,
+        totalMatches: uniqueMatchesCount,
         totalMessages: messagesResult.count || 0,
         pendingReports: reportsResult.count || 0,
         openTickets: ticketsResult.count || 0,

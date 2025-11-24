@@ -149,6 +149,7 @@ export const NewsletterManagement = () => {
     setIsSending(true);
 
     try {
+      // Send newsletter
       const { error } = await supabase.functions.invoke("send-newsletter", {
         body: {
           subject,
@@ -159,6 +160,17 @@ export const NewsletterManagement = () => {
 
       if (error) throw error;
 
+      // Save to history
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from("newsletter_history").insert({
+          subject,
+          message,
+          recipient_count: subscribers.length,
+          sent_by: user.id,
+        });
+      }
+
       toast({
         title: "Newsletter Sent! 🎉",
         description: `Successfully sent to ${subscribers.length} subscribers.`,
@@ -168,6 +180,7 @@ export const NewsletterManagement = () => {
       setSubject("");
       setMessage("");
       setShowPreview(false);
+      setSelectedTemplate("blank");
     } catch (error: any) {
       console.error("Error sending newsletter:", error);
       toast({
