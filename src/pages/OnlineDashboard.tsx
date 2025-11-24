@@ -80,7 +80,8 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
 
       const swipedIds = swipedMatches?.map(m => m.liked_user_id) || [];
 
-      const { data: potentialMatches } = await supabase
+      // Build the query with gender filter
+      let query = supabase
         .from("profiles")
         .select(`
           *,
@@ -88,8 +89,32 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
           user_interests(interest:interests(*))
         `)
         .neq("id", userId)
-        .eq("dating_mode", "online")
-        .not("id", "in", `(${swipedIds.join(",")})`)
+        .eq("dating_mode", "online");
+
+      // Filter by gender preference (looking_for)
+      if (currentUserProfile?.looking_for && currentUserProfile.looking_for !== 'everyone') {
+        query = query.eq("gender", currentUserProfile.looking_for);
+      }
+
+      // Filter by age preferences
+      if (currentUserProfile?.min_age) {
+        const minBirthDate = new Date();
+        minBirthDate.setFullYear(minBirthDate.getFullYear() - currentUserProfile.min_age);
+        query = query.lte("date_of_birth", minBirthDate.toISOString().split('T')[0]);
+      }
+
+      if (currentUserProfile?.max_age) {
+        const maxBirthDate = new Date();
+        maxBirthDate.setFullYear(maxBirthDate.getFullYear() - currentUserProfile.max_age - 1);
+        query = query.gte("date_of_birth", maxBirthDate.toISOString().split('T')[0]);
+      }
+
+      // Exclude already swiped profiles
+      if (swipedIds.length > 0) {
+        query = query.not("id", "in", `(${swipedIds.join(",")})`);
+      }
+
+      const { data: potentialMatches } = await query
         .order("created_at", { ascending: false })
         .limit(20);
 
