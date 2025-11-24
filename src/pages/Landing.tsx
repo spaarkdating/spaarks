@@ -15,6 +15,7 @@ import { FloatingActionButtons } from "@/components/landing/FloatingActionButton
 import { ThemeToggle } from "@/components/landing/ThemeToggle";
 import { HeroCarousel } from "@/components/landing/HeroCarousel";
 import { TrustBadges } from "@/components/landing/TrustBadges";
+import { LiveActivityFeed } from "@/components/landing/LiveActivityFeed";
 
 const Landing = () => {
   const [testimonials, setTestimonials] = useState<any[]>([]);
@@ -461,6 +462,9 @@ const Landing = () => {
 
       {/* Trust Indicators */}
       <TrustBadges />
+
+      {/* Live Activity Feed */}
+      <LiveActivityFeed />
 
       {/* CTA Section */}
       <section className="container mx-auto px-4 py-20 relative z-10">
