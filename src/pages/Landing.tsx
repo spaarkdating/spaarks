@@ -10,6 +10,7 @@ import { NewsletterSignup } from "@/components/landing/NewsletterSignup";
 import { RealTimeStats } from "@/components/landing/RealTimeStats";
 import { Footer } from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
+import { CursorEffect } from "@/components/CursorEffect";
 
 const Landing = () => {
   const [testimonials, setTestimonials] = useState<any[]>([]);
@@ -56,8 +57,20 @@ const Landing = () => {
 
   return (
     <div ref={containerRef} className="min-h-screen overflow-hidden relative">
-      {/* Animated background */}
+      <CursorEffect />
+      
+      {/* Animated background with texture */}
       <div className="fixed inset-0 bg-background pointer-events-none" />
+      
+      {/* Texture overlay */}
+      <div 
+        className="fixed inset-0 pointer-events-none opacity-10"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+        }}
+      />
+      
+      {/* Gradient orbs */}
       <div className="fixed inset-0 opacity-30 pointer-events-none">
         <motion.div 
           className="absolute top-20 left-10 w-72 h-72 bg-primary-glow/30 rounded-full blur-3xl"
@@ -77,7 +90,7 @@ const Landing = () => {
       </div>
       
       {/* Header */}
-      <header className="container mx-auto px-4 py-6 flex justify-between items-center relative z-10">
+      <header className="container mx-auto px-4 py-6 flex justify-between items-center relative z-20">
         <motion.div 
           className="flex items-center gap-2"
           initial={{ opacity: 0, x: -20 }}
@@ -118,7 +131,7 @@ const Landing = () => {
 
       {/* Hero Section */}
       <motion.section 
-        className="container mx-auto px-4 py-20 text-center relative"
+        className="container mx-auto px-4 py-20 text-center relative z-10"
         style={{ y: heroY, opacity: heroOpacity }}
       >
         <AnimatedBackground />
@@ -177,7 +190,7 @@ const Landing = () => {
 
       {/* Stats Section */}
       <motion.section 
-        className="container mx-auto px-4 py-20 relative"
+        className="container mx-auto px-4 py-20 relative z-10"
         style={{ y: statsY }}
       >
         <motion.div
@@ -192,7 +205,7 @@ const Landing = () => {
 
       {/* How It Works Section */}
       <motion.section 
-        className="container mx-auto px-4 py-20 bg-muted/30 rounded-3xl my-20"
+        className="container mx-auto px-4 py-20 bg-card/80 backdrop-blur-sm rounded-3xl my-20 relative z-10"
         style={{ y: featuresY }}
       >
         <motion.div 
@@ -234,7 +247,7 @@ const Landing = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: idx * 0.2 }}
             >
-              <Card className="p-8 text-center hover:shadow-2xl transition-all border-2 hover:border-primary/50 card-hover hover-glow glass-effect group">
+              <Card className="p-8 text-center hover:shadow-2xl transition-all border-2 hover:border-primary/50 card-hover hover-glow bg-card/90 backdrop-blur-sm group relative z-10">
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-xl shadow-lg animate-bounce-in">
                   {item.step}
                 </div>
@@ -251,7 +264,7 @@ const Landing = () => {
 
       {/* Features Section */}
       <motion.section 
-        className="container mx-auto px-4 py-20"
+        className="container mx-auto px-4 py-20 relative z-10"
         style={{ y: featuresY }}
       >
         <motion.div 
@@ -304,7 +317,7 @@ const Landing = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: idx * 0.1 }}
             >
-              <Card className="p-8 text-center hover:shadow-2xl transition-all border hover:border-primary/50 card-hover hover-glow h-full glass-effect group">
+              <Card className="p-8 text-center hover:shadow-2xl transition-all border hover:border-primary/50 card-hover hover-glow h-full bg-card/90 backdrop-blur-sm group relative z-10">
                 <div className={`w-16 h-16 bg-gradient-to-br ${feature.color} rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-all animate-gradient`}>
                   <feature.icon className="h-8 w-8 text-white animate-glow" />
                 </div>
@@ -318,7 +331,7 @@ const Landing = () => {
 
       {/* Testimonials Section */}
       <motion.section 
-        className="container mx-auto px-4 py-20"
+        className="container mx-auto px-4 py-20 relative z-10"
         style={{ y: testimonialsY }}
       >
         <motion.div 
@@ -357,7 +370,7 @@ const Landing = () => {
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: idx * 0.15 }}
                   >
-                    <Card className="p-6 hover:shadow-2xl transition-all border hover:border-primary/30 card-hover hover-glow h-full flex flex-col glass-effect group">
+                    <Card className="p-6 hover:shadow-2xl transition-all border hover:border-primary/30 card-hover hover-glow h-full flex flex-col bg-card/90 backdrop-blur-sm group relative z-10">
                       {/* Media Section */}
                       {(testimonial.photo_url || testimonial.video_url) && (
                         <div className="mb-4 rounded-lg overflow-hidden group-hover:scale-105 transition-transform">
@@ -415,9 +428,9 @@ const Landing = () => {
 
 
       {/* Trust Indicators */}
-      <section className="container mx-auto px-4 py-20">
+      <section className="container mx-auto px-4 py-20 relative z-10">
         <motion.div
-          className="bg-gradient-to-br from-muted/50 to-muted/30 rounded-3xl p-12"
+          className="bg-card/80 backdrop-blur-sm rounded-3xl p-12 relative z-10"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -448,7 +461,7 @@ const Landing = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="container mx-auto px-4 py-20">
+      <section className="container mx-auto px-4 py-20 relative z-10">
         <motion.div 
           className="bg-gradient-to-r from-primary via-accent to-secondary rounded-3xl p-12 md:p-16 text-center text-white relative overflow-hidden"
           initial={{ opacity: 0, scale: 0.95 }}
@@ -487,7 +500,7 @@ const Landing = () => {
       </section>
 
       {/* Newsletter Section */}
-      <section className="container mx-auto px-4 py-20 border-t border-border">
+      <section className="container mx-auto px-4 py-20 border-t border-border relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -497,8 +510,10 @@ const Landing = () => {
         </motion.div>
       </section>
 
-
-      <Footer />
+      {/* Footer */}
+      <div className="relative z-10">
+        <Footer />
+      </div>
     </div>
   );
 };

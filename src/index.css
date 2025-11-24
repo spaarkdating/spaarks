@@ -11,38 +11,38 @@ All colors MUST be HSL.
     --background: 348 83% 50%;
     --foreground: 0 0% 100%;
 
-    --card: 348 70% 45%;
+    --card: 348 60% 40%;
     --card-foreground: 0 0% 100%;
 
-    --popover: 348 70% 45%;
+    --popover: 348 60% 40%;
     --popover-foreground: 0 0% 100%;
 
-    --primary: 348 90% 65%;
+    --primary: 348 95% 75%;
     --primary-foreground: 348 70% 25%;
     
-    --primary-glow: 348 95% 75%;
+    --primary-glow: 348 100% 85%;
     --primary-light: 348 85% 88%;
     --primary-dark: 348 70% 35%;
 
-    --secondary: 348 60% 35%;
+    --secondary: 348 50% 30%;
     --secondary-foreground: 0 0% 100%;
     
     --secondary-glow: 348 80% 55%;
 
-    --muted: 348 70% 55%;
-    --muted-foreground: 0 0% 95%;
+    --muted: 348 60% 45%;
+    --muted-foreground: 0 0% 100%;
 
-    --accent: 355 85% 65%;
+    --accent: 355 90% 70%;
     --accent-foreground: 0 0% 100%;
     
-    --accent-glow: 355 95% 75%;
+    --accent-glow: 355 95% 80%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 348 60% 60%;
-    --input: 348 70% 45%;
-    --ring: 348 90% 65%;
+    --border: 348 40% 60%;
+    --input: 348 60% 40%;
+    --ring: 348 95% 75%;
 
     --radius: 1.25rem;
     
@@ -274,13 +274,13 @@ All colors MUST be HSL.
   }
   
   .glass-effect {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.2);
   }
   
   .dark .glass-effect {
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
