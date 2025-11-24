@@ -54,6 +54,54 @@ const Messages = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  // Real-time updates for new matches and messages
+  useEffect(() => {
+    if (!user) return;
+
+    const matchesChannel = supabase
+      .channel('matches-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'matches',
+          filter: `liked_user_id=eq.${user.id}`
+        },
+        () => {
+          fetchMatches(user.id);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'matches',
+          filter: `liked_user_id=eq.${user.id}`
+        },
+        () => {
+          fetchMatches(user.id);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages'
+        },
+        () => {
+          fetchMatches(user.id);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(matchesChannel);
+    };
+  }, [user]);
+
   useEffect(() => {
     const matchId = searchParams.get("match");
     if (matchId && matches.length > 0) {
