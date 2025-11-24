@@ -307,10 +307,10 @@ All colors MUST be HSL.
   
   @keyframes glow-pulse {
     0%, 100% {
-      filter: drop-shadow(0 0 8px hsla(348, 83%, 47%, 0.4));
+      filter: drop-shadow(0 0 8px hsla(340, 100%, 80%, 0.6));
     }
     50% {
-      filter: drop-shadow(0 0 20px hsla(348, 83%, 47%, 0.8));
+      filter: drop-shadow(0 0 20px hsla(340, 100%, 80%, 1));
     }
   }
   
@@ -400,7 +400,7 @@ All colors MUST be HSL.
     animation: bounce-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   }
   
-  .animate-rotate {
-    animation: rotate 20s linear infinite;
+  .drop-shadow-glow {
+    filter: drop-shadow(0 0 12px hsla(340, 100%, 80%, 0.8));
   }
 }
