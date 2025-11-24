@@ -12,6 +12,9 @@ import { Footer } from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { CursorEffect } from "@/components/CursorEffect";
 import { FloatingActionButtons } from "@/components/landing/FloatingActionButtons";
+import { ThemeToggle } from "@/components/landing/ThemeToggle";
+import { HeroCarousel } from "@/components/landing/HeroCarousel";
+import { TrustBadges } from "@/components/landing/TrustBadges";
 
 const Landing = () => {
   const [testimonials, setTestimonials] = useState<any[]>([]);
@@ -110,6 +113,7 @@ const Landing = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
         >
+          <ThemeToggle />
           <Link to="/auth">
             <Button variant="ghost" className="hover-lift hover:text-primary transition-all">
               Log In
@@ -137,7 +141,7 @@ const Landing = () => {
         style={{ y: heroY, opacity: heroOpacity }}
       >
         <AnimatedBackground />
-        <div className="max-w-4xl mx-auto space-y-8 relative z-10">
+        <div className="max-w-4xl mx-auto space-y-8 relative z-10 mb-12">
           <motion.div 
             className="inline-flex items-center gap-2 glass-effect px-4 py-2 rounded-full text-primary text-sm font-medium mb-4 border border-primary/30 hover-glow animate-bounce-in"
             initial={{ opacity: 0, y: 20 }}
@@ -190,6 +194,15 @@ const Landing = () => {
           </motion.div>
         </div>
 
+        {/* Hero Carousel */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+          className="mt-16"
+        >
+          <HeroCarousel />
+        </motion.div>
       </motion.section>
 
       {/* Stats Section */}
@@ -434,37 +447,7 @@ const Landing = () => {
 
 
       {/* Trust Indicators */}
-      <section className="container mx-auto px-4 py-20 relative z-10">
-        <motion.div
-          className="bg-card/80 backdrop-blur-sm rounded-3xl p-12 relative z-10"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
-          <div className="grid md:grid-cols-4 gap-8 text-center">
-            {[
-              { icon: Shield, text: "SSL Encrypted" },
-              { icon: CheckCircle, text: "Verified Profiles" },
-              { icon: Users, text: "50K+ Members" },
-              { icon: Award, text: "Award Winning" }
-            ].map((item, idx) => (
-              <motion.div
-                key={idx}
-                className="flex flex-col items-center gap-3"
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: idx * 0.1 }}
-              >
-                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
-                  <item.icon className="h-7 w-7 text-primary" />
-                </div>
-                <p className="font-medium text-foreground">{item.text}</p>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-      </section>
+      <TrustBadges />
 
       {/* CTA Section */}
       <section className="container mx-auto px-4 py-20 relative z-10">
