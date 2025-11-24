@@ -88,58 +88,58 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 348 55% 10%;
-    --foreground: 348 15% 95%;
+    --background: 340 55% 15%;
+    --foreground: 0 0% 100%;
 
-    --card: 348 45% 14%;
-    --card-foreground: 348 15% 95%;
+    --card: 340 45% 20%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 348 45% 14%;
-    --popover-foreground: 348 15% 95%;
+    --popover: 340 45% 20%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 348 83% 52%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 340 100% 85%;
+    --primary-foreground: 340 65% 20%;
     
-    --primary-glow: 348 90% 65%;
-    --primary-light: 348 70% 40%;
-    --primary-dark: 348 70% 30%;
+    --primary-glow: 340 100% 90%;
+    --primary-light: 340 70% 40%;
+    --primary-dark: 340 70% 30%;
 
-    --secondary: 348 70% 38%;
+    --secondary: 340 70% 38%;
     --secondary-foreground: 0 0% 100%;
     
-    --secondary-glow: 348 80% 55%;
+    --secondary-glow: 340 80% 55%;
 
-    --muted: 348 35% 20%;
-    --muted-foreground: 348 15% 65%;
+    --muted: 340 35% 25%;
+    --muted-foreground: 0 0% 90%;
 
-    --accent: 355 85% 58%;
+    --accent: 320 85% 75%;
     --accent-foreground: 0 0% 100%;
     
-    --accent-glow: 355 95% 70%;
+    --accent-glow: 320 90% 85%;
 
     --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 348 30% 22%;
-    --input: 348 30% 20%;
-    --ring: 348 83% 52%;
+    --border: 340 30% 30%;
+    --input: 340 30% 25%;
+    --ring: 340 100% 85%;
     
-    --gradient-primary: linear-gradient(135deg, hsl(348 83% 52%) 0%, hsl(348 70% 38%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(348 85% 55%) 0%, hsl(348 90% 65%) 50%, hsl(355 85% 58%) 100%);
-    --gradient-soft: linear-gradient(180deg, hsl(348 55% 10%) 0%, hsl(348 50% 12%) 50%, hsl(348 45% 14%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(348 45% 14%) 0%, hsl(348 40% 16%) 100%);
-    --gradient-glow: radial-gradient(circle at 50% 0%, hsla(348, 83%, 52%, 0.25), transparent 70%);
-    --gradient-animated: linear-gradient(270deg, hsl(348 83% 52%), hsl(348 90% 65%), hsl(355 85% 58%), hsl(348 83% 52%));
-    --gradient-mesh: radial-gradient(at 0% 0%, hsl(348 70% 25%) 0px, transparent 50%),
-                     radial-gradient(at 100% 0%, hsl(355 70% 25%) 0px, transparent 50%),
-                     radial-gradient(at 100% 100%, hsl(348 75% 25%) 0px, transparent 50%),
-                     radial-gradient(at 0% 100%, hsl(348 65% 25%) 0px, transparent 50%);
+    --gradient-primary: linear-gradient(135deg, hsl(340 82% 52%) 0%, hsl(340 65% 45%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(340 85% 55%) 0%, hsl(340 90% 65%) 50%, hsl(320 85% 75%) 100%);
+    --gradient-soft: linear-gradient(180deg, hsl(340 55% 15%) 0%, hsl(340 45% 20%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(340 45% 20%) 0%, hsl(340 40% 25%) 100%);
+    --gradient-glow: radial-gradient(circle at 50% 0%, hsla(340, 100%, 85%, 0.25), transparent 70%);
+    --gradient-animated: linear-gradient(270deg, hsl(340 82% 52%), hsl(340 90% 65%), hsl(320 85% 75%), hsl(340 82% 52%));
+    --gradient-mesh: radial-gradient(at 0% 0%, hsl(340 70% 25%) 0px, transparent 50%),
+                     radial-gradient(at 100% 0%, hsl(320 70% 25%) 0px, transparent 50%),
+                     radial-gradient(at 100% 100%, hsl(340 75% 25%) 0px, transparent 50%),
+                     radial-gradient(at 0% 100%, hsl(340 65% 25%) 0px, transparent 50%);
     
-    --shadow-soft: 0 10px 50px hsla(348, 83%, 52%, 0.35);
-    --shadow-card: 0 4px 30px hsla(348, 60%, 20%, 0.5);
-    --shadow-glow: 0 0 80px hsla(348, 83%, 52%, 0.5);
-    --shadow-elevated: 0 20px 80px hsla(348, 70%, 10%, 0.7);
-    --shadow-hover: 0 25px 100px hsla(348, 83%, 52%, 0.4);
+    --shadow-soft: 0 10px 50px hsla(0, 0%, 0%, 0.5);
+    --shadow-card: 0 4px 30px hsla(0, 0%, 0%, 0.6);
+    --shadow-glow: 0 0 80px hsla(340, 100%, 85%, 0.5);
+    --shadow-elevated: 0 20px 80px hsla(0, 0%, 0%, 0.7);
+    --shadow-hover: 0 25px 100px hsla(0, 0%, 0%, 0.6);
     
     --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
