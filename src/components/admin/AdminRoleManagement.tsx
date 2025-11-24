@@ -68,22 +68,49 @@ const AdminRoleManagement = () => {
 
   const fetchAdminUsers = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    
+    // Fetch admin users
+    const { data: adminData, error: adminError } = await supabase
       .from("admin_users")
-      .select("*, profile:profiles!admin_users_user_id_fkey(display_name, email)")
+      .select("*")
       .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error("Error fetching admin users:", error);
+    if (adminError) {
+      console.error("Error fetching admin users:", adminError);
       toast({
         title: "Error loading admin users",
-        description: error.message,
+        description: adminError.message,
         variant: "destructive",
       });
-    } else if (data) {
-      console.log("Admin users fetched:", data);
-      setAdminUsers(data);
+      setLoading(false);
+      return;
     }
+
+    if (!adminData || adminData.length === 0) {
+      setAdminUsers([]);
+      setLoading(false);
+      return;
+    }
+
+    // Fetch profiles for all admin users
+    const userIds = adminData.map(admin => admin.user_id);
+    const { data: profilesData, error: profilesError } = await supabase
+      .from("profiles")
+      .select("id, display_name, email")
+      .in("id", userIds);
+
+    if (profilesError) {
+      console.error("Error fetching profiles:", profilesError);
+    }
+
+    // Merge the data
+    const mergedData = adminData.map(admin => ({
+      ...admin,
+      profile: profilesData?.find(p => p.id === admin.user_id) || null
+    }));
+
+    console.log("Admin users fetched:", mergedData);
+    setAdminUsers(mergedData);
     setLoading(false);
   };
 
