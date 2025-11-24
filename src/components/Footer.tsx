@@ -25,11 +25,6 @@ export const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/careers" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                  Careers
-                </Link>
-              </li>
-              <li>
                 <Link to="/support" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                   Contact Us
                 </Link>

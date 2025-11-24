@@ -719,6 +719,36 @@ export type Database = {
           },
         ]
       }
+      team_photos: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          member_name: string
+          member_role: string
+          photo_url: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order: number
+          id?: string
+          member_name: string
+          member_role: string
+          photo_url: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          member_name?: string
+          member_role?: string
+          photo_url?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       testimonials: {
         Row: {
           approved_at: string | null
