@@ -775,6 +775,7 @@ export type Database = {
         Returns: boolean
       }
       get_admin_role: { Args: never; Returns: string }
+      get_public_stats: { Args: never; Returns: Json }
       has_active_boost: { Args: { user_profile_id: string }; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
       is_full_admin: { Args: never; Returns: boolean }
