@@ -390,6 +390,26 @@ const Settings = () => {
 
           <Card className="shadow-xl border-2">
             <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Heart className="h-5 w-5 text-primary" />
+                Share Your Story
+              </CardTitle>
+              <CardDescription>Help others find love by sharing your success</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                variant="outline"
+                className="w-full border-primary text-primary hover:bg-primary/10"
+                onClick={() => navigate("/submit-testimonial")}
+              >
+                <Heart className="h-4 w-4 mr-2" />
+                Submit Testimonial
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-xl border-2">
+            <CardHeader>
               <CardTitle>Need Help?</CardTitle>
               <CardDescription>Contact our support team</CardDescription>
             </CardHeader>

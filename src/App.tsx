@@ -18,6 +18,7 @@ import Admin from "./pages/Admin";
 import AdminRegister from "./pages/AdminRegister";
 import FAQ from "./pages/FAQ";
 import ProfileViews from "./pages/ProfileViews";
+import SubmitTestimonial from "./pages/SubmitTestimonial";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
           <Route path="/messages" element={<Messages />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/profile-views" element={<ProfileViews />} />
+          <Route path="/submit-testimonial" element={<SubmitTestimonial />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/support" element={<Support />} />
           <Route path="/faq" element={<FAQ />} />
