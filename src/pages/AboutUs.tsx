@@ -9,6 +9,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Header } from "@/components/navigation/Header";
+import { Footer } from "@/components/Footer";
 
 const AboutUs = () => {
   const { role } = useAdminRole();
@@ -157,15 +159,7 @@ const AboutUs = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background">
-      <header className="container mx-auto px-4 py-6 flex justify-between items-center">
-        <Link to="/" className="flex items-center gap-2">
-          <Heart className="h-8 w-8 text-primary fill-primary" />
-          <span className="text-2xl font-bold gradient-text">Spaark</span>
-        </Link>
-        <Link to="/">
-          <Button variant="ghost">Back to Home</Button>
-        </Link>
-      </header>
+      <Header />
 
       <div className="container mx-auto px-4 py-20 max-w-4xl">
         <div className="text-center mb-16">
@@ -366,6 +360,8 @@ const AboutUs = () => {
           </CardContent>
         </Card>
       </div>
+      
+      <Footer />
     </div>
   );
 };

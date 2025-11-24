@@ -3,6 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Heart, MessageCircle, Shield, CreditCard, UserX, Eye } from "lucide-react";
+import { Header } from "@/components/navigation/Header";
+import { Footer } from "@/components/Footer";
 
 const FAQ = () => {
   const faqs = [
@@ -112,6 +114,8 @@ const FAQ = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background">
+      <Header />
+      
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <Link to="/dashboard" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6">
           <ArrowLeft className="h-4 w-4" />
@@ -172,6 +176,8 @@ const FAQ = () => {
           </Card>
         </div>
       </div>
+      
+      <Footer />
     </div>
   );
 };
