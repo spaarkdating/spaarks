@@ -13,9 +13,9 @@ serve(async (req) => {
   }
 
   try {
-    const { secretCode, userId, email, role } = await req.json();
+    const { secretCode, userId, email } = await req.json();
 
-    console.log("Admin registration request received for user:", userId, "role:", role || "admin");
+    console.log("Admin registration request received for user:", userId);
 
     // Validate input
     if (!secretCode || !userId || !email) {
@@ -28,14 +28,24 @@ serve(async (req) => {
       );
     }
 
-    // Validate role if provided
-    const validRoles = ["admin", "moderator"];
-    const assignedRole = role && validRoles.includes(role) ? role : "admin";
+    // Get the three different secret codes from environment
+    const superAdminSecret = Deno.env.get("SUPER_ADMIN_SECRET");
+    const moderatorSecret = Deno.env.get("MODERATOR_SECRET");
+    const supportSecret = Deno.env.get("SUPPORT_SECRET");
 
-    // Check the admin secret code
-    const adminSecret = Deno.env.get("ADMIN_SECRET_CODE");
+    // Determine role based on secret code
+    let assignedRole: string;
     
-    if (secretCode !== adminSecret) {
+    if (secretCode === superAdminSecret) {
+      assignedRole = "super_admin";
+      console.log("Super admin secret matched");
+    } else if (secretCode === moderatorSecret) {
+      assignedRole = "moderator";
+      console.log("Moderator secret matched");
+    } else if (secretCode === supportSecret) {
+      assignedRole = "support";
+      console.log("Support secret matched");
+    } else {
       console.log("Invalid admin secret code provided");
       return new Response(
         JSON.stringify({ error: "Invalid admin secret code" }),
