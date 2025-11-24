@@ -179,7 +179,7 @@ const Landing = () => {
               step: "3",
               icon: MessageCircle,
               title: "Start Dating",
-              description: "Chat, video call, and plan your first date with your perfect match"
+              description: "Chat with your matches and plan your first date with your perfect match"
             }
           ].map((item, idx) => (
             <motion.div
@@ -236,12 +236,6 @@ const Landing = () => {
               title: "Safe & Secure",
               description: "Verified profiles and secure authentication keep your dating experience safe and authentic.",
               color: "from-secondary to-accent"
-            },
-            {
-              icon: Video,
-              title: "Video Dates",
-              description: "Have virtual dates with your matches through integrated video calling before meeting in person.",
-              color: "from-primary to-accent"
             },
             {
               icon: MapPin,
@@ -303,7 +297,7 @@ const Landing = () => {
             },
             {
               name: "Lisa & James",
-              story: "The video date feature helped us connect before meeting. Now we're in a loving relationship!",
+              story: "The messaging features and compatibility scores really helped us connect authentically. Now we're in a loving relationship!",
               time: "Matched 6 months ago",
               rating: 5
             }

@@ -135,7 +135,10 @@ export const SwipeCard = ({ profile, onSwipe, style, compatibilityScore, onProfi
         {/* Info */}
         <div 
           className="h-1/3 p-6 overflow-y-auto bg-gradient-to-b from-card to-card/80 cursor-pointer hover:bg-card/90 transition-colors"
-          onClick={onProfileClick}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (onProfileClick) onProfileClick();
+          }}
         >
           <div className="flex items-center gap-2 mb-2">
             <h2 className="text-2xl font-bold flex items-center gap-2 gradient-text">
