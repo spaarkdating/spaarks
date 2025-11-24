@@ -57,13 +57,36 @@ const Matches = () => {
   const fetchMatches = async (userId: string) => {
     setIsLoading(true);
     try {
-      // Get matches where current user initiated the like
-      const { data: matchesAsInitiator } = await supabase
+      // Get all likes initiated by current user
+      const { data: userLikes } = await supabase
+        .from("matches")
+        .select("liked_user_id")
+        .eq("user_id", userId);
+
+      // Get all likes received by current user
+      const { data: receivedLikes } = await supabase
+        .from("matches")
+        .select("user_id")
+        .eq("liked_user_id", userId);
+
+      // Find mutual matches (users who appear in both lists)
+      const userLikedIds = new Set((userLikes || []).map(m => m.liked_user_id));
+      const mutualMatchIds = (receivedLikes || [])
+        .map(m => m.user_id)
+        .filter(id => userLikedIds.has(id));
+
+      if (mutualMatchIds.length === 0) {
+        setMatches([]);
+        setIsLoading(false);
+        return;
+      }
+
+      // Fetch full match data for mutual matches
+      const { data: matchData } = await supabase
         .from("matches")
         .select(`
           id,
           created_at,
-          user_id,
           liked_user_id,
           profile:profiles!matches_liked_user_id_fkey(
             id,
@@ -76,73 +99,39 @@ const Matches = () => {
           )
         `)
         .eq("user_id", userId)
-        .eq("is_match", true);
+        .in("liked_user_id", mutualMatchIds);
 
-      // Get matches where current user was liked
-      const { data: matchesAsReceiver } = await supabase
-        .from("matches")
-        .select(`
-          id,
-          created_at,
-          user_id,
-          liked_user_id,
-          otherProfile:profiles!matches_user_id_fkey(
-            id,
-            display_name,
-            bio,
-            location,
-            date_of_birth,
-            photos(photo_url, display_order),
-            user_interests(interest:interests(name))
-          )
-        `)
-        .eq("liked_user_id", userId)
-        .eq("is_match", true);
-
-      // Combine and normalize matches
-      const allMatches = [
-        ...(matchesAsInitiator || []).map((m: any) => ({
-          id: m.id,
-          created_at: m.created_at,
-          liked_user_id: m.liked_user_id,
-          profile: m.profile,
-        })),
-        ...(matchesAsReceiver || []).map((m: any) => ({
-          id: m.id,
-          created_at: m.created_at,
-          liked_user_id: m.user_id,
-          profile: m.otherProfile,
-        })),
-      ];
+      const allMatches = (matchData || []).map((m: any) => ({
+        id: m.id,
+        created_at: m.created_at,
+        liked_user_id: m.liked_user_id,
+        profile: m.profile,
+      }));
 
       // Sort by created_at
       allMatches.sort((a, b) => 
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
 
-      if (allMatches.length > 0) {
-        // Get last message for each match
-        const matchesWithMessages = await Promise.all(
-          allMatches.map(async (match) => {
-            const { data: lastMessage } = await supabase
-              .from("messages")
-              .select("content, created_at, sender_id")
-              .or(`and(sender_id.eq.${userId},receiver_id.eq.${match.liked_user_id}),and(sender_id.eq.${match.liked_user_id},receiver_id.eq.${userId})`)
-              .order("created_at", { ascending: false })
-              .limit(1)
-              .single();
+      // Get last message for each match
+      const matchesWithMessages = await Promise.all(
+        allMatches.map(async (match) => {
+          const { data: lastMessage } = await supabase
+            .from("messages")
+            .select("content, created_at, sender_id")
+            .or(`and(sender_id.eq.${userId},receiver_id.eq.${match.liked_user_id}),and(sender_id.eq.${match.liked_user_id},receiver_id.eq.${userId})`)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .single();
 
-            return {
-              ...match,
-              lastMessage,
-            };
-          })
-        );
+          return {
+            ...match,
+            lastMessage,
+          };
+        })
+      );
 
-        setMatches(matchesWithMessages);
-      } else {
-        setMatches([]);
-      }
+      setMatches(matchesWithMessages);
     } catch (error: any) {
       toast({
         title: "Error loading matches",
