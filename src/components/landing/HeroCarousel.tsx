@@ -3,25 +3,29 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import couple1 from "@/assets/couple-1.png";
 import couple2 from "@/assets/couple-2.png";
+import couple3 from "@/assets/couple-3.png";
 
 const slides = [
   {
     id: 1,
     title: "Find Your Perfect Match",
     description: "Connect with people who share your values and interests",
-    gradient: "from-primary via-primary-glow to-accent"
+    gradient: "from-primary via-primary-glow to-accent",
+    images: [couple1, couple2]
   },
   {
     id: 2,
     title: "Start Meaningful Conversations",
     description: "Break the ice with our smart icebreaker suggestions",
-    gradient: "from-accent via-primary to-primary-glow"
+    gradient: "from-accent via-primary to-primary-glow",
+    images: [couple2, couple3]
   },
   {
     id: 3,
     title: "Build Lasting Relationships",
     description: "Join thousands of happy couples who found love here",
-    gradient: "from-primary-glow via-accent to-primary"
+    gradient: "from-primary-glow via-accent to-primary",
+    images: [couple3, couple1]
   }
 ];
 
@@ -92,7 +96,7 @@ export const HeroCarousel = () => {
               className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-white/30 backdrop-blur-sm border-4 border-white/50 shadow-2xl overflow-hidden"
             >
               <img 
-                src={couple1} 
+                src={slides[currentSlide].images[0]} 
                 alt="Happy couple" 
                 className="w-full h-full object-cover"
               />
@@ -104,7 +108,7 @@ export const HeroCarousel = () => {
               className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-white/30 backdrop-blur-sm border-4 border-white/50 shadow-2xl overflow-hidden"
             >
               <img 
-                src={couple2} 
+                src={slides[currentSlide].images[1]} 
                 alt="Romantic couple" 
                 className="w-full h-full object-cover"
               />
