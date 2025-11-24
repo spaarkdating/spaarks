@@ -4,17 +4,25 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Heart, ArrowLeft, Settings, LogOut, MessageCircle, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { MobileNav } from "@/components/navigation/MobileNav";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/navigation/PullToRefreshIndicator";
+import { ProfileView } from "@/components/profile/ProfileView";
+import { PhotoCarousel } from "@/components/profile/PhotoCarousel";
 
 const Matches = () => {
   const [user, setUser] = useState<any>(null);
   const [matches, setMatches] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedProfile, setSelectedProfile] = useState<any>(null);
+  const [profilePhotos, setProfilePhotos] = useState<any[]>([]);
+  const [profileInterests, setProfileInterests] = useState<any[]>([]);
+  const [showPhotoCarousel, setShowPhotoCarousel] = useState(false);
+  const [carouselStartIndex, setCarouselStartIndex] = useState(0);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -200,6 +208,33 @@ const Matches = () => {
     return age;
   };
 
+  const handleProfileClick = async (profile: any) => {
+    setSelectedProfile(profile);
+    
+    // Fetch full profile details
+    const { data: photos } = await supabase
+      .from("photos")
+      .select("*")
+      .eq("user_id", profile.id)
+      .order("display_order");
+    
+    const { data: interests } = await supabase
+      .from("user_interests")
+      .select("interest:interests(*)")
+      .eq("user_id", profile.id);
+    
+    setProfilePhotos(photos || []);
+    setProfileInterests(interests?.map((i: any) => i.interest) || []);
+    
+    // Record profile view
+    if (user) {
+      await supabase.from("profile_views").insert({
+        viewer_id: user.id,
+        viewed_profile_id: profile.id,
+      });
+    }
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/");
@@ -283,7 +318,10 @@ const Matches = () => {
 
                 return (
                   <Card key={match.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 animate-fade-in">
-                    <div className="relative h-64 bg-gradient-to-br from-primary/20 to-secondary/20 overflow-hidden group">
+                    <div 
+                      className="relative h-64 bg-gradient-to-br from-primary/20 to-secondary/20 overflow-hidden group cursor-pointer"
+                      onClick={() => handleProfileClick(profile)}
+                    >
                       <img
                         src={photo}
                         alt={profile.display_name}
@@ -353,6 +391,66 @@ const Matches = () => {
           </div>
         )}
       </div>
+
+      {/* Profile Dialog */}
+      <Dialog open={!!selectedProfile} onOpenChange={(open) => !open && setSelectedProfile(null)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Profile</DialogTitle>
+          </DialogHeader>
+          {selectedProfile && (
+            <div className="space-y-4">
+              {/* Photos - clickable to open carousel */}
+              <div className="grid grid-cols-3 gap-2">
+                {profilePhotos.slice(0, 6).map((photo, index) => (
+                  <div 
+                    key={photo.id} 
+                    className="relative aspect-square cursor-pointer group"
+                    onClick={() => {
+                      setCarouselStartIndex(index);
+                      setShowPhotoCarousel(true);
+                    }}
+                  >
+                    <img
+                      src={photo.photo_url}
+                      alt={`Photo ${index + 1}`}
+                      className="w-full h-full object-cover rounded-lg group-hover:opacity-90 transition-opacity"
+                    />
+                  </div>
+                ))}
+              </div>
+              
+              <ProfileView
+                profile={selectedProfile}
+                photos={profilePhotos}
+                interests={profileInterests}
+              />
+              
+              <Button
+                onClick={() => {
+                  const matchData = matches.find(m => m.profile.id === selectedProfile.id);
+                  if (matchData) {
+                    navigate(`/messages?match=${matchData.id}`);
+                  }
+                }}
+                className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+              >
+                <MessageCircle className="h-4 w-4 mr-2" />
+                Send Message
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Photo Carousel */}
+      {showPhotoCarousel && (
+        <PhotoCarousel
+          photos={profilePhotos}
+          initialIndex={carouselStartIndex}
+          onClose={() => setShowPhotoCarousel(false)}
+        />
+      )}
     </div>
   );
 };
