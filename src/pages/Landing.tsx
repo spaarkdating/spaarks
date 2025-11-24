@@ -11,6 +11,7 @@ import { RealTimeStats } from "@/components/landing/RealTimeStats";
 import { Footer } from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { CursorEffect } from "@/components/CursorEffect";
+import { FloatingActionButtons } from "@/components/landing/FloatingActionButtons";
 
 const Landing = () => {
   const [testimonials, setTestimonials] = useState<any[]>([]);
@@ -58,6 +59,7 @@ const Landing = () => {
   return (
     <div ref={containerRef} className="min-h-screen overflow-hidden relative">
       <CursorEffect />
+      <FloatingActionButtons />
       
       {/* Animated background with texture */}
       <div className="fixed inset-0 bg-background pointer-events-none" />
@@ -181,7 +183,9 @@ const Landing = () => {
               </Button>
             </Link>
             <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground hover-lift text-base sm:text-lg px-8 sm:px-10 py-6 sm:py-7 transition-all">
-              Learn More
+              <a href="#features" className="flex items-center">
+                Learn More
+              </a>
             </Button>
           </motion.div>
         </div>
@@ -264,6 +268,7 @@ const Landing = () => {
 
       {/* Features Section */}
       <motion.section 
+        id="features"
         className="container mx-auto px-4 py-20 relative z-10"
         style={{ y: featuresY }}
       >
@@ -331,6 +336,7 @@ const Landing = () => {
 
       {/* Testimonials Section */}
       <motion.section 
+        id="testimonials"
         className="container mx-auto px-4 py-20 relative z-10"
         style={{ y: testimonialsY }}
       >
@@ -490,8 +496,10 @@ const Landing = () => {
                   </Button>
                 </Link>
                 <Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white/10 text-lg px-10 py-7">
-                  <Heart className="h-5 w-5 mr-2" />
-                  Learn More
+                  <a href="#features" className="flex items-center gap-2">
+                    <Heart className="h-5 w-5" />
+                    Learn More
+                  </a>
                 </Button>
               </div>
             </motion.div>

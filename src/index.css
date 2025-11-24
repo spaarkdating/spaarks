@@ -8,60 +8,60 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 348 83% 50%;
+    --background: 340 82% 52%;
     --foreground: 0 0% 100%;
 
-    --card: 348 60% 40%;
+    --card: 340 65% 45%;
     --card-foreground: 0 0% 100%;
 
-    --popover: 348 60% 40%;
+    --popover: 340 65% 45%;
     --popover-foreground: 0 0% 100%;
 
-    --primary: 348 95% 75%;
-    --primary-foreground: 348 70% 25%;
+    --primary: 340 100% 80%;
+    --primary-foreground: 340 65% 20%;
     
-    --primary-glow: 348 100% 85%;
-    --primary-light: 348 85% 88%;
-    --primary-dark: 348 70% 35%;
+    --primary-glow: 340 100% 85%;
+    --primary-light: 340 85% 88%;
+    --primary-dark: 340 70% 35%;
 
-    --secondary: 348 50% 30%;
+    --secondary: 340 55% 35%;
     --secondary-foreground: 0 0% 100%;
     
-    --secondary-glow: 348 80% 55%;
+    --secondary-glow: 340 75% 60%;
 
-    --muted: 348 60% 45%;
+    --muted: 340 60% 48%;
     --muted-foreground: 0 0% 100%;
 
-    --accent: 355 90% 70%;
+    --accent: 320 85% 75%;
     --accent-foreground: 0 0% 100%;
     
-    --accent-glow: 355 95% 80%;
+    --accent-glow: 320 90% 85%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 348 40% 60%;
-    --input: 348 60% 40%;
-    --ring: 348 95% 75%;
+    --border: 340 45% 65%;
+    --input: 340 65% 45%;
+    --ring: 340 100% 80%;
 
     --radius: 1.25rem;
     
-    /* Enhanced Spaark gradients - Cherry Red */
-    --gradient-primary: linear-gradient(135deg, hsl(348 83% 50%) 0%, hsl(348 70% 45%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(348 85% 55%) 0%, hsl(348 90% 65%) 50%, hsl(355 85% 65%) 100%);
-    --gradient-soft: linear-gradient(180deg, hsl(348 83% 50%) 0%, hsl(348 70% 45%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(348 70% 45%) 0%, hsl(348 60% 40%) 100%);
-    --gradient-glow: radial-gradient(circle at 50% 0%, hsla(348, 90%, 65%, 0.3), transparent 70%);
-    --gradient-animated: linear-gradient(270deg, hsl(348 83% 50%), hsl(348 90% 65%), hsl(355 85% 65%), hsl(348 83% 50%));
-    --gradient-mesh: radial-gradient(at 0% 0%, hsl(348 85% 60%) 0px, transparent 50%),
-                     radial-gradient(at 100% 0%, hsl(355 85% 60%) 0px, transparent 50%),
-                     radial-gradient(at 100% 100%, hsl(348 90% 60%) 0px, transparent 50%),
-                     radial-gradient(at 0% 100%, hsl(348 80% 60%) 0px, transparent 50%);
+    /* Enhanced Spaark gradients - Rose Red */
+    --gradient-primary: linear-gradient(135deg, hsl(340 82% 52%) 0%, hsl(340 65% 45%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(340 85% 55%) 0%, hsl(340 90% 65%) 50%, hsl(320 85% 75%) 100%);
+    --gradient-soft: linear-gradient(180deg, hsl(340 82% 52%) 0%, hsl(340 65% 45%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(340 65% 45%) 0%, hsl(340 60% 40%) 100%);
+    --gradient-glow: radial-gradient(circle at 50% 0%, hsla(340, 100%, 80%, 0.3), transparent 70%);
+    --gradient-animated: linear-gradient(270deg, hsl(340 82% 52%), hsl(340 90% 65%), hsl(320 85% 75%), hsl(340 82% 52%));
+    --gradient-mesh: radial-gradient(at 0% 0%, hsl(340 85% 60%) 0px, transparent 50%),
+                     radial-gradient(at 100% 0%, hsl(320 85% 60%) 0px, transparent 50%),
+                     radial-gradient(at 100% 100%, hsl(340 90% 60%) 0px, transparent 50%),
+                     radial-gradient(at 0% 100%, hsl(340 80% 60%) 0px, transparent 50%);
     
-    /* Enhanced shadows - Cherry Red */
+    /* Enhanced shadows - Rose Red */
     --shadow-soft: 0 10px 40px hsla(0, 0%, 0%, 0.3);
     --shadow-card: 0 4px 24px hsla(0, 0%, 0%, 0.25);
-    --shadow-glow: 0 0 60px hsla(348, 90%, 65%, 0.6);
+    --shadow-glow: 0 0 60px hsla(340, 100%, 80%, 0.6);
     --shadow-elevated: 0 20px 60px hsla(0, 0%, 0%, 0.35);
     --shadow-hover: 0 20px 80px hsla(0, 0%, 0%, 0.4);
     
@@ -157,12 +157,14 @@ All colors MUST be HSL.
 @layer base {
   * {
     @apply border-border;
+    scroll-behavior: smooth;
   }
 
   body {
     @apply bg-background text-foreground;
     background: hsl(var(--background));
     background-attachment: fixed;
+    scroll-behavior: smooth;
   }
   
   body::before {
