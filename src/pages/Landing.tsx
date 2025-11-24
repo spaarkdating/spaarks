@@ -42,9 +42,14 @@ const Landing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background overflow-hidden">
-      {/* Animated background gradient */}
-      <div className="fixed inset-0 bg-[var(--gradient-glow)] pointer-events-none" />
+    <div className="min-h-screen overflow-hidden relative">
+      {/* Animated background */}
+      <div className="fixed inset-0 bg-gradient-to-br from-background via-muted to-background pointer-events-none animate-gradient" />
+      <div className="fixed inset-0 opacity-40 pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full blur-3xl animate-float" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-primary-glow/20 rounded-full blur-3xl animate-pulse-glow" />
+      </div>
       
       {/* Header */}
       <header className="container mx-auto px-4 py-6 flex justify-between items-center relative z-10">
@@ -54,8 +59,8 @@ const Landing = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Heart className="h-6 w-6 md:h-8 md:w-8 text-primary fill-primary animate-heartbeat" />
-          <span className="text-xl md:text-2xl font-bold gradient-text">
+          <Heart className="h-6 w-6 md:h-8 md:w-8 text-primary fill-primary animate-heartbeat drop-shadow-lg" />
+          <span className="text-xl md:text-2xl font-bold gradient-text-animated">
             Spaark
           </span>
         </motion.div>
@@ -66,12 +71,12 @@ const Landing = () => {
           transition={{ duration: 0.5, delay: 0.1 }}
         >
           <Link to="/auth">
-            <Button variant="ghost" className="text-foreground hover:text-primary transition-colors">
+            <Button variant="ghost" className="hover-lift hover:text-primary transition-all">
               Log In
             </Button>
           </Link>
           <Link to="/auth">
-            <Button className="bg-gradient-to-r from-primary via-primary-glow to-secondary hover:opacity-90 text-primary-foreground shadow-lg hover:shadow-[var(--shadow-soft)] transition-all">
+            <Button className="bg-gradient-to-r from-primary via-primary-glow to-accent button-hover hover:shadow-glow text-primary-foreground shadow-lg animate-gradient">
               Sign Up
             </Button>
           </Link>
@@ -91,12 +96,12 @@ const Landing = () => {
         <AnimatedBackground />
         <div className="max-w-4xl mx-auto space-y-8 relative z-10">
           <motion.div 
-            className="inline-flex items-center gap-2 bg-primary/10 backdrop-blur-sm px-4 py-2 rounded-full text-primary text-sm font-medium mb-4 border border-primary/20"
+            className="inline-flex items-center gap-2 glass-effect px-4 py-2 rounded-full text-primary text-sm font-medium mb-4 border border-primary/30 hover-glow animate-bounce-in"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <Sparkles className="h-4 w-4 animate-pulse" />
+            <Sparkles className="h-4 w-4 animate-pulse animate-glow" />
             Find Your Perfect Match
           </motion.div>
           
@@ -107,7 +112,7 @@ const Landing = () => {
             transition={{ duration: 0.6, delay: 0.1 }}
           >
             Ignite Your{" "}
-            <span className="gradient-text animate-shimmer bg-gradient-to-r from-primary via-accent to-secondary bg-[length:200%_auto]">
+            <span className="gradient-text-animated bg-gradient-to-r from-primary via-accent to-primary-glow bg-[length:200%_auto]">
               Love Story
             </span>
           </motion.h1>
@@ -129,12 +134,12 @@ const Landing = () => {
             transition={{ duration: 0.6, delay: 0.3 }}
           >
             <Link to="/auth" className="w-full sm:w-auto">
-              <Button size="lg" className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-glow)] text-base sm:text-lg px-8 sm:px-10 py-6 sm:py-7 transition-all card-hover">
-                <Sparkles className="h-5 w-5 mr-2" />
+              <Button size="lg" className="w-full bg-gradient-to-r from-primary via-primary-glow to-accent button-hover animate-gradient hover:shadow-glow text-primary-foreground shadow-[var(--shadow-soft)] text-base sm:text-lg px-8 sm:px-10 py-6 sm:py-7 transition-all">
+                <Sparkles className="h-5 w-5 mr-2 animate-glow" />
                 Get Started Free
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground text-base sm:text-lg px-8 sm:px-10 py-6 sm:py-7 transition-all card-hover">
+            <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground hover-lift text-base sm:text-lg px-8 sm:px-10 py-6 sm:py-7 transition-all">
               Learn More
             </Button>
           </motion.div>
@@ -195,12 +200,12 @@ const Landing = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: idx * 0.2 }}
             >
-              <Card className="p-8 text-center hover:shadow-xl transition-all border-2 hover:border-primary/50 card-hover">
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-xl shadow-lg">
+              <Card className="p-8 text-center hover:shadow-2xl transition-all border-2 hover:border-primary/50 card-hover hover-glow glass-effect group">
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-xl shadow-lg animate-bounce-in">
                   {item.step}
                 </div>
-                <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-2xl flex items-center justify-center mx-auto mb-6 mt-4">
-                  <item.icon className="h-8 w-8 text-primary" />
+                <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-accent/20 rounded-2xl flex items-center justify-center mx-auto mb-6 mt-4 group-hover:scale-110 transition-transform">
+                  <item.icon className="h-8 w-8 text-primary animate-glow" />
                 </div>
                 <h3 className="text-xl font-semibold mb-3">{item.title}</h3>
                 <p className="text-muted-foreground">{item.description}</p>
@@ -262,9 +267,9 @@ const Landing = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: idx * 0.1 }}
             >
-              <Card className="p-8 text-center hover:shadow-xl transition-all border hover:border-primary/50 card-hover h-full">
-                <div className={`w-16 h-16 bg-gradient-to-br ${feature.color} rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg`}>
-                  <feature.icon className="h-8 w-8 text-white" />
+              <Card className="p-8 text-center hover:shadow-2xl transition-all border hover:border-primary/50 card-hover hover-glow h-full glass-effect group">
+                <div className={`w-16 h-16 bg-gradient-to-br ${feature.color} rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-all animate-gradient`}>
+                  <feature.icon className="h-8 w-8 text-white animate-glow" />
                 </div>
                 <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
                 <p className="text-muted-foreground">{feature.description}</p>
@@ -312,10 +317,10 @@ const Landing = () => {
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: idx * 0.15 }}
                   >
-                    <Card className="p-6 hover:shadow-xl transition-all border hover:border-primary/30 card-hover h-full flex flex-col">
+                    <Card className="p-6 hover:shadow-2xl transition-all border hover:border-primary/30 card-hover hover-glow h-full flex flex-col glass-effect group">
                       {/* Media Section */}
                       {(testimonial.photo_url || testimonial.video_url) && (
-                        <div className="mb-4 rounded-lg overflow-hidden">
+                        <div className="mb-4 rounded-lg overflow-hidden group-hover:scale-105 transition-transform">
                           {testimonial.video_url ? (
                             <video 
                               src={testimonial.video_url}
@@ -334,15 +339,15 @@ const Landing = () => {
                       
                       <div className="flex gap-1 mb-4">
                         {[...Array(testimonial.rating)].map((_, i) => (
-                          <Star key={i} className="h-4 w-4 fill-primary text-primary" />
+                          <Star key={i} className="h-4 w-4 fill-primary text-primary group-hover:scale-110 transition-transform animate-glow" style={{ transitionDelay: `${i * 50}ms` }} />
                         ))}
                       </div>
                       <p className="text-muted-foreground mb-4 italic flex-grow">"{testimonial.story}"</p>
                       <div className="flex items-center gap-3 pt-4 border-t border-border">
                         <div className="flex -space-x-2">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary border-2 border-background" />
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent border-2 border-background animate-gradient" />
                           {testimonial.partner && (
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent to-primary border-2 border-background" />
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent to-primary border-2 border-background animate-gradient" style={{ animationDelay: '2s' }} />
                           )}
                         </div>
                         <div>
@@ -359,7 +364,7 @@ const Landing = () => {
             </div>
             <div className="text-center">
               <Link to="/testimonials">
-                <Button variant="outline" size="lg" className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+                <Button variant="outline" size="lg" className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground button-hover hover-lift">
                   View All Success Stories
                 </Button>
               </Link>
