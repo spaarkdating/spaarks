@@ -28,27 +28,37 @@ export const NewsletterSignup = () => {
       setIsSubmitting(true);
 
       // Save to database
-      const { error } = await supabase
+      const { error: dbError } = await supabase
         .from("newsletter_subscriptions")
         .insert([{ email: validatedData.email }]);
 
-      if (error) {
-        if (error.code === "23505") {
+      if (dbError) {
+        if (dbError.code === "23505") {
           toast({
             title: "Already subscribed",
             description: "This email is already registered for our newsletter.",
           });
           return;
         }
-        throw error;
+        throw dbError;
+      }
+
+      // Send welcome email
+      const { error: emailError } = await supabase.functions.invoke("send-welcome-email", {
+        body: { email: validatedData.email },
+      });
+
+      if (emailError) {
+        console.error("Failed to send welcome email:", emailError);
+        // Don't throw - subscription was successful even if email failed
       }
 
       setIsSuccess(true);
       setEmail("");
       
       toast({
-        title: "Success!",
-        description: "You've been subscribed to our newsletter.",
+        title: "Success! 🎉",
+        description: "You've been subscribed! Check your email for a welcome message.",
       });
 
       setTimeout(() => setIsSuccess(false), 3000);

@@ -69,6 +69,9 @@ verify_jwt = false
 [functions.send-newsletter]
 verify_jwt = true
 
+[functions.send-welcome-email]
+verify_jwt = false
+
 [functions.delete-user]
 verify_jwt = true
 
