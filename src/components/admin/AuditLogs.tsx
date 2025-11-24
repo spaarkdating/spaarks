@@ -40,24 +40,50 @@ const AuditLogs = () => {
 
   const fetchLogs = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    
+    // Fetch audit logs
+    const { data: logsData, error: logsError } = await supabase
       .from("admin_audit_logs")
-      .select(
-        `
-        *,
-        admin:profiles!admin_audit_logs_admin_user_id_fkey(display_name, email),
-        target:profiles!admin_audit_logs_target_user_id_fkey(display_name, email)
-      `
-      )
+      .select("*")
       .order("created_at", { ascending: false })
       .limit(100);
 
-    if (error) {
-      console.error("Error fetching audit logs:", error);
-    } else if (data) {
-      console.log("Audit logs fetched:", data);
-      setLogs(data);
+    if (logsError) {
+      console.error("Error fetching audit logs:", logsError);
+      setLoading(false);
+      return;
     }
+
+    if (!logsData || logsData.length === 0) {
+      setLogs([]);
+      setLoading(false);
+      return;
+    }
+
+    // Get unique user IDs
+    const adminUserIds = [...new Set(logsData.map(log => log.admin_user_id))];
+    const targetUserIds = [...new Set(logsData.map(log => log.target_user_id).filter(Boolean))];
+    const allUserIds = [...new Set([...adminUserIds, ...targetUserIds])];
+
+    // Fetch all related profiles
+    const { data: profilesData, error: profilesError } = await supabase
+      .from("profiles")
+      .select("id, display_name, email")
+      .in("id", allUserIds);
+
+    if (profilesError) {
+      console.error("Error fetching profiles:", profilesError);
+    }
+
+    // Merge the data
+    const mergedLogs = logsData.map(log => ({
+      ...log,
+      admin: profilesData?.find(p => p.id === log.admin_user_id) || null,
+      target: log.target_user_id ? profilesData?.find(p => p.id === log.target_user_id) || null : null
+    }));
+
+    console.log("Audit logs fetched:", mergedLogs);
+    setLogs(mergedLogs);
     setLoading(false);
   };
 
