@@ -9,10 +9,10 @@ interface HeaderProps {
 
 export function Header({ showAuthButtons = true }: HeaderProps) {
   return (
-    <header className="container mx-auto px-4 py-6 flex justify-between items-center relative z-20">
+    <header className="container mx-auto px-4 py-6 flex justify-between items-center relative z-20 border-b border-border/30">
       <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-        <Heart className="h-6 w-6 md:h-8 md:w-8 text-primary fill-primary drop-shadow-glow" />
-        <span className="text-xl md:text-2xl font-bold gradient-text">
+        <Heart className="h-6 w-6 md:h-8 md:w-8 text-foreground fill-foreground drop-shadow-glow" />
+        <span className="text-xl md:text-2xl font-bold text-foreground drop-shadow-md">
           Spaark
         </span>
       </Link>
@@ -20,7 +20,7 @@ export function Header({ showAuthButtons = true }: HeaderProps) {
       {showAuthButtons && (
         <div className="flex gap-3">
           <Link to="/">
-            <Button variant="ghost">Back to Home</Button>
+            <Button variant="secondary">Back to Home</Button>
           </Link>
         </div>
       )}
