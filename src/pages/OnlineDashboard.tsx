@@ -16,9 +16,10 @@ import { calculateCompatibilityScore } from "@/lib/compatibility";
 import { MobileNav } from "@/components/navigation/MobileNav";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/navigation/PullToRefreshIndicator";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ProfileView } from "@/components/profile/ProfileView";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { PhotoCarousel } from "@/components/profile/PhotoCarousel";
+import { Badge } from "@/components/ui/badge";
+import { X, MapPin, Briefcase, GraduationCap, Heart as HeartIcon } from "lucide-react";
 
 interface OnlineDashboardProps {
   user: User;
@@ -393,24 +394,130 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
       </AnimatePresence>
 
       <Dialog open={!!selectedProfile} onOpenChange={(open) => !open && setSelectedProfile(null)}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden">
-          <DialogHeader>
-            <DialogTitle>Profile Details</DialogTitle>
-          </DialogHeader>
-          <ScrollArea className="max-h-[calc(90vh-100px)] pr-4">
-            {isProfileLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <RefreshCw className="h-8 w-8 animate-spin text-primary" />
+        <DialogContent className="max-w-4xl max-h-[95vh] p-0 overflow-hidden">
+          {isProfileLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <RefreshCw className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : selectedProfile ? (
+            <div className="grid md:grid-cols-2 h-full max-h-[95vh]">
+              {/* Photo Carousel - Left Side */}
+              <div className="relative h-[50vh] md:h-[95vh] bg-muted">
+                {profilePhotos.length > 0 ? (
+                  <PhotoCarousel photos={profilePhotos} />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <p className="text-muted-foreground">No photos available</p>
+                  </div>
+                )}
               </div>
-            ) : selectedProfile ? (
-              <ProfileView
-                profile={selectedProfile}
-                photos={profilePhotos}
-                interests={profileInterests}
-                emailVerified={selectedProfile.email_verified}
-              />
-            ) : null}
-          </ScrollArea>
+
+              {/* Profile Details - Right Side */}
+              <div className="overflow-y-auto p-6 space-y-4 max-h-[45vh] md:max-h-[95vh]">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h2 className="text-2xl font-bold">
+                      {selectedProfile.display_name}
+                      {selectedProfile.date_of_birth && (
+                        <span className="text-muted-foreground font-normal">
+                          , {new Date().getFullYear() - new Date(selectedProfile.date_of_birth).getFullYear()}
+                        </span>
+                      )}
+                    </h2>
+                    {selectedProfile.location && (
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
+                        <MapPin className="h-4 w-4" />
+                        {selectedProfile.location}
+                      </div>
+                    )}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setSelectedProfile(null)}
+                  >
+                    <X className="h-5 w-5" />
+                  </Button>
+                </div>
+
+                {selectedProfile.bio && (
+                  <div>
+                    <h3 className="font-semibold mb-2">About</h3>
+                    <p className="text-muted-foreground">{selectedProfile.bio}</p>
+                  </div>
+                )}
+
+                {(selectedProfile.occupation || selectedProfile.education) && (
+                  <div className="space-y-2">
+                    {selectedProfile.occupation && (
+                      <div className="flex items-center gap-2">
+                        <Briefcase className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">{selectedProfile.occupation}</span>
+                      </div>
+                    )}
+                    {selectedProfile.education && (
+                      <div className="flex items-center gap-2">
+                        <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">{selectedProfile.education}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {profileInterests.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold mb-2">Interests</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {profileInterests.map((interest: any) => (
+                        <Badge key={interest.id} variant="secondary">
+                          {interest.name}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {(selectedProfile.height || selectedProfile.relationship_goal || 
+                  selectedProfile.smoking || selectedProfile.drinking || selectedProfile.religion) && (
+                  <div>
+                    <h3 className="font-semibold mb-2">More Details</h3>
+                    <div className="space-y-2 text-sm">
+                      {selectedProfile.height && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Height</span>
+                          <span>{selectedProfile.height}</span>
+                        </div>
+                      )}
+                      {selectedProfile.relationship_goal && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Looking for</span>
+                          <span>{selectedProfile.relationship_goal}</span>
+                        </div>
+                      )}
+                      {selectedProfile.smoking && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Smoking</span>
+                          <span>{selectedProfile.smoking}</span>
+                        </div>
+                      )}
+                      {selectedProfile.drinking && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Drinking</span>
+                          <span>{selectedProfile.drinking}</span>
+                        </div>
+                      )}
+                      {selectedProfile.religion && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Religion</span>
+                          <span>{selectedProfile.religion}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : null}
         </DialogContent>
       </Dialog>
     </div>
