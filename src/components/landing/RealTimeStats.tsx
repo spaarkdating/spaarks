@@ -32,17 +32,20 @@ export const RealTimeStats = () => {
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
       
-      const { count: activeUsersCount } = await supabase
+      const { count: activeUsersCount, error: usersError } = await supabase
         .from("profiles")
         .select("*", { count: "exact", head: true })
         .gte("last_online", sevenDaysAgo.toISOString());
 
+      console.log("Active users count:", activeUsersCount, "Error:", usersError);
+
       // Get unique matches count (count distinct pairs)
-      // Since each match creates two rows, we need to count unique user_id values where is_match is true
-      const { data: matchData } = await supabase
+      const { data: matchData, error: matchError } = await supabase
         .from("matches")
         .select("user_id, liked_user_id")
         .eq("is_match", true);
+
+      console.log("Match data:", matchData, "Error:", matchError);
 
       // Count unique match pairs by creating a set of sorted user IDs
       const uniqueMatches = new Set();
@@ -51,22 +54,29 @@ export const RealTimeStats = () => {
         uniqueMatches.add(pair);
       });
 
+      console.log("Unique matches:", uniqueMatches.size);
+
       // Get average rating from approved testimonials
-      const { data: testimonials } = await supabase
+      const { data: testimonials, error: testimonialsError } = await supabase
         .from("testimonials")
         .select("rating")
         .eq("status", "approved");
+
+      console.log("Testimonials:", testimonials, "Error:", testimonialsError);
 
       const avgRating = testimonials && testimonials.length > 0
         ? testimonials.reduce((sum: number, t: any) => sum + t.rating, 0) / testimonials.length
         : 0;
 
-      setStats({
+      const newStats = {
         activeUsers: activeUsersCount || 0,
         totalMatches: uniqueMatches.size,
         avgRating: avgRating > 0 ? Number(avgRating.toFixed(1)) : 0,
         totalTestimonials: testimonials?.length || 0,
-      });
+      };
+
+      console.log("Setting stats:", newStats);
+      setStats(newStats);
     } catch (error) {
       console.error("Error fetching stats:", error);
       // Set default fallback stats to 0 instead of fake data
