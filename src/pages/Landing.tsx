@@ -57,18 +57,18 @@ const Landing = () => {
   return (
     <div ref={containerRef} className="min-h-screen overflow-hidden relative">
       {/* Animated background */}
-      <div className="fixed inset-0 bg-gradient-to-br from-background via-muted to-background pointer-events-none animate-gradient" />
-      <div className="fixed inset-0 opacity-40 pointer-events-none">
+      <div className="fixed inset-0 bg-background pointer-events-none" />
+      <div className="fixed inset-0 opacity-30 pointer-events-none">
         <motion.div 
-          className="absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full blur-3xl"
+          className="absolute top-20 left-10 w-72 h-72 bg-primary-glow/30 rounded-full blur-3xl"
           style={{ y: useTransform(scrollYProgress, [0, 1], [0, -200]) }}
         />
         <motion.div 
-          className="absolute bottom-20 right-10 w-96 h-96 bg-accent/20 rounded-full blur-3xl"
+          className="absolute bottom-20 right-10 w-96 h-96 bg-accent/30 rounded-full blur-3xl"
           style={{ y: useTransform(scrollYProgress, [0, 1], [0, 200]) }}
         />
         <motion.div 
-          className="absolute top-1/2 left-1/2 w-64 h-64 bg-primary-glow/20 rounded-full blur-3xl"
+          className="absolute top-1/2 left-1/2 w-64 h-64 bg-primary/30 rounded-full blur-3xl"
           style={{ 
             y: useTransform(scrollYProgress, [0, 1], [0, -150]),
             x: useTransform(scrollYProgress, [0, 1], [0, 100]),

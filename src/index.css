@@ -8,62 +8,62 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 348 65% 96%;
-    --foreground: 348 50% 15%;
+    --background: 348 83% 50%;
+    --foreground: 0 0% 100%;
 
-    --card: 0 50% 99%;
-    --card-foreground: 348 50% 15%;
+    --card: 348 70% 45%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 0 50% 99%;
-    --popover-foreground: 348 50% 15%;
+    --popover: 348 70% 45%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 348 83% 47%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 348 90% 65%;
+    --primary-foreground: 348 70% 25%;
     
-    --primary-glow: 348 90% 60%;
+    --primary-glow: 348 95% 75%;
     --primary-light: 348 85% 88%;
     --primary-dark: 348 70% 35%;
 
-    --secondary: 348 70% 40%;
+    --secondary: 348 60% 35%;
     --secondary-foreground: 0 0% 100%;
     
     --secondary-glow: 348 80% 55%;
 
-    --muted: 348 50% 94%;
-    --muted-foreground: 348 25% 45%;
+    --muted: 348 70% 55%;
+    --muted-foreground: 0 0% 95%;
 
-    --accent: 355 85% 58%;
+    --accent: 355 85% 65%;
     --accent-foreground: 0 0% 100%;
     
-    --accent-glow: 355 95% 70%;
+    --accent-glow: 355 95% 75%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 348 40% 88%;
-    --input: 348 35% 93%;
-    --ring: 348 83% 47%;
+    --border: 348 60% 60%;
+    --input: 348 70% 45%;
+    --ring: 348 90% 65%;
 
     --radius: 1.25rem;
     
     /* Enhanced Spaark gradients - Cherry Red */
-    --gradient-primary: linear-gradient(135deg, hsl(348 83% 47%) 0%, hsl(348 70% 40%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(348 85% 50%) 0%, hsl(348 90% 60%) 50%, hsl(355 85% 58%) 100%);
-    --gradient-soft: linear-gradient(180deg, hsl(348 65% 96%) 0%, hsl(348 60% 94%) 50%, hsl(348 55% 92%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 50% 99%) 0%, hsl(348 50% 97%) 100%);
-    --gradient-glow: radial-gradient(circle at 50% 0%, hsla(348, 83%, 47%, 0.2), transparent 70%);
-    --gradient-animated: linear-gradient(270deg, hsl(348 83% 47%), hsl(348 90% 60%), hsl(355 85% 58%), hsl(348 83% 47%));
-    --gradient-mesh: radial-gradient(at 0% 0%, hsl(348 85% 88%) 0px, transparent 50%),
-                     radial-gradient(at 100% 0%, hsl(355 85% 88%) 0px, transparent 50%),
-                     radial-gradient(at 100% 100%, hsl(348 90% 88%) 0px, transparent 50%),
-                     radial-gradient(at 0% 100%, hsl(348 80% 88%) 0px, transparent 50%);
+    --gradient-primary: linear-gradient(135deg, hsl(348 83% 50%) 0%, hsl(348 70% 45%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(348 85% 55%) 0%, hsl(348 90% 65%) 50%, hsl(355 85% 65%) 100%);
+    --gradient-soft: linear-gradient(180deg, hsl(348 83% 50%) 0%, hsl(348 70% 45%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(348 70% 45%) 0%, hsl(348 60% 40%) 100%);
+    --gradient-glow: radial-gradient(circle at 50% 0%, hsla(348, 90%, 65%, 0.3), transparent 70%);
+    --gradient-animated: linear-gradient(270deg, hsl(348 83% 50%), hsl(348 90% 65%), hsl(355 85% 65%), hsl(348 83% 50%));
+    --gradient-mesh: radial-gradient(at 0% 0%, hsl(348 85% 60%) 0px, transparent 50%),
+                     radial-gradient(at 100% 0%, hsl(355 85% 60%) 0px, transparent 50%),
+                     radial-gradient(at 100% 100%, hsl(348 90% 60%) 0px, transparent 50%),
+                     radial-gradient(at 0% 100%, hsl(348 80% 60%) 0px, transparent 50%);
     
     /* Enhanced shadows - Cherry Red */
-    --shadow-soft: 0 10px 40px hsla(348, 83%, 47%, 0.15);
-    --shadow-card: 0 4px 24px hsla(348, 50%, 50%, 0.1);
-    --shadow-glow: 0 0 60px hsla(348, 83%, 47%, 0.3);
-    --shadow-elevated: 0 20px 60px hsla(348, 60%, 40%, 0.2);
-    --shadow-hover: 0 20px 80px hsla(348, 83%, 47%, 0.25);
+    --shadow-soft: 0 10px 40px hsla(0, 0%, 0%, 0.3);
+    --shadow-card: 0 4px 24px hsla(0, 0%, 0%, 0.25);
+    --shadow-glow: 0 0 60px hsla(348, 90%, 65%, 0.6);
+    --shadow-elevated: 0 20px 60px hsla(0, 0%, 0%, 0.35);
+    --shadow-hover: 0 20px 80px hsla(0, 0%, 0%, 0.4);
     
     /* Animation variables */
     --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -161,7 +161,7 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-    background: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
+    background: hsl(var(--background));
     background-attachment: fixed;
   }
   
@@ -173,9 +173,10 @@ All colors MUST be HSL.
     width: 100%;
     height: 100%;
     background: var(--gradient-mesh);
-    opacity: 0.3;
+    opacity: 0.2;
     pointer-events: none;
     z-index: 0;
+    animation: gradient-shift 20s ease infinite;
   }
 }
 
@@ -273,9 +274,9 @@ All colors MUST be HSL.
   }
   
   .glass-effect {
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.25);
   }
   
   .dark .glass-effect {
