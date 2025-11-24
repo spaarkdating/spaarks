@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { SmtpClient } from "https://deno.land/x/smtp@v0.7.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -18,10 +19,11 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const { subject, message, emails }: NewsletterRequest = await req.json();
-    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+    const GMAIL_USER = Deno.env.get("GMAIL_USER");
+    const GMAIL_APP_PASSWORD = Deno.env.get("GMAIL_APP_PASSWORD");
     
-    if (!RESEND_API_KEY) {
-      throw new Error("RESEND_API_KEY is not configured");
+    if (!GMAIL_USER || !GMAIL_APP_PASSWORD) {
+      throw new Error("Gmail credentials are not configured");
     }
 
     if (!emails || emails.length === 0) {
@@ -34,18 +36,33 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Send emails using Resend API
-    const emailPromises = emails.map((email) =>
-      fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${RESEND_API_KEY}`,
-        },
-        body: JSON.stringify({
-          from: "Spaark <onboarding@resend.dev>",
-          to: [email],
+    // Create Gmail SMTP client
+    const client = new SmtpClient();
+    await client.connectTLS({
+      hostname: "smtp.gmail.com",
+      port: 465,
+      username: GMAIL_USER,
+      password: GMAIL_APP_PASSWORD,
+    });
+
+    // Send emails using Gmail SMTP
+    const emailPromises = emails.map(async (email) => {
+      try {
+        await client.send({
+          from: GMAIL_USER,
+          to: email,
           subject: subject,
+          content: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <h1 style="color: #dc2663; text-align: center; margin-bottom: 30px;">❤️ Spaark Update</h1>
+              <div style="padding: 30px; background: #fef2f2; border-radius: 10px; line-height: 1.6;">
+                ${message.replace(/\n/g, '<br>')}
+              </div>
+              <p style="text-align: center; color: #666; font-size: 12px; margin-top: 30px;">
+                You're receiving this because you subscribed to Spaark updates.
+              </p>
+            </div>
+          `,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
               <h1 style="color: #dc2663; text-align: center; margin-bottom: 30px;">❤️ Spaark Update</h1>
@@ -57,12 +74,18 @@ const handler = async (req: Request): Promise<Response> => {
               </p>
             </div>
           `,
-        }),
-      })
-    );
+        });
+        return { status: 'fulfilled' };
+      } catch (error) {
+        console.error(`Failed to send to ${email}:`, error);
+        return { status: 'rejected', error };
+      }
+    });
 
     const results = await Promise.allSettled(emailPromises);
     const successCount = results.filter(r => r.status === "fulfilled").length;
+
+    await client.close();
 
     console.log(`Newsletter sent to ${successCount}/${emails.length} subscribers`);
 
