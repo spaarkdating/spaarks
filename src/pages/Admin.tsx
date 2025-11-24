@@ -12,6 +12,7 @@ import Analytics from "@/components/admin/Analytics";
 import Revenue from "@/components/admin/Revenue";
 import AuditLogs from "@/components/admin/AuditLogs";
 import AdminRoleManagement from "@/components/admin/AdminRoleManagement";
+import { TestimonialManagement } from "@/components/admin/TestimonialManagement";
 import DangerZone from "@/components/admin/DangerZone";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminRole } from "@/hooks/useAdminRole";
@@ -103,12 +104,13 @@ const Admin = () => {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue={canManageTickets ? "tickets" : undefined} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="grid w-full grid-cols-9">
             {canViewRevenue && <TabsTrigger value="analytics">Analytics</TabsTrigger>}
             {canViewRevenue && <TabsTrigger value="revenue">Revenue</TabsTrigger>}
             {canManageUsers && <TabsTrigger value="users">Users</TabsTrigger>}
             {canManageTickets && <TabsTrigger value="tickets">Support</TabsTrigger>}
             {canManageReports && <TabsTrigger value="reports">Reports</TabsTrigger>}
+            {isSuperAdmin && <TabsTrigger value="testimonials">Testimonials</TabsTrigger>}
             {isSuperAdmin && <TabsTrigger value="roles">Admin Roles</TabsTrigger>}
             {isSuperAdmin && <TabsTrigger value="audit">Audit Logs</TabsTrigger>}
             {isSuperAdmin && <TabsTrigger value="danger" className="text-destructive">Danger Zone</TabsTrigger>}
@@ -135,6 +137,7 @@ const Admin = () => {
 
           {isSuperAdmin && (
             <>
+              <TabsContent value="testimonials"><TestimonialManagement /></TabsContent>
               <TabsContent value="roles"><AdminRoleManagement /></TabsContent>
               <TabsContent value="audit"><AuditLogs /></TabsContent>
               <TabsContent value="danger"><DangerZone /></TabsContent>

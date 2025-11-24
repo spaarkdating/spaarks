@@ -1,13 +1,44 @@
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Heart, Sparkles, MessageCircle, Shield, Zap, Users, Star, CheckCircle, TrendingUp, Video, Clock, MapPin, Award, Check, X } from "lucide-react";
+import { Heart, Sparkles, MessageCircle, Shield, Zap, Users, Star, CheckCircle, TrendingUp, Clock, MapPin, Award, Check, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { MobileNav } from "@/components/navigation/MobileNav";
 import { Card } from "@/components/ui/card";
 import { AnimatedBackground } from "@/components/landing/AnimatedBackground";
 import { NewsletterSignup } from "@/components/landing/NewsletterSignup";
+import { supabase } from "@/integrations/supabase/client";
 
 const Landing = () => {
+  const [testimonials, setTestimonials] = useState<any[]>([]);
+  const [isLoadingTestimonials, setIsLoadingTestimonials] = useState(true);
+
+  useEffect(() => {
+    fetchTestimonials();
+  }, []);
+
+  const fetchTestimonials = async () => {
+    try {
+      const { data, error } = await (supabase as any)
+        .from("testimonials")
+        .select(`
+          *,
+          user:profiles!testimonials_user_id_fkey(display_name),
+          partner:profiles!testimonials_partner_id_fkey(display_name)
+        `)
+        .eq("status", "approved")
+        .order("created_at", { ascending: false })
+        .limit(3);
+
+      if (error) throw error;
+      setTestimonials(data || []);
+    } catch (error) {
+      console.error("Error fetching testimonials:", error);
+    } finally {
+      setIsLoadingTestimonials(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background overflow-hidden">
       {/* Animated background gradient */}
@@ -281,55 +312,58 @@ const Landing = () => {
           <p className="text-xl text-muted-foreground">Real couples who found love on Spaark</p>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {[
-            {
-              name: "Sarah & Mike",
-              story: "We matched on Spaark and instantly clicked! Now we're planning our wedding. Thank you for bringing us together!",
-              time: "Matched 8 months ago",
-              rating: 5
-            },
-            {
-              name: "Emma & David",
-              story: "I never thought I'd find someone who shares all my interests. Spaark's matching algorithm is incredible!",
-              time: "Matched 1 year ago",
-              rating: 5
-            },
-            {
-              name: "Lisa & James",
-              story: "The messaging features and compatibility scores really helped us connect authentically. Now we're in a loving relationship!",
-              time: "Matched 6 months ago",
-              rating: 5
-            }
-          ].map((testimonial, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: idx * 0.15 }}
-            >
-              <Card className="p-6 hover:shadow-xl transition-all border hover:border-primary/30 card-hover h-full">
-                <div className="flex gap-1 mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-primary text-primary" />
-                  ))}
-                </div>
-                <p className="text-muted-foreground mb-4 italic">"{testimonial.story}"</p>
-                <div className="flex items-center gap-3 pt-4 border-t border-border">
-                  <div className="flex -space-x-2">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary border-2 border-background" />
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent to-primary border-2 border-background" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-sm">{testimonial.name}</p>
-                    <p className="text-xs text-muted-foreground">{testimonial.time}</p>
-                  </div>
-                </div>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
+        {isLoadingTestimonials ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">Loading success stories...</p>
+          </div>
+        ) : testimonials.length === 0 ? (
+          <div className="text-center py-12">
+            <Heart className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+            <p className="text-muted-foreground mb-2">No testimonials yet</p>
+            <p className="text-sm text-muted-foreground">Be the first to share your success story!</p>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {testimonials.map((testimonial, idx) => {
+              const displayName = testimonial.user?.display_name || "Anonymous";
+              const partnerName = testimonial.partner?.display_name || "their match";
+              const names = testimonial.partner ? `${displayName} & ${partnerName}` : displayName;
+              
+              return (
+                <motion.div
+                  key={testimonial.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: idx * 0.15 }}
+                >
+                  <Card className="p-6 hover:shadow-xl transition-all border hover:border-primary/30 card-hover h-full">
+                    <div className="flex gap-1 mb-4">
+                      {[...Array(testimonial.rating)].map((_, i) => (
+                        <Star key={i} className="h-4 w-4 fill-primary text-primary" />
+                      ))}
+                    </div>
+                    <p className="text-muted-foreground mb-4 italic">"{testimonial.story}"</p>
+                    <div className="flex items-center gap-3 pt-4 border-t border-border">
+                      <div className="flex -space-x-2">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary border-2 border-background" />
+                        {testimonial.partner && (
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent to-primary border-2 border-background" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-sm">{names}</p>
+                        {testimonial.match_duration && (
+                          <p className="text-xs text-muted-foreground">{testimonial.match_duration}</p>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       {/* Pricing Section */}
@@ -378,9 +412,9 @@ const Landing = () => {
                   </div>
                 ))}
                 {[
-                  "Video Calls",
                   "Profile Boost",
-                  "Advanced Filters"
+                  "Advanced Filters",
+                  "Who Liked You"
                 ].map((feature, idx) => (
                   <div key={idx} className="flex items-center gap-2 opacity-40">
                     <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
@@ -426,8 +460,7 @@ const Landing = () => {
                   "Enhanced Profile",
                   "Unlimited Swipes",
                   "Priority Matching",
-                  "Text & Video Messaging",
-                  "HD Video Calls",
+                  "Text Messaging",
                   "1 Profile Boost/month",
                   "Advanced Filters",
                   "See Who Liked You"
@@ -570,8 +603,8 @@ const Landing = () => {
                   </Button>
                 </Link>
                 <Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white/10 text-lg px-10 py-7">
-                  <Video className="h-5 w-5 mr-2" />
-                  Watch Demo
+                  <Heart className="h-5 w-5 mr-2" />
+                  Learn More
                 </Button>
               </div>
             </motion.div>
