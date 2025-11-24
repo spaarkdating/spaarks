@@ -23,9 +23,10 @@ interface SwipeCardProps {
   onSwipe: (direction: "left" | "right" | "super") => void;
   style?: any;
   compatibilityScore?: number;
+  onProfileClick?: () => void;
 }
 
-export const SwipeCard = ({ profile, onSwipe, style, compatibilityScore }: SwipeCardProps) => {
+export const SwipeCard = ({ profile, onSwipe, style, compatibilityScore, onProfileClick }: SwipeCardProps) => {
   const [exitX, setExitX] = useState(0);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const x = useMotionValue(0);
@@ -132,7 +133,10 @@ export const SwipeCard = ({ profile, onSwipe, style, compatibilityScore }: Swipe
         </div>
 
         {/* Info */}
-        <div className="h-1/3 p-6 overflow-y-auto bg-gradient-to-b from-card to-card/80">
+        <div 
+          className="h-1/3 p-6 overflow-y-auto bg-gradient-to-b from-card to-card/80 cursor-pointer hover:bg-card/90 transition-colors"
+          onClick={onProfileClick}
+        >
           <div className="flex items-center gap-2 mb-2">
             <h2 className="text-2xl font-bold flex items-center gap-2 gradient-text">
               <span>
