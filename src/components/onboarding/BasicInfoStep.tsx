@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
 
 interface BasicInfoStepProps {
   data: any;
@@ -16,6 +17,12 @@ interface BasicInfoStepProps {
 }
 
 export const BasicInfoStep = ({ data, updateData }: BasicInfoStepProps) => {
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  
+  // Calculate default date (18 years ago from today)
+  const defaultDate = new Date();
+  defaultDate.setFullYear(defaultDate.getFullYear() - 18);
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="space-y-2">
@@ -46,7 +53,7 @@ export const BasicInfoStep = ({ data, updateData }: BasicInfoStepProps) => {
 
       <div className="space-y-2">
         <Label>Date of Birth *</Label>
-        <Popover>
+        <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
@@ -56,22 +63,32 @@ export const BasicInfoStep = ({ data, updateData }: BasicInfoStepProps) => {
               )}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {data.dateOfBirth ? format(new Date(data.dateOfBirth), "PPP") : "Pick a date"}
+              {data.dateOfBirth ? format(new Date(data.dateOfBirth), "MMMM d, yyyy") : "Select your birth date"}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
             <Calendar
               mode="single"
               selected={data.dateOfBirth ? new Date(data.dateOfBirth) : undefined}
-              onSelect={(date) => updateData({ dateOfBirth: date?.toISOString() })}
+              onSelect={(date) => {
+                updateData({ dateOfBirth: date?.toISOString() });
+                setCalendarOpen(false);
+              }}
               disabled={(date) =>
                 date > new Date() || date < new Date("1900-01-01")
               }
+              defaultMonth={data.dateOfBirth ? new Date(data.dateOfBirth) : defaultDate}
+              captionLayout="dropdown-buttons"
+              fromYear={1900}
+              toYear={new Date().getFullYear()}
               initialFocus
               className="pointer-events-auto"
             />
           </PopoverContent>
         </Popover>
+        <p className="text-xs text-muted-foreground">
+          You must be 18 or older to use Spaark
+        </p>
       </div>
 
       <div className="space-y-2">
@@ -104,6 +121,110 @@ export const BasicInfoStep = ({ data, updateData }: BasicInfoStepProps) => {
         <p className="text-xs text-muted-foreground">
           You'll only see profiles of people with the same dating preference
         </p>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="height">Height (optional)</Label>
+        <Input
+          id="height"
+          value={data.height || ""}
+          onChange={(e) => updateData({ height: e.target.value })}
+          placeholder="e.g., 5'8&quot; or 173cm"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="occupation">Occupation (optional)</Label>
+        <Input
+          id="occupation"
+          value={data.occupation || ""}
+          onChange={(e) => updateData({ occupation: e.target.value })}
+          placeholder="What do you do?"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="education">Education (optional)</Label>
+        <Select value={data.education || ""} onValueChange={(value) => updateData({ education: value })}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select your education level" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="high-school">High School</SelectItem>
+            <SelectItem value="some-college">Some College</SelectItem>
+            <SelectItem value="bachelors">Bachelor's Degree</SelectItem>
+            <SelectItem value="masters">Master's Degree</SelectItem>
+            <SelectItem value="phd">PhD/Doctorate</SelectItem>
+            <SelectItem value="trade-school">Trade School</SelectItem>
+            <SelectItem value="other">Other</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="relationshipGoal">Looking For (optional)</Label>
+        <Select value={data.relationshipGoal || ""} onValueChange={(value) => updateData({ relationshipGoal: value })}>
+          <SelectTrigger>
+            <SelectValue placeholder="What are you looking for?" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="long-term">Long-term Relationship</SelectItem>
+            <SelectItem value="short-term">Short-term Fun</SelectItem>
+            <SelectItem value="friendship">Friendship</SelectItem>
+            <SelectItem value="not-sure">Not Sure Yet</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="smoking">Smoking</Label>
+          <Select value={data.smoking || ""} onValueChange={(value) => updateData({ smoking: value })}>
+            <SelectTrigger>
+              <SelectValue placeholder="Do you smoke?" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="never">Never</SelectItem>
+              <SelectItem value="socially">Socially</SelectItem>
+              <SelectItem value="regularly">Regularly</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="drinking">Drinking</Label>
+          <Select value={data.drinking || ""} onValueChange={(value) => updateData({ drinking: value })}>
+            <SelectTrigger>
+              <SelectValue placeholder="Do you drink?" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="never">Never</SelectItem>
+              <SelectItem value="socially">Socially</SelectItem>
+              <SelectItem value="regularly">Regularly</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="religion">Religion (optional)</Label>
+        <Select value={data.religion || ""} onValueChange={(value) => updateData({ religion: value })}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select your religion" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="christianity">Christianity</SelectItem>
+            <SelectItem value="islam">Islam</SelectItem>
+            <SelectItem value="hinduism">Hinduism</SelectItem>
+            <SelectItem value="buddhism">Buddhism</SelectItem>
+            <SelectItem value="judaism">Judaism</SelectItem>
+            <SelectItem value="sikhism">Sikhism</SelectItem>
+            <SelectItem value="atheist">Atheist</SelectItem>
+            <SelectItem value="agnostic">Agnostic</SelectItem>
+            <SelectItem value="spiritual">Spiritual</SelectItem>
+            <SelectItem value="other">Other</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );

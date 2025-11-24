@@ -90,6 +90,59 @@ export const ProfileView = ({ profile, photos, interests, emailVerified = false 
         </CardContent>
       </Card>
 
+      {/* Additional Info */}
+      {(profile.height || profile.occupation || profile.education || profile.relationship_goal || profile.smoking || profile.drinking || profile.religion) && (
+        <Card>
+          <CardContent className="p-6">
+            <h3 className="text-xl font-semibold mb-4">Details</h3>
+            <div className="grid grid-cols-2 gap-4">
+              {profile.height && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Height</p>
+                  <p className="font-medium">{profile.height}</p>
+                </div>
+              )}
+              {profile.occupation && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Occupation</p>
+                  <p className="font-medium">{profile.occupation}</p>
+                </div>
+              )}
+              {profile.education && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Education</p>
+                  <p className="font-medium capitalize">{profile.education.replace(/-/g, ' ')}</p>
+                </div>
+              )}
+              {profile.relationship_goal && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Looking For</p>
+                  <p className="font-medium capitalize">{profile.relationship_goal.replace(/-/g, ' ')}</p>
+                </div>
+              )}
+              {profile.smoking && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Smoking</p>
+                  <p className="font-medium capitalize">{profile.smoking}</p>
+                </div>
+              )}
+              {profile.drinking && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Drinking</p>
+                  <p className="font-medium capitalize">{profile.drinking}</p>
+                </div>
+              )}
+              {profile.religion && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Religion</p>
+                  <p className="font-medium capitalize">{profile.religion}</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Bio */}
       {profile.bio && (
         <Card>
