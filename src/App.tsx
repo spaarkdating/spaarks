@@ -18,7 +18,7 @@ import Admin from "./pages/Admin";
 import AdminRegister from "./pages/AdminRegister";
 import FAQ from "./pages/FAQ";
 import AboutUs from "./pages/AboutUs";
-import Careers from "./pages/Careers";
+
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import SafetyTips from "./pages/SafetyTips";
@@ -51,7 +51,6 @@ const App = () => (
           <Route path="/support" element={<Support />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/about" element={<AboutUs />} />
-          <Route path="/careers" element={<Careers />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<TermsOfService />} />
           <Route path="/safety" element={<SafetyTips />} />
