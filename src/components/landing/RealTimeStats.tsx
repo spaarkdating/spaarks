@@ -128,10 +128,10 @@ const AnimatedStatCard = ({ value, label, suffix = "", decimals = 0, isLoading }
         animate={{ opacity: 1, scale: 1 }}
         className="text-center"
       >
-        <div className="text-4xl md:text-5xl font-bold gradient-text mb-2 h-14 flex items-center justify-center">
-          <div className="h-10 w-20 bg-gradient-to-r from-primary/20 to-secondary/20 rounded animate-pulse" />
+        <div className="text-4xl md:text-5xl font-bold text-white mb-2 h-14 flex items-center justify-center">
+          <div className="h-10 w-20 bg-white/20 rounded animate-pulse" />
         </div>
-        <div className="text-muted-foreground">{label}</div>
+        <div className="text-white font-medium">{label}</div>
       </motion.div>
     );
   }
@@ -144,11 +144,11 @@ const AnimatedStatCard = ({ value, label, suffix = "", decimals = 0, isLoading }
       transition={{ duration: 0.5 }}
       className="text-center"
     >
-      <motion.div className="text-4xl md:text-5xl font-bold gradient-text mb-2 flex items-center justify-center gap-1">
+      <motion.div className="text-4xl md:text-5xl font-bold text-white mb-2 flex items-center justify-center gap-1 drop-shadow-lg">
         <motion.span>{rounded}</motion.span>
         {suffix && <span className="text-3xl md:text-4xl">{suffix}</span>}
       </motion.div>
-      <div className="text-muted-foreground">{label}</div>
+      <div className="text-white font-medium">{label}</div>
     </motion.div>
   );
 };
