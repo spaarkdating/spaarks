@@ -102,6 +102,8 @@ export const NotificationBell = ({ userId }: NotificationBellProps) => {
       navigate(`/messages?match=${notification.data.match_id}`);
     } else if (notification.type === "like") {
       navigate("/matches");
+    } else if (notification.type === "profile_view") {
+      navigate("/profile-views");
     }
   };
 

@@ -29,6 +29,31 @@ const ProfileViews = () => {
     init();
   }, [navigate]);
 
+  // Real-time updates for new profile views
+  useEffect(() => {
+    if (!userId) return;
+
+    const viewsChannel = supabase
+      .channel('profile-views-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'profile_views',
+          filter: `viewed_profile_id=eq.${userId}`
+        },
+        () => {
+          fetchProfileViews(userId);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(viewsChannel);
+    };
+  }, [userId]);
+
   const fetchProfileViews = async (currentUserId: string) => {
     setLoading(true);
     try {
