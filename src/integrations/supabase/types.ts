@@ -264,6 +264,36 @@ export type Database = {
           },
         ]
       }
+      newsletter_history: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          recipient_count: number
+          sent_at: string
+          sent_by: string
+          subject: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          recipient_count: number
+          sent_at?: string
+          sent_by: string
+          subject: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          recipient_count?: number
+          sent_at?: string
+          sent_by?: string
+          subject?: string
+        }
+        Relationships: []
+      }
       newsletter_subscriptions: {
         Row: {
           created_at: string | null
