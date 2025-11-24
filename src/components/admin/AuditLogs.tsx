@@ -40,7 +40,7 @@ const AuditLogs = () => {
 
   const fetchLogs = async () => {
     setLoading(true);
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("admin_audit_logs")
       .select(
         `
@@ -52,7 +52,10 @@ const AuditLogs = () => {
       .order("created_at", { ascending: false })
       .limit(100);
 
-    if (data) {
+    if (error) {
+      console.error("Error fetching audit logs:", error);
+    } else if (data) {
+      console.log("Audit logs fetched:", data);
       setLogs(data);
     }
     setLoading(false);
