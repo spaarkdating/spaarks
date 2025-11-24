@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import UserManagement from "@/components/admin/UserManagement";
 import SupportTickets from "@/components/admin/SupportTickets";
 import PhotoReports from "@/components/admin/PhotoReports";
+import ProfileReports from "@/components/admin/ProfileReports";
 import Analytics from "@/components/admin/Analytics";
 import Revenue from "@/components/admin/Revenue";
 import AuditLogs from "@/components/admin/AuditLogs";
@@ -132,7 +133,12 @@ const Admin = () => {
           )}
 
           {canManageReports && (
-            <TabsContent value="reports"><PhotoReports adminRole={role as any} /></TabsContent>
+            <TabsContent value="reports">
+              <div className="space-y-6">
+                <PhotoReports adminRole={role as any} />
+                <ProfileReports adminRole={role as any} />
+              </div>
+            </TabsContent>
           )}
 
           {isSuperAdmin && (

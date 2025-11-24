@@ -7,6 +7,7 @@ import { Heart, MessageCircle, User as UserIcon, Settings, LogOut, RefreshCw, Ey
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/useNotifications";
 import { SwipeCard } from "@/components/swipe/SwipeCard";
+import ReportProfileDialog from "@/components/profile/ReportProfileDialog";
 import { SwipeActions } from "@/components/swipe/SwipeActions";
 import { MatchNotification } from "@/components/swipe/MatchNotification";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
@@ -624,6 +625,14 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
                     </div>
                   </div>
                 )}
+
+                {/* Action buttons */}
+                <div className="flex gap-2 pt-4 border-t">
+                  <ReportProfileDialog 
+                    reportedUserId={selectedProfile.id} 
+                    reportedUserName={selectedProfile.display_name || "User"} 
+                  />
+                </div>
               </div>
             </div>
           ) : null}

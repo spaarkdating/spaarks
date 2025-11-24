@@ -20,6 +20,22 @@ const AuditLogs = () => {
 
   useEffect(() => {
     fetchLogs();
+
+    // Set up real-time subscription for audit log changes
+    const subscription = supabase
+      .channel("audit_logs_changes")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "admin_audit_logs" },
+        () => {
+          fetchLogs();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const fetchLogs = async () => {
