@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Send, Eye, Users } from "lucide-react";
+import { Mail, Send, Eye, Users, FileText, Megaphone, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -16,13 +16,102 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const NEWSLETTER_TEMPLATES = {
+  blank: {
+    name: "Blank Template",
+    icon: FileText,
+    subject: "",
+    message: "",
+  },
+  announcement: {
+    name: "Announcement",
+    icon: Megaphone,
+    subject: "Exciting News from Spaark! 🎉",
+    message: `Hi there!
+
+We have some exciting news to share with you today!
+
+[Write your announcement here - what's new, what's changing, or what's happening]
+
+Key highlights:
+• [Highlight 1]
+• [Highlight 2]
+• [Highlight 3]
+
+We're thrilled to bring you these updates and can't wait to hear what you think!
+
+Happy matching,
+The Spaark Team ❤️`,
+  },
+  promotion: {
+    name: "Promotion",
+    icon: Sparkles,
+    subject: "Special Offer Just for You! 💝",
+    message: `Hello Spaark Community!
+
+We have something special for you today!
+
+[Describe your promotion or special offer]
+
+Here's what you get:
+• [Benefit 1]
+• [Benefit 2]
+• [Benefit 3]
+
+[Add any terms, conditions, or time limits]
+
+Don't miss out on this opportunity to enhance your Spaark experience!
+
+With love,
+The Spaark Team ❤️`,
+  },
+  feature: {
+    name: "Feature Update",
+    icon: Sparkles,
+    subject: "New Features to Enhance Your Experience! ✨",
+    message: `Hey Spaark Users!
+
+We've been working hard to make your experience even better, and we're excited to announce some new features!
+
+What's New:
+🎯 [Feature 1 Name]
+[Brief description of what it does and how to use it]
+
+💫 [Feature 2 Name]
+[Brief description of what it does and how to use it]
+
+❤️ [Feature 3 Name]
+[Brief description of what it does and how to use it]
+
+We hope you love these new additions as much as we do! As always, we're here to help if you have any questions.
+
+Happy dating,
+The Spaark Team`,
+  },
+};
 
 export const NewsletterManagement = () => {
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<keyof typeof NEWSLETTER_TEMPLATES>("blank");
   const { toast } = useToast();
+
+  const handleTemplateChange = (templateKey: keyof typeof NEWSLETTER_TEMPLATES) => {
+    setSelectedTemplate(templateKey);
+    const template = NEWSLETTER_TEMPLATES[templateKey];
+    setSubject(template.subject);
+    setMessage(template.message);
+  };
 
   // Fetch active subscribers
   const { data: subscribers } = useQuery({
@@ -137,6 +226,32 @@ export const NewsletterManagement = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Template Selection */}
+          <div className="space-y-2">
+            <Label htmlFor="template">Newsletter Template</Label>
+            <Select value={selectedTemplate} onValueChange={handleTemplateChange}>
+              <SelectTrigger id="template">
+                <SelectValue placeholder="Choose a template" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(NEWSLETTER_TEMPLATES).map(([key, template]) => {
+                  const Icon = template.icon;
+                  return (
+                    <SelectItem key={key} value={key}>
+                      <div className="flex items-center gap-2">
+                        <Icon className="h-4 w-4 text-primary" />
+                        <span>{template.name}</span>
+                      </div>
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Select a pre-designed template or start from blank
+            </p>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="subject">Subject</Label>
             <Input
