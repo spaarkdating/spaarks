@@ -62,3 +62,18 @@ port = 54321
 
 [functions.create-video-room]
 verify_jwt = true
+
+[functions.ai-chatbot]
+verify_jwt = false
+
+[functions.send-newsletter]
+verify_jwt = true
+
+[functions.delete-user]
+verify_jwt = true
+
+[functions.delete-all-users]
+verify_jwt = true
+
+[functions.verify-admin-registration]
+verify_jwt = false
