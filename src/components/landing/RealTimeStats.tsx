@@ -37,36 +37,44 @@ export const RealTimeStats = () => {
         .select("*", { count: "exact", head: true })
         .gte("last_online", sevenDaysAgo.toISOString());
 
-      // Get total matches
-      const { count: matchesCount } = await supabase
+      // Get unique matches count (count distinct pairs)
+      // Since each match creates two rows, we need to count unique user_id values where is_match is true
+      const { data: matchData } = await supabase
         .from("matches")
-        .select("*", { count: "exact", head: true })
+        .select("user_id, liked_user_id")
         .eq("is_match", true);
 
+      // Count unique match pairs by creating a set of sorted user IDs
+      const uniqueMatches = new Set();
+      matchData?.forEach(match => {
+        const pair = [match.user_id, match.liked_user_id].sort().join('-');
+        uniqueMatches.add(pair);
+      });
+
       // Get average rating from approved testimonials
-      const { data: testimonials } = await (supabase as any)
+      const { data: testimonials } = await supabase
         .from("testimonials")
         .select("rating")
         .eq("status", "approved");
 
       const avgRating = testimonials && testimonials.length > 0
         ? testimonials.reduce((sum: number, t: any) => sum + t.rating, 0) / testimonials.length
-        : 4.9;
+        : 0;
 
       setStats({
         activeUsers: activeUsersCount || 0,
-        totalMatches: Math.floor((matchesCount || 0) / 2), // Divide by 2 since matches are stored twice
-        avgRating: Number(avgRating.toFixed(1)),
+        totalMatches: uniqueMatches.size,
+        avgRating: avgRating > 0 ? Number(avgRating.toFixed(1)) : 0,
         totalTestimonials: testimonials?.length || 0,
       });
     } catch (error) {
       console.error("Error fetching stats:", error);
-      // Set default fallback stats
+      // Set default fallback stats to 0 instead of fake data
       setStats({
-        activeUsers: 50,
-        totalMatches: 150,
-        avgRating: 4.9,
-        totalTestimonials: 45,
+        activeUsers: 0,
+        totalMatches: 0,
+        avgRating: 0,
+        totalTestimonials: 0,
       });
     } finally {
       setIsLoading(false);
