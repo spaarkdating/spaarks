@@ -140,14 +140,6 @@ const Landing = () => {
           </motion.div>
         </div>
 
-        {/* Hero Image Placeholder */}
-        <div className="mt-16 max-w-4xl mx-auto">
-          <div className="relative rounded-3xl overflow-hidden shadow-2xl bg-card border border-border">
-            <div className="aspect-video bg-gradient-to-br from-primary/20 via-secondary/20 to-accent/20 flex items-center justify-center">
-              <Heart className="h-32 w-32 text-primary/30 fill-primary/30" />
-            </div>
-          </div>
-        </div>
       </section>
 
       {/* Stats Section */}
@@ -320,13 +312,32 @@ const Landing = () => {
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: idx * 0.15 }}
                   >
-                    <Card className="p-6 hover:shadow-xl transition-all border hover:border-primary/30 card-hover h-full">
+                    <Card className="p-6 hover:shadow-xl transition-all border hover:border-primary/30 card-hover h-full flex flex-col">
+                      {/* Media Section */}
+                      {(testimonial.photo_url || testimonial.video_url) && (
+                        <div className="mb-4 rounded-lg overflow-hidden">
+                          {testimonial.video_url ? (
+                            <video 
+                              src={testimonial.video_url}
+                              controls
+                              className="w-full h-48 object-cover rounded-lg"
+                            />
+                          ) : testimonial.photo_url && (
+                            <img 
+                              src={testimonial.photo_url}
+                              alt="Testimonial"
+                              className="w-full h-48 object-cover rounded-lg"
+                            />
+                          )}
+                        </div>
+                      )}
+                      
                       <div className="flex gap-1 mb-4">
                         {[...Array(testimonial.rating)].map((_, i) => (
                           <Star key={i} className="h-4 w-4 fill-primary text-primary" />
                         ))}
                       </div>
-                      <p className="text-muted-foreground mb-4 italic">"{testimonial.story}"</p>
+                      <p className="text-muted-foreground mb-4 italic flex-grow">"{testimonial.story}"</p>
                       <div className="flex items-center gap-3 pt-4 border-t border-border">
                         <div className="flex -space-x-2">
                           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary border-2 border-background" />
