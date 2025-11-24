@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
-import { Heart, MessageCircle, User as UserIcon, Settings, LogOut, RefreshCw, Eye, HelpCircle } from "lucide-react";
+import { Heart, MessageCircle, User as UserIcon, Settings, LogOut, RefreshCw, Eye, HelpCircle, Filter, Bell } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/useNotifications";
 import { SwipeCard } from "@/components/swipe/SwipeCard";
@@ -16,10 +16,13 @@ import { calculateCompatibilityScore } from "@/lib/compatibility";
 import { MobileNav } from "@/components/navigation/MobileNav";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/navigation/PullToRefreshIndicator";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { PhotoCarousel } from "@/components/profile/PhotoCarousel";
 import { Badge } from "@/components/ui/badge";
 import { X, MapPin, Briefcase, GraduationCap, Heart as HeartIcon } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 
 interface OnlineDashboardProps {
   user: User;
@@ -38,6 +41,12 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
   const [profilePhotos, setProfilePhotos] = useState<any[]>([]);
   const [profileInterests, setProfileInterests] = useState<any[]>([]);
   const [isProfileLoading, setIsProfileLoading] = useState(false);
+  const [showFilterDialog, setShowFilterDialog] = useState(false);
+  const [tempFilters, setTempFilters] = useState({
+    looking_for: "",
+    min_age: 18,
+    max_age: 99,
+  });
   const navigate = useNavigate();
   const { toast } = useToast();
   useNotifications();
@@ -57,8 +66,43 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
   useEffect(() => {
     if (user) {
       fetchProfiles(user.id);
+      loadUserFilters();
     }
   }, [user]);
+
+  const loadUserFilters = async () => {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("looking_for, min_age, max_age")
+      .eq("id", user.id)
+      .single();
+
+    if (profile) {
+      setTempFilters({
+        looking_for: profile.looking_for || "everyone",
+        min_age: profile.min_age || 18,
+        max_age: profile.max_age || 99,
+      });
+    }
+  };
+
+  const applyQuickFilters = async () => {
+    await supabase
+      .from("profiles")
+      .update({
+        looking_for: tempFilters.looking_for,
+        min_age: tempFilters.min_age,
+        max_age: tempFilters.max_age,
+      })
+      .eq("id", user.id);
+
+    setShowFilterDialog(false);
+    await fetchProfiles(user.id);
+    toast({
+      title: "Filters applied!",
+      description: "Showing new matches based on your preferences.",
+    });
+  };
 
   const fetchProfiles = async (userId: string) => {
     setIsLoading(true);
@@ -302,6 +346,15 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
           
           <div className="hidden md:flex gap-2">
             <NotificationBell userId={user.id} />
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setShowFilterDialog(true)} 
+              title="Quick Filters" 
+              className="hover:scale-110 transition-transform"
+            >
+              <Filter className="h-5 w-5" />
+            </Button>
             <Button variant="ghost" size="icon" onClick={() => navigate("/profile-views")} title="Profile Views" className="hover:scale-110 transition-transform">
               <Eye className="h-5 w-5" />
             </Button>
@@ -325,18 +378,30 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
             </Button>
           </div>
 
-          <MobileNav
-            isAuthenticated
-            onLogout={onLogout}
-            links={[
-              { to: "/profile-views", label: "Profile Views", icon: <Eye className="h-5 w-5" />, onClick: () => navigate("/profile-views") },
-              { to: "/matches", label: "Matches", icon: <Heart className="h-5 w-5" />, onClick: () => navigate("/matches") },
-              { to: "/messages", label: "Messages", icon: <MessageCircle className="h-5 w-5" />, onClick: () => navigate("/messages") },
-              { to: "/profile", label: "Profile", icon: <UserIcon className="h-5 w-5" />, onClick: () => navigate("/profile") },
-              { to: "/faq", label: "FAQ", icon: <HelpCircle className="h-5 w-5" />, onClick: () => navigate("/faq") },
-              { to: "/settings", label: "Settings", icon: <Settings className="h-5 w-5" />, onClick: () => navigate("/settings") },
-            ]}
-          />
+          <div className="md:hidden flex items-center gap-2">
+            <NotificationBell userId={user.id} />
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setShowFilterDialog(true)} 
+              title="Quick Filters"
+              className="hover:scale-110 transition-transform"
+            >
+              <Filter className="h-5 w-5" />
+            </Button>
+            <MobileNav
+              isAuthenticated
+              onLogout={onLogout}
+              links={[
+                { to: "/profile-views", label: "Profile Views", icon: <Eye className="h-5 w-5" />, onClick: () => navigate("/profile-views") },
+                { to: "/matches", label: "Matches", icon: <Heart className="h-5 w-5" />, onClick: () => navigate("/matches") },
+                { to: "/messages", label: "Messages", icon: <MessageCircle className="h-5 w-5" />, onClick: () => navigate("/messages") },
+                { to: "/profile", label: "Profile", icon: <UserIcon className="h-5 w-5" />, onClick: () => navigate("/profile") },
+                { to: "/faq", label: "FAQ", icon: <HelpCircle className="h-5 w-5" />, onClick: () => navigate("/faq") },
+                { to: "/settings", label: "Settings", icon: <Settings className="h-5 w-5" />, onClick: () => navigate("/settings") },
+              ]}
+            />
+          </div>
         </div>
       </header>
 
@@ -543,6 +608,75 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
               </div>
             </div>
           ) : null}
+        </DialogContent>
+      </Dialog>
+
+      {/* Quick Filter Dialog */}
+      <Dialog open={showFilterDialog} onOpenChange={setShowFilterDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Filter className="h-5 w-5 text-primary" />
+              Quick Filters
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="gender-filter">Looking for</Label>
+              <Select
+                value={tempFilters.looking_for}
+                onValueChange={(value) => setTempFilters({ ...tempFilters, looking_for: value })}
+              >
+                <SelectTrigger id="gender-filter">
+                  <SelectValue placeholder="Select gender preference" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="everyone">Everyone</SelectItem>
+                  <SelectItem value="male">Men</SelectItem>
+                  <SelectItem value="female">Women</SelectItem>
+                  <SelectItem value="non-binary">Non-binary</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-4">
+              <Label>Age Range: {tempFilters.min_age} - {tempFilters.max_age}</Label>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">Minimum Age: {tempFilters.min_age}</Label>
+                  <Slider
+                    value={[tempFilters.min_age]}
+                    onValueChange={([value]) => setTempFilters({ ...tempFilters, min_age: value })}
+                    min={18}
+                    max={tempFilters.max_age - 1}
+                    step={1}
+                    className="w-full"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">Maximum Age: {tempFilters.max_age}</Label>
+                  <Slider
+                    value={[tempFilters.max_age]}
+                    onValueChange={([value]) => setTempFilters({ ...tempFilters, max_age: value })}
+                    min={tempFilters.min_age + 1}
+                    max={99}
+                    step={1}
+                    className="w-full"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowFilterDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={applyQuickFilters} className="bg-gradient-to-r from-primary to-secondary">
+              Apply Filters
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
