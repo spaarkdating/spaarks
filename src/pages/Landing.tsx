@@ -101,9 +101,22 @@ const Landing = () => {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
+          whileHover={{ scale: 1.05 }}
         >
-          <Heart className="h-6 w-6 md:h-8 md:w-8 text-primary fill-primary animate-heartbeat drop-shadow-lg" />
-          <span className="text-xl md:text-2xl font-bold gradient-text-animated">
+          <motion.div
+            animate={{ 
+              scale: [1, 1.2, 1],
+              rotate: [0, 5, -5, 0]
+            }}
+            transition={{ 
+              duration: 2,
+              repeat: Infinity,
+              repeatDelay: 3
+            }}
+          >
+            <Heart className="h-6 w-6 md:h-8 md:w-8 text-primary fill-primary drop-shadow-glow" />
+          </motion.div>
+          <span className="text-xl md:text-2xl font-bold text-white drop-shadow-lg">
             Spaark
           </span>
         </motion.div>

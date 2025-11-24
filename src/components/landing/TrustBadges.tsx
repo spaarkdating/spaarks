@@ -71,34 +71,6 @@ export const TrustBadges = () => {
           </motion.div>
         ))}
       </div>
-
-      {/* Partner Logos Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6, delay: 0.3 }}
-        className="mt-16 pt-16 border-t border-border/50"
-      >
-        <h3 className="text-center text-lg font-semibold mb-8 text-white/90">
-          Integrated with Trusted Services
-        </h3>
-        <div className="flex flex-wrap justify-center items-center gap-8 opacity-70">
-          {["Stripe", "PayPal", "Google", "Apple", "Meta", "AWS"].map((partner, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, scale: 0.8 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: idx * 0.1 }}
-              whileHover={{ scale: 1.1 }}
-              className="px-6 py-3 bg-white/10 backdrop-blur-sm rounded-lg text-white font-semibold text-sm hover:bg-white/20 transition-colors"
-            >
-              {partner}
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
     </section>
   );
 };
