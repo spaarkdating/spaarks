@@ -7,6 +7,7 @@ import { MobileNav } from "@/components/navigation/MobileNav";
 import { Card } from "@/components/ui/card";
 import { AnimatedBackground } from "@/components/landing/AnimatedBackground";
 import { NewsletterSignup } from "@/components/landing/NewsletterSignup";
+import { RealTimeStats } from "@/components/landing/RealTimeStats";
 import { supabase } from "@/integrations/supabase/client";
 
 const Landing = () => {
@@ -151,32 +152,12 @@ const Landing = () => {
       {/* Stats Section */}
       <section className="container mx-auto px-4 py-20 relative">
         <motion.div 
-          className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-5xl mx-auto"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          {[
-            { number: "50K+", label: "Active Users" },
-            { number: "15K+", label: "Matches Made" },
-            { number: "95%", label: "Success Rate" },
-            { number: "4.9★", label: "User Rating" }
-          ].map((stat, idx) => (
-            <motion.div
-              key={idx}
-              className="text-center"
-              initial={{ opacity: 0, scale: 0.8 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: idx * 0.1 }}
-            >
-              <div className="text-4xl md:text-5xl font-bold gradient-text mb-2">
-                {stat.number}
-              </div>
-              <div className="text-muted-foreground">{stat.label}</div>
-            </motion.div>
-          ))}
+          <RealTimeStats />
         </motion.div>
       </section>
 
@@ -323,46 +304,55 @@ const Landing = () => {
             <p className="text-sm text-muted-foreground">Be the first to share your success story!</p>
           </div>
         ) : (
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {testimonials.map((testimonial, idx) => {
-              const displayName = testimonial.user?.display_name || "Anonymous";
-              const partnerName = testimonial.partner?.display_name || "their match";
-              const names = testimonial.partner ? `${displayName} & ${partnerName}` : displayName;
-              
-              return (
-                <motion.div
-                  key={testimonial.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: idx * 0.15 }}
-                >
-                  <Card className="p-6 hover:shadow-xl transition-all border hover:border-primary/30 card-hover h-full">
-                    <div className="flex gap-1 mb-4">
-                      {[...Array(testimonial.rating)].map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-primary text-primary" />
-                      ))}
-                    </div>
-                    <p className="text-muted-foreground mb-4 italic">"{testimonial.story}"</p>
-                    <div className="flex items-center gap-3 pt-4 border-t border-border">
-                      <div className="flex -space-x-2">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary border-2 border-background" />
-                        {testimonial.partner && (
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent to-primary border-2 border-background" />
-                        )}
+          <>
+            <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-8">
+              {testimonials.map((testimonial, idx) => {
+                const displayName = testimonial.user?.display_name || "Anonymous";
+                const partnerName = testimonial.partner?.display_name || "their match";
+                const names = testimonial.partner ? `${displayName} & ${partnerName}` : displayName;
+                
+                return (
+                  <motion.div
+                    key={testimonial.id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: idx * 0.15 }}
+                  >
+                    <Card className="p-6 hover:shadow-xl transition-all border hover:border-primary/30 card-hover h-full">
+                      <div className="flex gap-1 mb-4">
+                        {[...Array(testimonial.rating)].map((_, i) => (
+                          <Star key={i} className="h-4 w-4 fill-primary text-primary" />
+                        ))}
                       </div>
-                      <div>
-                        <p className="font-semibold text-sm">{names}</p>
-                        {testimonial.match_duration && (
-                          <p className="text-xs text-muted-foreground">{testimonial.match_duration}</p>
-                        )}
+                      <p className="text-muted-foreground mb-4 italic">"{testimonial.story}"</p>
+                      <div className="flex items-center gap-3 pt-4 border-t border-border">
+                        <div className="flex -space-x-2">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary border-2 border-background" />
+                          {testimonial.partner && (
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent to-primary border-2 border-background" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-sm">{names}</p>
+                          {testimonial.match_duration && (
+                            <p className="text-xs text-muted-foreground">{testimonial.match_duration}</p>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </Card>
-                </motion.div>
-              );
-            })}
-          </div>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </div>
+            <div className="text-center">
+              <Link to="/testimonials">
+                <Button variant="outline" size="lg" className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+                  View All Success Stories
+                </Button>
+              </Link>
+            </div>
+          </>
         )}
       </section>
 
