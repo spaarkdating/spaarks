@@ -202,6 +202,25 @@ const Testimonials = () => {
                   >
                     <Card className="h-full hover:shadow-xl transition-all border-2 hover:border-primary/50 card-hover group">
                       <CardContent className="p-6 flex flex-col h-full">
+                        {/* Media Section */}
+                        {(testimonial.photo_url || testimonial.video_url) && (
+                          <div className="mb-4 rounded-lg overflow-hidden">
+                            {testimonial.video_url ? (
+                              <video 
+                                src={testimonial.video_url}
+                                controls
+                                className="w-full h-48 object-cover rounded-lg"
+                              />
+                            ) : testimonial.photo_url && (
+                              <img 
+                                src={testimonial.photo_url}
+                                alt="Testimonial"
+                                className="w-full h-48 object-cover rounded-lg"
+                              />
+                            )}
+                          </div>
+                        )}
+                        
                         {/* Rating */}
                         <div className="flex gap-1 mb-4">
                           {[...Array(testimonial.rating)].map((_, i) => (

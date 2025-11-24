@@ -8,55 +8,55 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 330 70% 99%;
-    --foreground: 330 30% 10%;
+    --background: 0 60% 98%;
+    --foreground: 348 40% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 330 30% 10%;
+    --card-foreground: 348 40% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 330 30% 10%;
+    --popover-foreground: 348 40% 12%;
 
-    --primary: 340 82% 62%;
+    --primary: 348 83% 47%;
     --primary-foreground: 0 0% 100%;
     
-    --primary-glow: 340 100% 75%;
-    --primary-light: 340 85% 90%;
+    --primary-glow: 348 90% 60%;
+    --primary-light: 348 80% 85%;
 
-    --secondary: 280 75% 68%;
+    --secondary: 348 70% 35%;
     --secondary-foreground: 0 0% 100%;
     
-    --secondary-glow: 280 90% 80%;
+    --secondary-glow: 348 75% 50%;
 
-    --muted: 330 40% 96%;
-    --muted-foreground: 330 20% 45%;
+    --muted: 0 40% 96%;
+    --muted-foreground: 348 20% 40%;
 
-    --accent: 25 95% 65%;
-    --accent-foreground: 330 30% 10%;
+    --accent: 348 95% 55%;
+    --accent-foreground: 0 0% 100%;
     
-    --accent-glow: 25 100% 75%;
+    --accent-glow: 348 100% 68%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 330 30% 92%;
-    --input: 330 30% 94%;
-    --ring: 340 82% 62%;
+    --border: 348 30% 90%;
+    --input: 348 25% 92%;
+    --ring: 348 83% 47%;
 
     --radius: 1.25rem;
     
-    /* Enhanced Spaark gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(340 82% 62%) 0%, hsl(280 75% 68%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(340 82% 62%) 0%, hsl(310 80% 65%) 50%, hsl(280 75% 68%) 100%);
-    --gradient-soft: linear-gradient(180deg, hsl(330 70% 99%) 0%, hsl(280 60% 98%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(330 60% 99%) 100%);
-    --gradient-glow: radial-gradient(circle at 50% 0%, hsla(340, 82%, 62%, 0.15), transparent 70%);
+    /* Enhanced Spaark gradients - Cherry Red */
+    --gradient-primary: linear-gradient(135deg, hsl(348 83% 47%) 0%, hsl(348 70% 35%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(348 83% 47%) 0%, hsl(348 90% 60%) 50%, hsl(348 70% 35%) 100%);
+    --gradient-soft: linear-gradient(180deg, hsl(0 60% 98%) 0%, hsl(348 55% 97%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(348 40% 98%) 100%);
+    --gradient-glow: radial-gradient(circle at 50% 0%, hsla(348, 83%, 47%, 0.15), transparent 70%);
     
-    /* Enhanced shadows */
-    --shadow-soft: 0 10px 40px hsla(340, 82%, 62%, 0.12);
-    --shadow-card: 0 4px 24px hsla(330, 40%, 50%, 0.08);
-    --shadow-glow: 0 0 60px hsla(340, 82%, 62%, 0.25);
-    --shadow-elevated: 0 20px 60px hsla(330, 50%, 40%, 0.15);
+    /* Enhanced shadows - Cherry Red */
+    --shadow-soft: 0 10px 40px hsla(348, 83%, 47%, 0.12);
+    --shadow-card: 0 4px 24px hsla(348, 50%, 50%, 0.08);
+    --shadow-glow: 0 0 60px hsla(348, 83%, 47%, 0.25);
+    --shadow-elevated: 0 20px 60px hsla(348, 60%, 40%, 0.15);
     
     /* Animation variables */
     --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -80,51 +80,51 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 330 50% 6%;
-    --foreground: 330 15% 95%;
+    --background: 348 50% 8%;
+    --foreground: 348 15% 95%;
 
-    --card: 330 40% 10%;
-    --card-foreground: 330 15% 95%;
+    --card: 348 40% 12%;
+    --card-foreground: 348 15% 95%;
 
-    --popover: 330 40% 10%;
-    --popover-foreground: 330 15% 95%;
+    --popover: 348 40% 12%;
+    --popover-foreground: 348 15% 95%;
 
-    --primary: 340 82% 62%;
+    --primary: 348 83% 47%;
     --primary-foreground: 0 0% 100%;
     
-    --primary-glow: 340 100% 70%;
-    --primary-light: 340 70% 40%;
+    --primary-glow: 348 90% 60%;
+    --primary-light: 348 70% 40%;
 
-    --secondary: 280 70% 65%;
+    --secondary: 348 70% 35%;
     --secondary-foreground: 0 0% 100%;
     
-    --secondary-glow: 280 85% 75%;
+    --secondary-glow: 348 75% 50%;
 
-    --muted: 330 30% 15%;
-    --muted-foreground: 330 15% 65%;
+    --muted: 348 30% 18%;
+    --muted-foreground: 348 15% 65%;
 
-    --accent: 25 90% 62%;
+    --accent: 348 95% 55%;
     --accent-foreground: 0 0% 100%;
     
-    --accent-glow: 25 95% 70%;
+    --accent-glow: 348 100% 68%;
 
     --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 330 30% 18%;
-    --input: 330 30% 15%;
-    --ring: 340 82% 62%;
+    --border: 348 30% 20%;
+    --input: 348 30% 18%;
+    --ring: 348 83% 47%;
     
-    --gradient-primary: linear-gradient(135deg, hsl(340 82% 62%) 0%, hsl(280 75% 68%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(340 82% 62%) 0%, hsl(310 80% 65%) 50%, hsl(280 75% 68%) 100%);
-    --gradient-soft: linear-gradient(180deg, hsl(330 50% 6%) 0%, hsl(280 45% 8%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(330 40% 10%) 0%, hsl(280 35% 12%) 100%);
-    --gradient-glow: radial-gradient(circle at 50% 0%, hsla(340, 82%, 62%, 0.2), transparent 70%);
+    --gradient-primary: linear-gradient(135deg, hsl(348 83% 47%) 0%, hsl(348 70% 35%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(348 83% 47%) 0%, hsl(348 90% 60%) 50%, hsl(348 70% 35%) 100%);
+    --gradient-soft: linear-gradient(180deg, hsl(348 50% 8%) 0%, hsl(348 45% 10%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(348 40% 12%) 0%, hsl(348 35% 14%) 100%);
+    --gradient-glow: radial-gradient(circle at 50% 0%, hsla(348, 83%, 47%, 0.2), transparent 70%);
     
-    --shadow-soft: 0 10px 50px hsla(340, 82%, 62%, 0.3);
-    --shadow-card: 0 4px 30px hsla(330, 60%, 20%, 0.4);
-    --shadow-glow: 0 0 80px hsla(340, 82%, 62%, 0.4);
-    --shadow-elevated: 0 20px 80px hsla(330, 70%, 10%, 0.6);
+    --shadow-soft: 0 10px 50px hsla(348, 83%, 47%, 0.3);
+    --shadow-card: 0 4px 30px hsla(348, 60%, 20%, 0.4);
+    --shadow-glow: 0 0 80px hsla(348, 83%, 47%, 0.4);
+    --shadow-elevated: 0 20px 80px hsla(348, 70%, 10%, 0.6);
     
     --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
@@ -193,10 +193,10 @@ All colors MUST be HSL.
   
   @keyframes pulse-glow {
     0%, 100% {
-      box-shadow: 0 0 20px hsla(340, 82%, 62%, 0.3);
+      box-shadow: 0 0 20px hsla(348, 83%, 47%, 0.3);
     }
     50% {
-      box-shadow: 0 0 40px hsla(340, 82%, 62%, 0.6);
+      box-shadow: 0 0 40px hsla(348, 83%, 47%, 0.6);
     }
   }
   

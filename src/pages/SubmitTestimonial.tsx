@@ -7,13 +7,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Star, ArrowLeft, Heart } from "lucide-react";
+import { Star, ArrowLeft, Heart, Upload, X, Image as ImageIcon, Video } from "lucide-react";
 
 const SubmitTestimonial = () => {
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [story, setStory] = useState("");
   const [matchDuration, setMatchDuration] = useState("");
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [videoPreview, setVideoPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [existingTestimonial, setExistingTestimonial] = useState<any>(null);
@@ -44,10 +48,131 @@ const SubmitTestimonial = () => {
         setRating(testimonial.rating);
         setStory(testimonial.story);
         setMatchDuration(testimonial.match_duration || "");
+        setPhotoPreview(testimonial.photo_url);
+        setVideoPreview(testimonial.video_url);
       }
     };
     checkAuth();
   }, [navigate]);
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file",
+        description: "Please upload an image file",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Photo must be less than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setPhotoFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPhotoPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('video/')) {
+      toast({
+        title: "Invalid file",
+        description: "Please upload a video file",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (file.size > 50 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Video must be less than 50MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setVideoFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setVideoPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const uploadMedia = async (userId: string) => {
+    let photoUrl = existingTestimonial?.photo_url || null;
+    let videoUrl = existingTestimonial?.video_url || null;
+
+    // Upload photo if selected
+    if (photoFile) {
+      const photoExt = photoFile.name.split('.').pop();
+      const photoPath = `${userId}/photo-${Date.now()}.${photoExt}`;
+      
+      const { error: photoError } = await supabase.storage
+        .from('testimonials')
+        .upload(photoPath, photoFile);
+
+      if (photoError) throw photoError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('testimonials')
+        .getPublicUrl(photoPath);
+
+      photoUrl = publicUrl;
+
+      // Delete old photo if exists
+      if (existingTestimonial?.photo_url && photoFile) {
+        const oldPath = existingTestimonial.photo_url.split('/testimonials/')[1];
+        if (oldPath) {
+          await supabase.storage.from('testimonials').remove([oldPath]);
+        }
+      }
+    }
+
+    // Upload video if selected
+    if (videoFile) {
+      const videoExt = videoFile.name.split('.').pop();
+      const videoPath = `${userId}/video-${Date.now()}.${videoExt}`;
+      
+      const { error: videoError } = await supabase.storage
+        .from('testimonials')
+        .upload(videoPath, videoFile);
+
+      if (videoError) throw videoError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('testimonials')
+        .getPublicUrl(videoPath);
+
+      videoUrl = publicUrl;
+
+      // Delete old video if exists
+      if (existingTestimonial?.video_url && videoFile) {
+        const oldPath = existingTestimonial.video_url.split('/testimonials/')[1];
+        if (oldPath) {
+          await supabase.storage.from('testimonials').remove([oldPath]);
+        }
+      }
+    }
+
+    return { photoUrl, videoUrl };
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,6 +207,8 @@ const SubmitTestimonial = () => {
     setIsSubmitting(true);
 
     try {
+      const { photoUrl, videoUrl } = await uploadMedia(user.id);
+
       if (isEditing && existingTestimonial) {
         // Update existing testimonial
         const { error } = await (supabase as any)
@@ -90,6 +217,8 @@ const SubmitTestimonial = () => {
             rating,
             story: story.trim(),
             match_duration: matchDuration.trim() || null,
+            photo_url: photoUrl,
+            video_url: videoUrl,
           })
           .eq("id", existingTestimonial.id);
 
@@ -106,6 +235,8 @@ const SubmitTestimonial = () => {
           rating,
           story: story.trim(),
           match_duration: matchDuration.trim() || null,
+          photo_url: photoUrl,
+          video_url: videoUrl,
           status: "pending",
         });
 
@@ -222,6 +353,98 @@ const SubmitTestimonial = () => {
                   placeholder="e.g., Matched 6 months ago, Dating for 1 year, Engaged"
                   maxLength={50}
                 />
+              </div>
+
+              {/* Photo Upload */}
+              <div className="space-y-2">
+                <Label className="text-base font-semibold">Add a Photo (optional)</Label>
+                <div className="flex gap-4 items-start">
+                  {photoPreview ? (
+                    <div className="relative">
+                      <img 
+                        src={photoPreview} 
+                        alt="Preview" 
+                        className="w-32 h-32 object-cover rounded-lg border-2 border-border"
+                      />
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="destructive"
+                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                        onClick={() => {
+                          setPhotoFile(null);
+                          setPhotoPreview(null);
+                        }}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <Label 
+                      htmlFor="photo-upload"
+                      className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary transition-colors"
+                    >
+                      <ImageIcon className="h-8 w-8 text-muted-foreground mb-2" />
+                      <span className="text-xs text-muted-foreground">Upload Photo</span>
+                      <Input
+                        id="photo-upload"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handlePhotoChange}
+                      />
+                    </Label>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Max size: 5MB. Formats: JPG, PNG, WEBP
+                  </p>
+                </div>
+              </div>
+
+              {/* Video Upload */}
+              <div className="space-y-2">
+                <Label className="text-base font-semibold">Add a Video (optional)</Label>
+                <div className="flex gap-4 items-start">
+                  {videoPreview ? (
+                    <div className="relative">
+                      <video 
+                        src={videoPreview} 
+                        className="w-48 h-32 object-cover rounded-lg border-2 border-border"
+                        controls
+                      />
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="destructive"
+                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                        onClick={() => {
+                          setVideoFile(null);
+                          setVideoPreview(null);
+                        }}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <Label 
+                      htmlFor="video-upload"
+                      className="flex flex-col items-center justify-center w-48 h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary transition-colors"
+                    >
+                      <Video className="h-8 w-8 text-muted-foreground mb-2" />
+                      <span className="text-xs text-muted-foreground">Upload Video</span>
+                      <Input
+                        id="video-upload"
+                        type="file"
+                        accept="video/*"
+                        className="hidden"
+                        onChange={handleVideoChange}
+                      />
+                    </Label>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Max size: 50MB. Formats: MP4, MOV, AVI
+                  </p>
+                </div>
               </div>
 
               {/* Notice */}
