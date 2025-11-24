@@ -496,8 +496,11 @@ export type Database = {
           date_of_birth: string | null
           dating_mode: string | null
           display_name: string | null
+          drinking: string | null
+          education: string | null
           email: string | null
           gender: string | null
+          height: string | null
           id: string
           last_online: string | null
           last_swipe_match_id: string | null
@@ -506,6 +509,10 @@ export type Database = {
           looking_for: string | null
           max_age: number | null
           min_age: number | null
+          occupation: string | null
+          relationship_goal: string | null
+          religion: string | null
+          smoking: string | null
           updated_at: string | null
         }
         Insert: {
@@ -515,8 +522,11 @@ export type Database = {
           date_of_birth?: string | null
           dating_mode?: string | null
           display_name?: string | null
+          drinking?: string | null
+          education?: string | null
           email?: string | null
           gender?: string | null
+          height?: string | null
           id: string
           last_online?: string | null
           last_swipe_match_id?: string | null
@@ -525,6 +535,10 @@ export type Database = {
           looking_for?: string | null
           max_age?: number | null
           min_age?: number | null
+          occupation?: string | null
+          relationship_goal?: string | null
+          religion?: string | null
+          smoking?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -534,8 +548,11 @@ export type Database = {
           date_of_birth?: string | null
           dating_mode?: string | null
           display_name?: string | null
+          drinking?: string | null
+          education?: string | null
           email?: string | null
           gender?: string | null
+          height?: string | null
           id?: string
           last_online?: string | null
           last_swipe_match_id?: string | null
@@ -544,6 +561,10 @@ export type Database = {
           looking_for?: string | null
           max_age?: number | null
           min_age?: number | null
+          occupation?: string | null
+          relationship_goal?: string | null
+          religion?: string | null
+          smoking?: string | null
           updated_at?: string | null
         }
         Relationships: [

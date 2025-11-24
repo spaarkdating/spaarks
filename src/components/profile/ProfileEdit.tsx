@@ -27,6 +27,13 @@ export const ProfileEdit = ({ profile, photos, interests, userId, onSave, onCanc
     location: profile.location || "",
     gender: profile.gender || "",
     looking_for: profile.looking_for || "",
+    height: profile.height || "",
+    occupation: profile.occupation || "",
+    education: profile.education || "",
+    relationship_goal: profile.relationship_goal || "",
+    smoking: profile.smoking || "",
+    drinking: profile.drinking || "",
+    religion: profile.religion || "",
     photos: photos.map(p => p.photo_url),
     interests: interests.map(i => i.id),
   });
@@ -46,6 +53,13 @@ export const ProfileEdit = ({ profile, photos, interests, userId, onSave, onCanc
           location: formData.location,
           gender: formData.gender,
           looking_for: formData.looking_for,
+          height: formData.height,
+          occupation: formData.occupation,
+          education: formData.education,
+          relationship_goal: formData.relationship_goal,
+          smoking: formData.smoking,
+          drinking: formData.drinking,
+          religion: formData.religion,
         })
         .eq("id", userId);
 
@@ -172,6 +186,125 @@ export const ProfileEdit = ({ profile, photos, interests, userId, onSave, onCanc
                     <SelectItem value="men">Men</SelectItem>
                     <SelectItem value="women">Women</SelectItem>
                     <SelectItem value="everyone">Everyone</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="height">Height (optional)</Label>
+                <Input
+                  id="height"
+                  value={formData.height}
+                  onChange={(e) => setFormData({ ...formData, height: e.target.value })}
+                  placeholder="e.g., 5'8&quot; or 173cm"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="occupation">Occupation (optional)</Label>
+                <Input
+                  id="occupation"
+                  value={formData.occupation}
+                  onChange={(e) => setFormData({ ...formData, occupation: e.target.value })}
+                  placeholder="What do you do?"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="education">Education (optional)</Label>
+                <Select
+                  value={formData.education}
+                  onValueChange={(value) => setFormData({ ...formData, education: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select education level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="high-school">High School</SelectItem>
+                    <SelectItem value="some-college">Some College</SelectItem>
+                    <SelectItem value="bachelors">Bachelor's Degree</SelectItem>
+                    <SelectItem value="masters">Master's Degree</SelectItem>
+                    <SelectItem value="phd">PhD/Doctorate</SelectItem>
+                    <SelectItem value="trade-school">Trade School</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="relationshipGoal">Relationship Goal (optional)</Label>
+                <Select
+                  value={formData.relationship_goal}
+                  onValueChange={(value) => setFormData({ ...formData, relationship_goal: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="What are you looking for?" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="long-term">Long-term Relationship</SelectItem>
+                    <SelectItem value="short-term">Short-term Fun</SelectItem>
+                    <SelectItem value="friendship">Friendship</SelectItem>
+                    <SelectItem value="not-sure">Not Sure Yet</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="smoking">Smoking</Label>
+                  <Select
+                    value={formData.smoking}
+                    onValueChange={(value) => setFormData({ ...formData, smoking: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Do you smoke?" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="never">Never</SelectItem>
+                      <SelectItem value="socially">Socially</SelectItem>
+                      <SelectItem value="regularly">Regularly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="drinking">Drinking</Label>
+                  <Select
+                    value={formData.drinking}
+                    onValueChange={(value) => setFormData({ ...formData, drinking: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Do you drink?" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="never">Never</SelectItem>
+                      <SelectItem value="socially">Socially</SelectItem>
+                      <SelectItem value="regularly">Regularly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="religion">Religion (optional)</Label>
+                <Select
+                  value={formData.religion}
+                  onValueChange={(value) => setFormData({ ...formData, religion: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your religion" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="christianity">Christianity</SelectItem>
+                    <SelectItem value="islam">Islam</SelectItem>
+                    <SelectItem value="hinduism">Hinduism</SelectItem>
+                    <SelectItem value="buddhism">Buddhism</SelectItem>
+                    <SelectItem value="judaism">Judaism</SelectItem>
+                    <SelectItem value="sikhism">Sikhism</SelectItem>
+                    <SelectItem value="atheist">Atheist</SelectItem>
+                    <SelectItem value="agnostic">Agnostic</SelectItem>
+                    <SelectItem value="spiritual">Spiritual</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

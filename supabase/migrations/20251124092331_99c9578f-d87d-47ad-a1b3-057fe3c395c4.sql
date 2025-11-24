@@ -1,0 +1,70 @@
+-- Insert additional interests
+INSERT INTO public.interests (name, category) VALUES 
+-- Sports & Fitness
+('Running', 'Sports'),
+('Swimming', 'Sports'),
+('Basketball', 'Sports'),
+('Football', 'Sports'),
+('Tennis', 'Sports'),
+('Cycling', 'Sports'),
+('Boxing', 'Sports'),
+('Martial Arts', 'Sports'),
+('Rock Climbing', 'Sports'),
+('Skiing', 'Sports'),
+-- Creative Arts
+('Writing', 'Creative'),
+('Painting', 'Creative'),
+('Drawing', 'Creative'),
+('Crafts', 'Creative'),
+('Fashion', 'Creative'),
+('Design', 'Creative'),
+('Pottery', 'Creative'),
+('Sculpture', 'Creative'),
+-- Entertainment
+('Theater', 'Entertainment'),
+('Stand-up Comedy', 'Entertainment'),
+('Concerts', 'Entertainment'),
+('Festivals', 'Entertainment'),
+('Board Games', 'Entertainment'),
+('Karaoke', 'Entertainment'),
+('Podcasts', 'Entertainment'),
+('Anime', 'Entertainment'),
+-- Food & Drink
+('Baking', 'Food & Drink'),
+('Mixology', 'Food & Drink'),
+('Food Tours', 'Food & Drink'),
+('Vegetarian', 'Food & Drink'),
+('Vegan', 'Food & Drink'),
+-- Outdoors & Nature
+('Camping', 'Outdoors'),
+('Backpacking', 'Outdoors'),
+('Gardening', 'Outdoors'),
+('Beach', 'Outdoors'),
+('Mountains', 'Outdoors'),
+('Stargazing', 'Outdoors'),
+('Wildlife', 'Outdoors'),
+-- Technology
+('Programming', 'Technology'),
+('AI & Tech', 'Technology'),
+('Gadgets', 'Technology'),
+('Cryptocurrency', 'Technology'),
+-- Lifestyle (additional)
+('Volunteering', 'Lifestyle'),
+('Meditation', 'Lifestyle'),
+('Spirituality', 'Lifestyle'),
+('Minimalism', 'Lifestyle'),
+('Sustainability', 'Lifestyle'),
+('Shopping', 'Lifestyle'),
+-- Learning
+('Languages', 'Learning'),
+('History', 'Learning'),
+('Science', 'Learning'),
+('Philosophy', 'Learning'),
+('Politics', 'Learning'),
+-- Social
+('Nightlife', 'Social'),
+('Brunch', 'Social'),
+('Picnics', 'Social'),
+('Road Trips', 'Social'),
+('Networking', 'Social')
+ON CONFLICT DO NOTHING;
