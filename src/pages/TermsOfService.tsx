@@ -2,19 +2,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Heart, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Header } from "@/components/navigation/Header";
+import { Footer } from "@/components/Footer";
 
 const TermsOfService = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background">
-      <header className="container mx-auto px-4 py-6 flex justify-between items-center">
-        <Link to="/" className="flex items-center gap-2">
-          <Heart className="h-8 w-8 text-primary fill-primary" />
-          <span className="text-2xl font-bold gradient-text">Spaark</span>
-        </Link>
-        <Link to="/">
-          <Button variant="ghost">Back to Home</Button>
-        </Link>
-      </header>
+      <Header />
 
       <div className="container mx-auto px-4 py-20 max-w-4xl">
         <div className="text-center mb-12">
@@ -153,6 +147,8 @@ const TermsOfService = () => {
           </CardContent>
         </Card>
       </div>
+      
+      <Footer />
     </div>
   );
 };
