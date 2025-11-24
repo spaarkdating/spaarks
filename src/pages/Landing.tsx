@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Heart, Sparkles, MessageCircle, Shield, Zap, Users, Star, CheckCircle, TrendingUp, Clock, MapPin, Award, Check, X } from "lucide-react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { MobileNav } from "@/components/navigation/MobileNav";
 import { Card } from "@/components/ui/card";
 import { AnimatedBackground } from "@/components/landing/AnimatedBackground";
@@ -14,6 +14,19 @@ import { supabase } from "@/integrations/supabase/client";
 const Landing = () => {
   const [testimonials, setTestimonials] = useState<any[]>([]);
   const [isLoadingTestimonials, setIsLoadingTestimonials] = useState(true);
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end end"],
+  });
+
+  // Parallax transforms for different sections
+  const heroY = useTransform(scrollYProgress, [0, 0.3], [0, -100]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.3], [1, 0]);
+  const statsY = useTransform(scrollYProgress, [0.1, 0.4], [50, -50]);
+  const featuresY = useTransform(scrollYProgress, [0.3, 0.6], [80, -80]);
+  const testimonialsY = useTransform(scrollYProgress, [0.5, 0.8], [60, -60]);
 
   useEffect(() => {
     fetchTestimonials();
@@ -42,13 +55,25 @@ const Landing = () => {
   };
 
   return (
-    <div className="min-h-screen overflow-hidden relative">
+    <div ref={containerRef} className="min-h-screen overflow-hidden relative">
       {/* Animated background */}
       <div className="fixed inset-0 bg-gradient-to-br from-background via-muted to-background pointer-events-none animate-gradient" />
       <div className="fixed inset-0 opacity-40 pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full blur-3xl animate-float" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
-        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-primary-glow/20 rounded-full blur-3xl animate-pulse-glow" />
+        <motion.div 
+          className="absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full blur-3xl"
+          style={{ y: useTransform(scrollYProgress, [0, 1], [0, -200]) }}
+        />
+        <motion.div 
+          className="absolute bottom-20 right-10 w-96 h-96 bg-accent/20 rounded-full blur-3xl"
+          style={{ y: useTransform(scrollYProgress, [0, 1], [0, 200]) }}
+        />
+        <motion.div 
+          className="absolute top-1/2 left-1/2 w-64 h-64 bg-primary-glow/20 rounded-full blur-3xl"
+          style={{ 
+            y: useTransform(scrollYProgress, [0, 1], [0, -150]),
+            x: useTransform(scrollYProgress, [0, 1], [0, 100]),
+          }}
+        />
       </div>
       
       {/* Header */}
@@ -92,7 +117,10 @@ const Landing = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="container mx-auto px-4 py-20 text-center relative">
+      <motion.section 
+        className="container mx-auto px-4 py-20 text-center relative"
+        style={{ y: heroY, opacity: heroOpacity }}
+      >
         <AnimatedBackground />
         <div className="max-w-4xl mx-auto space-y-8 relative z-10">
           <motion.div 
@@ -145,11 +173,14 @@ const Landing = () => {
           </motion.div>
         </div>
 
-      </section>
+      </motion.section>
 
       {/* Stats Section */}
-      <section className="container mx-auto px-4 py-20 relative">
-        <motion.div 
+      <motion.section 
+        className="container mx-auto px-4 py-20 relative"
+        style={{ y: statsY }}
+      >
+        <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -157,10 +188,13 @@ const Landing = () => {
         >
           <RealTimeStats />
         </motion.div>
-      </section>
+      </motion.section>
 
       {/* How It Works Section */}
-      <section className="container mx-auto px-4 py-20 bg-muted/30 rounded-3xl my-20">
+      <motion.section 
+        className="container mx-auto px-4 py-20 bg-muted/30 rounded-3xl my-20"
+        style={{ y: featuresY }}
+      >
         <motion.div 
           className="text-center mb-16"
           initial={{ opacity: 0, y: 20 }}
@@ -213,10 +247,13 @@ const Landing = () => {
             </motion.div>
           ))}
         </div>
-      </section>
+      </motion.section>
 
       {/* Features Section */}
-      <section className="container mx-auto px-4 py-20">
+      <motion.section 
+        className="container mx-auto px-4 py-20"
+        style={{ y: featuresY }}
+      >
         <motion.div 
           className="text-center mb-16"
           initial={{ opacity: 0, y: 20 }}
@@ -277,10 +314,13 @@ const Landing = () => {
             </motion.div>
           ))}
         </div>
-      </section>
+      </motion.section>
 
       {/* Testimonials Section */}
-      <section className="container mx-auto px-4 py-20">
+      <motion.section 
+        className="container mx-auto px-4 py-20"
+        style={{ y: testimonialsY }}
+      >
         <motion.div 
           className="text-center mb-16"
           initial={{ opacity: 0, y: 20 }}
@@ -371,7 +411,7 @@ const Landing = () => {
             </div>
           </>
         )}
-      </section>
+      </motion.section>
 
 
       {/* Trust Indicators */}
