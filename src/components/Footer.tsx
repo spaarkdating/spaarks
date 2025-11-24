@@ -4,8 +4,8 @@ import { Link } from "react-router-dom";
 export const Footer = () => {
   return (
     <footer className="bg-card border-t border-border mt-20">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div className="container mx-auto px-4 py-8 sm:py-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
           <div>
             <div className="flex items-center gap-2 mb-4">
               <Heart className="h-6 w-6 text-primary fill-primary" />
@@ -71,8 +71,8 @@ export const Footer = () => {
         </div>
 
         <div className="border-t border-border mt-8 pt-8 text-center">
-          <p className="text-sm text-muted-foreground">
-            © 2024 Spaark. All rights reserved. Made with <Heart className="h-3 w-3 inline text-primary fill-primary" /> by Sourabh Sharma, Aakanksha Singh & Mandhata Singh
+          <p className="text-xs sm:text-sm text-muted-foreground px-2">
+            © 2025 Spaark. All rights reserved. Made with <Heart className="h-3 w-3 inline text-primary fill-primary" /> by Sourabh Sharma, Aakanksha Singh & Mandhata Singh
           </p>
         </div>
       </div>

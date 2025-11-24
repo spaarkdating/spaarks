@@ -203,10 +203,16 @@ const Landing = () => {
                 Get Started Free
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground hover-lift text-base sm:text-lg px-8 sm:px-10 py-6 sm:py-7 transition-all">
-              <a href="#features" className="flex items-center">
-                Learn More
-              </a>
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="w-full sm:w-auto border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground hover-lift text-base sm:text-lg px-8 sm:px-10 py-6 sm:py-7 transition-all"
+              onClick={() => {
+                const element = document.getElementById('features');
+                element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+            >
+              Learn More
             </Button>
           </motion.div>
         </div>
