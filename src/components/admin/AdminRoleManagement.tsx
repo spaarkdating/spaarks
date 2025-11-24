@@ -68,12 +68,20 @@ const AdminRoleManagement = () => {
 
   const fetchAdminUsers = async () => {
     setLoading(true);
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("admin_users")
       .select("*, profile:profiles!admin_users_user_id_fkey(display_name, email)")
       .order("created_at", { ascending: false });
 
-    if (data) {
+    if (error) {
+      console.error("Error fetching admin users:", error);
+      toast({
+        title: "Error loading admin users",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else if (data) {
+      console.log("Admin users fetched:", data);
       setAdminUsers(data);
     }
     setLoading(false);
