@@ -28,55 +28,30 @@ export const RealTimeStats = () => {
 
   const fetchStats = async () => {
     try {
-      // Get active users (logged in within last 7 days)
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      
-      const { count: activeUsersCount, error: usersError } = await supabase
-        .from("profiles")
-        .select("*", { count: "exact", head: true })
-        .gte("last_online", sevenDaysAgo.toISOString());
+      // Use the secure database function to get stats
+      const { data, error } = await supabase.rpc('get_public_stats');
 
-      console.log("Active users count:", activeUsersCount, "Error:", usersError);
+      if (error) {
+        console.error("Error fetching stats:", error);
+        throw error;
+      }
 
-      // Get unique matches count (count distinct pairs)
-      const { data: matchData, error: matchError } = await supabase
-        .from("matches")
-        .select("user_id, liked_user_id")
-        .eq("is_match", true);
+      console.log("Stats from database:", data);
 
-      console.log("Match data:", matchData, "Error:", matchError);
-
-      // Count unique match pairs by creating a set of sorted user IDs
-      const uniqueMatches = new Set();
-      matchData?.forEach(match => {
-        const pair = [match.user_id, match.liked_user_id].sort().join('-');
-        uniqueMatches.add(pair);
-      });
-
-      console.log("Unique matches:", uniqueMatches.size);
-
-      // Get average rating from approved testimonials
-      const { data: testimonials, error: testimonialsError } = await supabase
-        .from("testimonials")
-        .select("rating")
-        .eq("status", "approved");
-
-      console.log("Testimonials:", testimonials, "Error:", testimonialsError);
-
-      const avgRating = testimonials && testimonials.length > 0
-        ? testimonials.reduce((sum: number, t: any) => sum + t.rating, 0) / testimonials.length
-        : 0;
-
-      const newStats = {
-        activeUsers: activeUsersCount || 0,
-        totalMatches: uniqueMatches.size,
-        avgRating: avgRating > 0 ? Number(avgRating.toFixed(1)) : 0,
-        totalTestimonials: testimonials?.length || 0,
+      // Type assertion for the returned data
+      const statsData = data as { 
+        activeUsers: number; 
+        totalMatches: number; 
+        avgRating: number; 
+        totalTestimonials: number;
       };
 
-      console.log("Setting stats:", newStats);
-      setStats(newStats);
+      setStats({
+        activeUsers: statsData.activeUsers || 0,
+        totalMatches: statsData.totalMatches || 0,
+        avgRating: statsData.avgRating || 0,
+        totalTestimonials: statsData.totalTestimonials || 0,
+      });
     } catch (error) {
       console.error("Error fetching stats:", error);
       // Set default fallback stats to 0 instead of fake data
