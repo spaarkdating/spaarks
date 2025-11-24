@@ -57,11 +57,13 @@ const Matches = () => {
   const fetchMatches = async (userId: string) => {
     setIsLoading(true);
     try {
-      const { data: matchesData } = await supabase
+      // Get matches where current user initiated the like
+      const { data: matchesAsInitiator } = await supabase
         .from("matches")
         .select(`
           id,
           created_at,
+          user_id,
           liked_user_id,
           profile:profiles!matches_liked_user_id_fkey(
             id,
@@ -74,13 +76,54 @@ const Matches = () => {
           )
         `)
         .eq("user_id", userId)
-        .eq("is_match", true)
-        .order("created_at", { ascending: false });
+        .eq("is_match", true);
 
-      if (matchesData) {
+      // Get matches where current user was liked
+      const { data: matchesAsReceiver } = await supabase
+        .from("matches")
+        .select(`
+          id,
+          created_at,
+          user_id,
+          liked_user_id,
+          otherProfile:profiles!matches_user_id_fkey(
+            id,
+            display_name,
+            bio,
+            location,
+            date_of_birth,
+            photos(photo_url, display_order),
+            user_interests(interest:interests(name))
+          )
+        `)
+        .eq("liked_user_id", userId)
+        .eq("is_match", true);
+
+      // Combine and normalize matches
+      const allMatches = [
+        ...(matchesAsInitiator || []).map((m: any) => ({
+          id: m.id,
+          created_at: m.created_at,
+          liked_user_id: m.liked_user_id,
+          profile: m.profile,
+        })),
+        ...(matchesAsReceiver || []).map((m: any) => ({
+          id: m.id,
+          created_at: m.created_at,
+          liked_user_id: m.user_id,
+          profile: m.otherProfile,
+        })),
+      ];
+
+      // Sort by created_at
+      allMatches.sort((a, b) => 
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+
+      if (allMatches.length > 0) {
         // Get last message for each match
         const matchesWithMessages = await Promise.all(
-          matchesData.map(async (match) => {
+          allMatches.map(async (match) => {
             const { data: lastMessage } = await supabase
               .from("messages")
               .select("content, created_at, sender_id")
@@ -97,6 +140,8 @@ const Matches = () => {
         );
 
         setMatches(matchesWithMessages);
+      } else {
+        setMatches([]);
       }
     } catch (error: any) {
       toast({

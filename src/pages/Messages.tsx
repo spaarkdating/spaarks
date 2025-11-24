@@ -66,12 +66,13 @@ const Messages = () => {
 
   const fetchMatches = async (userId: string) => {
     try {
-      // Get all mutual matches
-      const { data: matchesData } = await supabase
+      // Get matches where current user initiated the like
+      const { data: matchesAsInitiator } = await supabase
         .from("matches")
         .select(`
           id,
           created_at,
+          user_id,
           liked_user_id,
           profile:profiles!matches_liked_user_id_fkey(
             id,
@@ -81,30 +82,66 @@ const Messages = () => {
           )
         `)
         .eq("user_id", userId)
-        .eq("is_match", true)
-        .order("created_at", { ascending: false });
+        .eq("is_match", true);
 
-      if (matchesData) {
-        // Get last message for each match
-        const matchesWithMessages = await Promise.all(
-          matchesData.map(async (match) => {
-            const { data: lastMessage } = await supabase
-              .from("messages")
-              .select("content, created_at, sender_id, read")
-              .or(`and(sender_id.eq.${userId},receiver_id.eq.${match.liked_user_id}),and(sender_id.eq.${match.liked_user_id},receiver_id.eq.${userId})`)
-              .order("created_at", { ascending: false })
-              .limit(1)
-              .single();
+      // Get matches where current user was liked
+      const { data: matchesAsReceiver } = await supabase
+        .from("matches")
+        .select(`
+          id,
+          created_at,
+          user_id,
+          liked_user_id,
+          otherProfile:profiles!matches_user_id_fkey(
+            id,
+            display_name,
+            bio,
+            photos(photo_url, display_order)
+          )
+        `)
+        .eq("liked_user_id", userId)
+        .eq("is_match", true);
 
-            return {
-              ...match,
-              lastMessage,
-            };
-          })
-        );
+      // Combine and normalize matches
+      const allMatches = [
+        ...(matchesAsInitiator || []).map((m: any) => ({
+          id: m.id,
+          created_at: m.created_at,
+          liked_user_id: m.liked_user_id,
+          profile: m.profile,
+        })),
+        ...(matchesAsReceiver || []).map((m: any) => ({
+          id: m.id,
+          created_at: m.created_at,
+          liked_user_id: m.user_id,
+          profile: m.otherProfile,
+        })),
+      ];
 
-        setMatches(matchesWithMessages);
-      }
+      // Sort by created_at
+      allMatches.sort((a, b) => 
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+
+      // Get last message for each match
+      const matchesWithMessages = await Promise.all(
+        allMatches.map(async (match) => {
+          const { data: lastMessage } = await supabase
+            .from("messages")
+            .select("content, created_at, sender_id, read")
+            .or(`and(sender_id.eq.${userId},receiver_id.eq.${match.liked_user_id}),and(sender_id.eq.${match.liked_user_id},receiver_id.eq.${userId})`)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .single();
+
+          return {
+            ...match,
+            lastMessage,
+          };
+        })
+      );
+
+      setMatches(matchesWithMessages);
     } catch (error: any) {
       toast({
         title: "Error loading matches",
