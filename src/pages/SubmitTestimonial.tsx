@@ -16,6 +16,8 @@ const SubmitTestimonial = () => {
   const [matchDuration, setMatchDuration] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [existingTestimonial, setExistingTestimonial] = useState<any>(null);
+  const [isEditing, setIsEditing] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -27,6 +29,22 @@ const SubmitTestimonial = () => {
         return;
       }
       setUser(user);
+      
+      // Check if user has a pending testimonial
+      const { data: testimonial } = await (supabase as any)
+        .from("testimonials")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("status", "pending")
+        .single();
+      
+      if (testimonial) {
+        setExistingTestimonial(testimonial);
+        setIsEditing(true);
+        setRating(testimonial.rating);
+        setStory(testimonial.story);
+        setMatchDuration(testimonial.match_duration || "");
+      }
     };
     checkAuth();
   }, [navigate]);
@@ -64,20 +82,40 @@ const SubmitTestimonial = () => {
     setIsSubmitting(true);
 
     try {
-      const { error } = await (supabase as any).from("testimonials").insert({
-        user_id: user.id,
-        rating,
-        story: story.trim(),
-        match_duration: matchDuration.trim() || null,
-        status: "pending",
-      });
+      if (isEditing && existingTestimonial) {
+        // Update existing testimonial
+        const { error } = await (supabase as any)
+          .from("testimonials")
+          .update({
+            rating,
+            story: story.trim(),
+            match_duration: matchDuration.trim() || null,
+          })
+          .eq("id", existingTestimonial.id);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      toast({
-        title: "Testimonial submitted!",
-        description: "Thank you! Your testimonial is pending approval and will be visible on the homepage soon.",
-      });
+        toast({
+          title: "Testimonial updated!",
+          description: "Your changes have been saved and are pending approval.",
+        });
+      } else {
+        // Insert new testimonial
+        const { error } = await (supabase as any).from("testimonials").insert({
+          user_id: user.id,
+          rating,
+          story: story.trim(),
+          match_duration: matchDuration.trim() || null,
+          status: "pending",
+        });
+
+        if (error) throw error;
+
+        toast({
+          title: "Testimonial submitted!",
+          description: "Thank you! Your testimonial is pending approval and will be visible on the homepage soon.",
+        });
+      }
 
       navigate("/dashboard");
     } catch (error: any) {
@@ -109,10 +147,12 @@ const SubmitTestimonial = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-3xl">
               <Heart className="h-8 w-8 text-primary fill-primary" />
-              Share Your Success Story
+              {isEditing ? "Edit Your Success Story" : "Share Your Success Story"}
             </CardTitle>
             <CardDescription>
-              Help others find love by sharing your experience with Spaark
+              {isEditing 
+                ? "Update your experience with Spaark" 
+                : "Help others find love by sharing your experience with Spaark"}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -185,12 +225,21 @@ const SubmitTestimonial = () => {
               </div>
 
               {/* Notice */}
-              <div className="bg-muted/50 border border-border rounded-lg p-4">
-                <p className="text-sm text-muted-foreground">
-                  📝 <strong>Note:</strong> Your testimonial will be reviewed by our team before being published on the homepage. 
-                  We appreciate your patience and honesty!
-                </p>
-              </div>
+              {isEditing ? (
+                <div className="bg-primary/10 border border-primary/30 rounded-lg p-4">
+                  <p className="text-sm text-foreground">
+                    📝 <strong>Editing Mode:</strong> You're updating your pending testimonial. 
+                    Your changes will be reviewed again before publication.
+                  </p>
+                </div>
+              ) : (
+                <div className="bg-muted/50 border border-border rounded-lg p-4">
+                  <p className="text-sm text-muted-foreground">
+                    📝 <strong>Note:</strong> Your testimonial will be reviewed by our team before being published on the homepage. 
+                    We appreciate your patience and honesty!
+                  </p>
+                </div>
+              )}
 
               {/* Submit Button */}
               <Button
@@ -198,7 +247,7 @@ const SubmitTestimonial = () => {
                 disabled={isSubmitting || rating === 0 || story.length < 50}
                 className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-lg py-6"
               >
-                {isSubmitting ? "Submitting..." : "Submit Testimonial"}
+                {isSubmitting ? "Saving..." : isEditing ? "Update Testimonial" : "Submit Testimonial"}
               </Button>
             </form>
           </CardContent>
