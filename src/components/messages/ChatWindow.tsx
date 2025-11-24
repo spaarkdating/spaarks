@@ -32,10 +32,14 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate }: ChatWindo
     if (!match) return;
 
     fetchMessages();
-    setIcebreakers(getRandomIcebreakers(3));
+    // Delay icebreaker generation to avoid rapid changes when switching conversations
+    const icebreakerTimeout = setTimeout(() => {
+      setIcebreakers(getRandomIcebreakers(3));
+    }, 800);
     setupRealtimeSubscription();
 
     return () => {
+      clearTimeout(icebreakerTimeout);
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
       }
