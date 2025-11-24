@@ -95,16 +95,20 @@ const Matches = () => {
     setIsLoading(true);
     try {
       // Get all likes initiated by current user
-      const { data: userLikes } = await supabase
+      const { data: userLikes, error: userLikesError } = await supabase
         .from("matches")
-        .select("liked_user_id")
+        .select("liked_user_id, id, created_at")
         .eq("user_id", userId);
 
+      if (userLikesError) throw userLikesError;
+
       // Get all likes received by current user
-      const { data: receivedLikes } = await supabase
+      const { data: receivedLikes, error: receivedLikesError } = await supabase
         .from("matches")
-        .select("user_id")
+        .select("user_id, id, created_at")
         .eq("liked_user_id", userId);
+
+      if (receivedLikesError) throw receivedLikesError;
 
       // Find mutual matches (users who appear in both lists)
       const userLikedIds = new Set((userLikes || []).map(m => m.liked_user_id));
@@ -118,32 +122,36 @@ const Matches = () => {
         return;
       }
 
-      // Fetch full match data for mutual matches
-      const { data: matchData } = await supabase
-        .from("matches")
+      // Get the match records for these mutual matches
+      const mutualMatchRecords = (userLikes || []).filter(m => 
+        mutualMatchIds.includes(m.liked_user_id)
+      );
+
+      // Fetch profile data for mutual matches
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
         .select(`
           id,
-          created_at,
-          liked_user_id,
-          profile:profiles!matches_liked_user_id_fkey(
-            id,
-            display_name,
-            bio,
-            location,
-            date_of_birth,
-            photos(photo_url, display_order),
-            user_interests(interest:interests(name))
-          )
+          display_name,
+          bio,
+          location,
+          date_of_birth,
+          photos(photo_url, display_order),
+          user_interests(interest:interests(name))
         `)
-        .eq("user_id", userId)
-        .in("liked_user_id", mutualMatchIds);
+        .in("id", mutualMatchIds);
 
-      const allMatches = (matchData || []).map((m: any) => ({
-        id: m.id,
-        created_at: m.created_at,
-        liked_user_id: m.liked_user_id,
-        profile: m.profile,
-      }));
+      if (profileError) throw profileError;
+
+      const allMatches = mutualMatchRecords.map((m: any) => {
+        const profile = (profileData || []).find((p: any) => p.id === m.liked_user_id);
+        return {
+          id: m.id,
+          created_at: m.created_at,
+          liked_user_id: m.liked_user_id,
+          profile: profile,
+        };
+      });
 
       // Sort by created_at
       allMatches.sort((a, b) => 
@@ -170,6 +178,7 @@ const Matches = () => {
 
       setMatches(matchesWithMessages);
     } catch (error: any) {
+      console.error("Error loading matches:", error);
       toast({
         title: "Error loading matches",
         description: error.message,
