@@ -16,6 +16,7 @@ import { ThemeToggle } from "@/components/landing/ThemeToggle";
 import { HeroCarousel } from "@/components/landing/HeroCarousel";
 import { TrustBadges } from "@/components/landing/TrustBadges";
 import { LiveActivityFeed } from "@/components/landing/LiveActivityFeed";
+import { ChatbotWidget } from "@/components/landing/ChatbotWidget";
 
 const Landing = () => {
   const [testimonials, setTestimonials] = useState<any[]>([]);
@@ -64,6 +65,7 @@ const Landing = () => {
     <div ref={containerRef} className="min-h-screen overflow-hidden relative">
       <CursorEffect />
       <FloatingActionButtons />
+      <ChatbotWidget />
       
       {/* Animated background with texture */}
       <div className="fixed inset-0 bg-background pointer-events-none" />

@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Mail, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
 
 const emailSchema = z.object({
   email: z
@@ -26,8 +27,21 @@ export const NewsletterSignup = () => {
       const validatedData = emailSchema.parse({ email });
       setIsSubmitting(true);
 
-      // Simulate API call - In production, send to your email service
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Save to database
+      const { error } = await supabase
+        .from("newsletter_subscriptions")
+        .insert([{ email: validatedData.email }]);
+
+      if (error) {
+        if (error.code === "23505") {
+          toast({
+            title: "Already subscribed",
+            description: "This email is already registered for our newsletter.",
+          });
+          return;
+        }
+        throw error;
+      }
 
       setIsSuccess(true);
       setEmail("");
@@ -37,7 +51,6 @@ export const NewsletterSignup = () => {
         description: "You've been subscribed to our newsletter.",
       });
 
-      // Reset success state after 3 seconds
       setTimeout(() => setIsSuccess(false), 3000);
     } catch (error) {
       if (error instanceof z.ZodError) {

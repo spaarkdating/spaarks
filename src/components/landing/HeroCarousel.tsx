@@ -4,6 +4,9 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import couple1 from "@/assets/couple-1.png";
 import couple2 from "@/assets/couple-2.png";
 import couple3 from "@/assets/couple-3.png";
+import couple4 from "@/assets/couple-4.png";
+import couple5 from "@/assets/couple-5.png";
+import couple6 from "@/assets/couple-6.png";
 
 const slides = [
   {
@@ -18,14 +21,14 @@ const slides = [
     title: "Start Meaningful Conversations",
     description: "Break the ice with our smart icebreaker suggestions",
     gradient: "from-accent via-primary to-primary-glow",
-    images: [couple2, couple3]
+    images: [couple3, couple4]
   },
   {
     id: 3,
     title: "Build Lasting Relationships",
     description: "Join thousands of happy couples who found love here",
     gradient: "from-primary-glow via-accent to-primary",
-    images: [couple3, couple1]
+    images: [couple5, couple6]
   }
 ];
 
