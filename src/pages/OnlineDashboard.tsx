@@ -211,6 +211,25 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
 
       setProfilePhotos(photos || []);
       setProfileInterests(userInterests?.map((ui: any) => ui.interest) || []);
+
+      // Record profile view
+      if (user && user.id !== profile.id) {
+        const { error: viewError } = await supabase.from("profile_views").insert({
+          viewer_id: user.id,
+          viewed_profile_id: profile.id,
+        });
+
+        if (!viewError) {
+          // Create notification for profile view
+          await (supabase as any).from("notifications").insert({
+            user_id: profile.id,
+            type: "profile_view",
+            title: "Profile View",
+            message: `${user.email?.split('@')[0] || 'Someone'} viewed your profile`,
+            data: { viewer_id: user.id },
+          });
+        }
+      }
     } catch (error: any) {
       toast({
         title: "Error loading profile",
