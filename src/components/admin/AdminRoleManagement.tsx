@@ -48,6 +48,22 @@ const AdminRoleManagement = () => {
   useEffect(() => {
     fetchAdminUsers();
     fetchAllUsers();
+
+    // Set up real-time subscription for admin_users changes
+    const subscription = supabase
+      .channel("admin_users_changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "admin_users" },
+        () => {
+          fetchAdminUsers();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const fetchAdminUsers = async () => {

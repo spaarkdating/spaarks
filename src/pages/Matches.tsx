@@ -13,6 +13,7 @@ import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/navigation/PullToRefreshIndicator";
 import { ProfileView } from "@/components/profile/ProfileView";
 import { PhotoCarousel } from "@/components/profile/PhotoCarousel";
+import ReportProfileDialog from "@/components/profile/ReportProfileDialog";
 
 const Matches = () => {
   const [user, setUser] = useState<any>(null);
@@ -437,18 +438,24 @@ const Matches = () => {
                 interests={profileInterests}
               />
               
-              <Button
-                onClick={() => {
-                  const matchData = matches.find(m => m.profile.id === selectedProfile.id);
-                  if (matchData) {
-                    navigate(`/messages?match=${matchData.id}`);
-                  }
-                }}
-                className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90"
-              >
-                <MessageCircle className="h-4 w-4 mr-2" />
-                Send Message
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => {
+                    const matchData = matches.find(m => m.profile.id === selectedProfile.id);
+                    if (matchData) {
+                      navigate(`/messages?match=${matchData.id}`);
+                    }
+                  }}
+                  className="flex-1 bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+                >
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  Send Message
+                </Button>
+                <ReportProfileDialog 
+                  reportedUserId={selectedProfile.id} 
+                  reportedUserName={selectedProfile.display_name || "User"} 
+                />
+              </div>
             </div>
           )}
         </DialogContent>
