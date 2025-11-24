@@ -9,8 +9,9 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Mail, User, LogOut, MessageSquare, Heart, Filter } from "lucide-react";
+import { ArrowLeft, Mail, User, LogOut, MessageSquare, Heart, Filter, Palette } from "lucide-react";
 import { Link } from "react-router-dom";
+import { ThemeToggle } from "@/components/landing/ThemeToggle";
 
 const Settings = () => {
   const [user, setUser] = useState<any>(null);
@@ -216,6 +217,27 @@ const Settings = () => {
                 <p className="text-xs text-muted-foreground">
                   You will only see profiles of users with the same dating mode preference
                 </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-xl border-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Palette className="h-5 w-5" />
+                Appearance
+              </CardTitle>
+              <CardDescription>Customize how Spaark looks for you</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>Theme</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Switch between light and dark mode
+                  </p>
+                </div>
+                <ThemeToggle />
               </div>
             </CardContent>
           </Card>

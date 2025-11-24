@@ -142,11 +142,12 @@ const Landing = () => {
           </Link>
         </motion.div>
         <motion.div
-          className="md:hidden"
+          className="md:hidden flex items-center gap-2"
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
         >
+          <ThemeToggle />
           <MobileNav />
         </motion.div>
       </header>
