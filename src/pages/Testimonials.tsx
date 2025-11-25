@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Heart, Star, Search, Filter, ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import logo from "@/assets/spaark-logo.png";
 
 const ITEMS_PER_PAGE = 9;
 
@@ -110,11 +109,7 @@ const Testimonials = () => {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex items-center gap-2 group cursor-pointer">
-              <img 
-                src={logo} 
-                alt="Spaark Logo" 
-                className="h-14 w-14 object-contain filter brightness-110 contrast-125 drop-shadow-[0_0_20px_rgba(255,255,255,0.8)] transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_30px_rgba(255,255,255,1)]"
-              />
+              <Heart className="h-6 w-6 text-primary fill-primary" />
               <h1 className="text-2xl md:text-3xl font-bold gradient-text">Success Stories</h1>
             </div>
           </div>
