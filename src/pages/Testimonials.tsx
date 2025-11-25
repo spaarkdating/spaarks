@@ -109,13 +109,13 @@ const Testimonials = () => {
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <div className="flex items-center gap-2 group cursor-pointer">
+            <div className="flex items-center gap-3 group cursor-pointer">
               <img 
                 src={logo} 
                 alt="Spaark Logo" 
-                className="h-10 w-10 object-contain transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 drop-shadow-glow"
+                className="h-12 w-12 rounded-full bg-background/90 p-1 object-contain transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 drop-shadow-glow shadow-lg shadow-primary/40"
               />
-              <h1 className="text-2xl font-bold gradient-text">Success Stories</h1>
+              <h1 className="text-2xl md:text-3xl font-bold gradient-text">Success Stories</h1>
             </div>
           </div>
         </div>
