@@ -362,7 +362,7 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
             <img 
               src={logo} 
               alt="Spaark Logo" 
-              className="h-12 w-12 md:h-14 md:w-14 rounded-full bg-background/90 p-1 object-contain transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 drop-shadow-glow shadow-lg shadow-primary/40"
+              className="h-14 w-14 md:h-16 md:w-16 object-contain filter drop-shadow-[0_0_12px_rgba(236,72,153,0.4)] transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_20px_rgba(236,72,153,0.6)]"
             />
             <span className="text-2xl md:text-3xl font-bold gradient-text">
               Spaark <span className="text-sm font-normal text-muted-foreground">Online</span>

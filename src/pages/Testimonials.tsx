@@ -113,7 +113,7 @@ const Testimonials = () => {
               <img 
                 src={logo} 
                 alt="Spaark Logo" 
-                className="h-12 w-12 rounded-full bg-background/90 p-1 object-contain transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 drop-shadow-glow shadow-lg shadow-primary/40"
+                className="h-14 w-14 object-contain filter drop-shadow-[0_0_12px_rgba(236,72,153,0.4)] transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_20px_rgba(236,72,153,0.6)]"
               />
               <h1 className="text-2xl md:text-3xl font-bold gradient-text">Success Stories</h1>
             </div>
