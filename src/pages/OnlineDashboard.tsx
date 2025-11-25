@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Heart, MessageCircle, User as UserIcon, Settings, LogOut, RefreshCw, Eye, HelpCircle, Filter, Bell } from "lucide-react";
-import logo from "@/assets/spaark-logo.jpeg";
+import logo from "@/assets/spaark-logo.png";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/useNotifications";
 import { SwipeCard } from "@/components/swipe/SwipeCard";

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Heart, ArrowLeft, Settings as SettingsIcon, LogOut, Edit } from "lucide-react";
-import logo from "@/assets/spaark-logo.jpeg";
+import logo from "@/assets/spaark-logo.png";
 import { useToast } from "@/hooks/use-toast";
 import { ProfileView } from "@/components/profile/ProfileView";
 import { ProfileEdit } from "@/components/profile/ProfileEdit";

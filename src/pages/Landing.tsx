@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Heart, Sparkles, MessageCircle, Shield, Zap, Users, Star, CheckCircle, TrendingUp, Clock, MapPin, Award, Check, X } from "lucide-react";
 import { Link } from "react-router-dom";
-import logo from "@/assets/spaark-logo.jpeg";
+import logo from "@/assets/spaark-logo.png";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { MobileNav } from "@/components/navigation/MobileNav";
 import { Card } from "@/components/ui/card";
