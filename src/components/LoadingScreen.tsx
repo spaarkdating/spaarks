@@ -56,7 +56,7 @@ export const LoadingScreen = () => {
                 ease: "easeInOut",
               }}
             >
-              <img src={logo} alt="Spaark Logo" className="h-16 w-16 object-contain" />
+              <img src={logo} alt="Spaark Logo" className="h-20 w-20 object-contain" />
             </motion.div>
 
             {/* Orbiting hearts */}
