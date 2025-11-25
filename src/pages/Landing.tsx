@@ -116,15 +116,12 @@ const Landing = () => {
           <img 
             src={logo} 
             alt="Spaark Logo" 
-            className="h-8 w-8 md:h-10 md:w-10 object-contain drop-shadow-lg" 
+            className="h-10 w-10 md:h-14 md:w-14 object-contain drop-shadow-lg" 
           />
           <span className="text-xl md:text-2xl font-bold text-white drop-shadow-lg">
             Spaark
           </span>
         </motion.div>
-          <span className="text-xl md:text-2xl font-bold text-white drop-shadow-lg">
-            Spaark
-          </span>
         </motion.div>
         <motion.div 
           className="hidden md:flex gap-3"

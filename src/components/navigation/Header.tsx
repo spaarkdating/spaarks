@@ -14,7 +14,7 @@ export function Header({ showAuthButtons = true }: HeaderProps) {
         <img 
           src={logo} 
           alt="Spaark Logo" 
-          className="h-8 w-8 md:h-10 md:w-10 object-contain drop-shadow-md" 
+          className="h-10 w-10 md:h-12 md:w-12 object-contain drop-shadow-md" 
         />
         <span className="text-xl md:text-2xl font-bold text-primary-foreground group-hover:opacity-90 transition-opacity">
           Spaark
