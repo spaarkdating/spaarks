@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, Heart } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import logo from "@/assets/spaark-logo.jpeg";
 
 interface MobileNavProps {
   isAuthenticated?: boolean;
@@ -35,8 +36,8 @@ export function MobileNav({ isAuthenticated = false, onLogout, links = [] }: Mob
         </SheetTrigger>
         <SheetContent side="right" className="w-[300px] bg-card border-l border-border">
           <div className="flex flex-col gap-6 mt-8">
-            <div className="flex items-center gap-2 px-2">
-              <Heart className="h-6 w-6 text-primary fill-primary" />
+            <div className="flex items-center gap-3 px-2">
+              <img src={logo} alt="Spaark Logo" className="h-8 w-8 object-contain drop-shadow-glow" />
               <span className="text-xl font-bold gradient-text">Spaark</span>
             </div>
             
