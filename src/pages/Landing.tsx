@@ -113,11 +113,13 @@ const Landing = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.5 }}
         >
-          <img 
-            src={logo} 
-            alt="Spaark Logo" 
-            className="h-10 w-10 md:h-14 md:w-14 object-contain drop-shadow-lg" 
-          />
+          <div className="bg-white/90 p-2 rounded-xl shadow-lg">
+            <img 
+              src={logo} 
+              alt="Spaark Logo" 
+              className="h-10 w-10 md:h-14 md:w-14 object-contain" 
+            />
+          </div>
           <span className="text-xl md:text-2xl font-bold text-white drop-shadow-lg">
             Spaark
           </span>

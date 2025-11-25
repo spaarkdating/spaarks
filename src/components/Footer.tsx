@@ -9,12 +9,14 @@ export const Footer = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
           <div>
             <div className="flex items-center gap-2 mb-4 group cursor-pointer">
-              <img 
-                src={logo} 
-                alt="Spaark Logo" 
-                className="h-6 w-6 object-contain drop-shadow-md" 
-              />
-              <span className="text-xl sm:text-2xl font-bold gradient-text">Spaark</span>
+              <div className="bg-white/90 p-1.5 rounded-lg shadow-md">
+                <img 
+                  src={logo} 
+                  alt="Spaark Logo" 
+                  className="h-6 w-6 object-contain" 
+                />
+              </div>
+              <span className="text-xl sm:text-2xl font-bold text-white">Spaark</span>
             </div>
             <p className="text-sm text-muted-foreground">
               Connecting hearts, creating meaningful relationships.
