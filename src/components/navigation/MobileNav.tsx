@@ -36,11 +36,11 @@ export function MobileNav({ isAuthenticated = false, onLogout, links = [] }: Mob
         </SheetTrigger>
         <SheetContent side="right" className="w-[300px] bg-card border-l border-border">
           <div className="flex flex-col gap-6 mt-8">
-            <div className="flex items-center gap-3 px-2 group cursor-pointer">
+            <div className="flex items-center gap-2 px-2 group cursor-pointer">
               <img 
                 src={logo} 
                 alt="Spaark Logo" 
-                className="h-16 w-16 object-contain filter drop-shadow-[0_0_12px_rgba(236,72,153,0.4)] transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_20px_rgba(236,72,153,0.6)]" 
+                className="h-16 w-16 object-contain filter brightness-110 contrast-125 drop-shadow-[0_0_20px_rgba(255,255,255,0.8)] transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_30px_rgba(255,255,255,1)]" 
               />
               <span className="text-2xl font-bold gradient-text">Spaark</span>
             </div>
