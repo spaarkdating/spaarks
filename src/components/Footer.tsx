@@ -1,6 +1,5 @@
 import { Heart } from "lucide-react";
 import { Link } from "react-router-dom";
-import logo from "@/assets/spaark-logo.png";
 
 export const Footer = () => {
   return (
@@ -9,12 +8,8 @@ export const Footer = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
           <div>
             <div className="flex items-center gap-2 mb-4 group cursor-pointer">
-              <img 
-                src={logo} 
-                alt="Spaark Logo" 
-                className="h-16 w-16 sm:h-20 sm:w-20 object-contain filter brightness-110 contrast-125 drop-shadow-[0_0_20px_rgba(255,255,255,0.8)] transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_30px_rgba(255,255,255,1)]" 
-              />
-              <span className="text-2xl sm:text-3xl font-bold gradient-text">Spaark</span>
+              <Heart className="h-6 w-6 text-primary fill-primary" />
+              <span className="text-xl sm:text-2xl font-bold gradient-text">Spaark</span>
             </div>
             <p className="text-sm text-muted-foreground">
               Connecting hearts, creating meaningful relationships.

@@ -2,7 +2,6 @@ import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Heart, Sparkles, MessageCircle, Shield, Zap, Users, Star, CheckCircle, TrendingUp, Clock, MapPin, Award, Check, X } from "lucide-react";
 import { Link } from "react-router-dom";
-import logo from "@/assets/spaark-logo.png";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { MobileNav } from "@/components/navigation/MobileNav";
 import { Card } from "@/components/ui/card";
@@ -108,10 +107,10 @@ const Landing = () => {
           whileHover={{ scale: 1.05 }}
         >
           <motion.div
-            className="group"
+            className="flex items-center gap-2"
             animate={{ 
-              scale: [1, 1.2, 1],
-              rotate: [0, 5, -5, 0]
+              scale: [1, 1.1, 1],
+              rotate: [0, 3, -3, 0]
             }}
             transition={{ 
               duration: 2,
@@ -119,11 +118,10 @@ const Landing = () => {
               repeatDelay: 3
             }}
           >
-            <img 
-              src={logo} 
-              alt="Spaark Logo" 
-              className="h-16 w-16 md:h-20 md:w-20 object-contain filter brightness-110 contrast-125 drop-shadow-[0_0_25px_rgba(255,255,255,0.9)] transition-transform duration-300 group-hover:scale-110"
-            />
+            <Heart className="h-7 w-7 md:h-8 md:w-8 text-white fill-white drop-shadow-lg" />
+            <span className="text-xl md:text-2xl font-bold text-white drop-shadow-lg">
+              Spaark
+            </span>
           </motion.div>
           <span className="text-xl md:text-2xl font-bold text-white drop-shadow-lg">
             Spaark

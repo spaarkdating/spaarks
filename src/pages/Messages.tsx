@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Heart, ArrowLeft, Settings, LogOut } from "lucide-react";
-import logo from "@/assets/spaark-logo.png";
 import { useToast } from "@/hooks/use-toast";
 import { ConversationList } from "@/components/messages/ConversationList";
 import { ChatWindow } from "@/components/messages/ChatWindow";
@@ -225,12 +224,8 @@ const Messages = () => {
               <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
             </Button>
             <div className="flex items-center gap-2 group cursor-pointer">
-              <img 
-                src={logo} 
-                alt="Spaark Logo" 
-                className="h-14 w-14 md:h-16 md:w-16 object-contain filter brightness-110 contrast-125 drop-shadow-[0_0_20px_rgba(255,255,255,0.8)] transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_30px_rgba(255,255,255,1)]"
-              />
-              <span className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              <Heart className="h-6 w-6 md:h-7 md:w-7 text-primary fill-primary" />
+              <span className="text-xl md:text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 Messages
               </span>
             </div>
