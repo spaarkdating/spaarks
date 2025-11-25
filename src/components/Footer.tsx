@@ -12,9 +12,9 @@ export const Footer = () => {
               <img 
                 src={logo} 
                 alt="Spaark Logo" 
-                className="h-12 w-12 sm:h-14 sm:w-14 object-contain drop-shadow-glow transition-all duration-300 group-hover:scale-110 group-hover:rotate-6" 
+                className="h-14 w-14 sm:h-16 sm:w-16 rounded-full bg-background/90 p-1 object-contain drop-shadow-glow shadow-lg shadow-primary/40 transition-all duration-300 group-hover:scale-110 group-hover:rotate-6" 
               />
-              <span className="text-xl sm:text-2xl font-bold gradient-text">Spaark</span>
+              <span className="text-2xl sm:text-3xl font-bold gradient-text">Spaark</span>
             </div>
             <p className="text-sm text-muted-foreground">
               Connecting hearts, creating meaningful relationships.

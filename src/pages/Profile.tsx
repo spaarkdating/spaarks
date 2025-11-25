@@ -93,13 +93,13 @@ const Profile = () => {
             <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")} className="h-9 w-9 md:h-10 md:w-10">
               <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
             </Button>
-            <div className="flex items-center gap-2 group cursor-pointer">
+            <div className="flex items-center gap-3 group cursor-pointer">
               <img 
                 src={logo} 
                 alt="Spaark Logo" 
-                className="h-10 w-10 md:h-12 md:w-12 object-contain transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 drop-shadow-glow"
+                className="h-12 w-12 md:h-14 md:w-14 rounded-full bg-background/90 p-1 object-contain transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 drop-shadow-glow shadow-lg shadow-primary/40"
               />
-              <span className="text-lg md:text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              <span className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 Profile
               </span>
             </div>
