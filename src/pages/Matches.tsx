@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Heart, ArrowLeft, Settings, LogOut, MessageCircle, MapPin } from "lucide-react";
+import logo from "@/assets/spaark-logo.jpeg";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { MobileNav } from "@/components/navigation/MobileNav";
@@ -267,8 +268,12 @@ const Matches = () => {
             <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")} className="h-9 w-9 md:h-10 md:w-10">
               <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
             </Button>
-            <div className="flex items-center gap-2">
-              <Heart className="h-6 w-6 md:h-8 md:w-8 text-primary fill-primary" />
+            <div className="flex items-center gap-2 group cursor-pointer">
+              <img 
+                src={logo} 
+                alt="Spaark Logo" 
+                className="h-6 w-6 md:h-8 md:w-8 object-contain transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 drop-shadow-glow"
+              />
               <span className="text-lg md:text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 Matches
               </span>

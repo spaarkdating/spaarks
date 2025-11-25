@@ -8,8 +8,12 @@ export const Footer = () => {
       <div className="container mx-auto px-4 py-8 sm:py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
           <div>
-            <div className="flex items-center gap-3 mb-4">
-              <img src={logo} alt="Spaark Logo" className="h-8 w-8 sm:h-10 sm:w-10 object-contain drop-shadow-glow" />
+            <div className="flex items-center gap-3 mb-4 group cursor-pointer">
+              <img 
+                src={logo} 
+                alt="Spaark Logo" 
+                className="h-8 w-8 sm:h-10 sm:w-10 object-contain drop-shadow-glow transition-all duration-300 group-hover:scale-110 group-hover:rotate-6" 
+              />
               <span className="text-xl sm:text-2xl font-bold gradient-text">Spaark</span>
             </div>
             <p className="text-sm text-muted-foreground">
