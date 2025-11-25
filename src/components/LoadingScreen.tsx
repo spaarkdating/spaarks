@@ -1,5 +1,6 @@
 import { Heart } from "lucide-react";
 import { motion } from "framer-motion";
+import logo from "@/assets/spaark-logo.jpeg";
 
 export const LoadingScreen = () => {
   return (
@@ -43,7 +44,7 @@ export const LoadingScreen = () => {
               }}
             />
             
-            {/* Main heart */}
+            {/* Main logo */}
             <motion.div
               className="relative bg-gradient-to-br from-primary to-accent rounded-full p-8 shadow-2xl"
               animate={{
@@ -55,7 +56,7 @@ export const LoadingScreen = () => {
                 ease: "easeInOut",
               }}
             >
-              <Heart className="h-16 w-16 text-white fill-white" />
+              <img src={logo} alt="Spaark Logo" className="h-16 w-16 object-contain" />
             </motion.div>
 
             {/* Orbiting hearts */}

@@ -1,7 +1,7 @@
-import { Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import logo from "@/assets/spaark-logo.jpeg";
 
 interface HeaderProps {
   showAuthButtons?: boolean;
@@ -11,7 +11,7 @@ export function Header({ showAuthButtons = true }: HeaderProps) {
   return (
     <header className="container mx-auto px-4 py-6 flex justify-between items-center relative z-20 border-b border-border/30">
       <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-        <Heart className="h-6 w-6 md:h-8 md:w-8 text-foreground fill-foreground drop-shadow-glow" />
+        <img src={logo} alt="Spaark Logo" className="h-8 w-8 md:h-10 md:w-10 object-contain drop-shadow-glow" />
         <span className="text-xl md:text-2xl font-bold text-foreground drop-shadow-md">
           Spaark
         </span>
