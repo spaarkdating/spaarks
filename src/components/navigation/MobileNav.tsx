@@ -40,7 +40,7 @@ export function MobileNav({ isAuthenticated = false, onLogout, links = [] }: Mob
               <img 
                 src={logo} 
                 alt="Spaark Logo" 
-                className="h-8 w-8 object-contain drop-shadow-glow transition-all duration-300 group-hover:scale-110 group-hover:rotate-6" 
+                className="h-12 w-12 object-contain drop-shadow-glow transition-all duration-300 group-hover:scale-110 group-hover:rotate-6" 
               />
               <span className="text-xl font-bold gradient-text">Spaark</span>
             </div>

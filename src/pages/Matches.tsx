@@ -272,7 +272,7 @@ const Matches = () => {
               <img 
                 src={logo} 
                 alt="Spaark Logo" 
-                className="h-6 w-6 md:h-8 md:w-8 object-contain transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 drop-shadow-glow"
+                className="h-10 w-10 md:h-12 md:w-12 object-contain transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 drop-shadow-glow"
               />
               <span className="text-lg md:text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 Matches
