@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Heart, Sparkles, MessageCircle, Shield, Zap, Users, Star, CheckCircle, TrendingUp, Clock, MapPin, Award, Check, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion, useScroll, useTransform } from "framer-motion";
+import logo from "@/assets/spaark-logo.png";
 import { MobileNav } from "@/components/navigation/MobileNav";
 import { Card } from "@/components/ui/card";
 import { AnimatedBackground } from "@/components/landing/AnimatedBackground";
@@ -106,23 +107,21 @@ const Landing = () => {
           transition={{ duration: 0.5 }}
           whileHover={{ scale: 1.05 }}
         >
-          <motion.div
-            className="flex items-center gap-2"
-            animate={{ 
-              scale: [1, 1.1, 1],
-              rotate: [0, 3, -3, 0]
-            }}
-            transition={{ 
-              duration: 2,
-              repeat: Infinity,
-              repeatDelay: 3
-            }}
-          >
-            <Heart className="h-7 w-7 md:h-8 md:w-8 text-white fill-white drop-shadow-lg" />
-            <span className="text-xl md:text-2xl font-bold text-white drop-shadow-lg">
-              Spaark
-            </span>
-          </motion.div>
+        <motion.div 
+          className="flex items-center gap-2 mb-6"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+        >
+          <img 
+            src={logo} 
+            alt="Spaark Logo" 
+            className="h-8 w-8 md:h-10 md:w-10 object-contain drop-shadow-lg" 
+          />
+          <span className="text-xl md:text-2xl font-bold text-white drop-shadow-lg">
+            Spaark
+          </span>
+        </motion.div>
           <span className="text-xl md:text-2xl font-bold text-white drop-shadow-lg">
             Spaark
           </span>
