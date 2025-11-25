@@ -37,12 +37,14 @@ export function MobileNav({ isAuthenticated = false, onLogout, links = [] }: Mob
         <SheetContent side="right" className="w-[300px] bg-card border-l border-border">
           <div className="flex flex-col gap-6 mt-8">
             <div className="flex items-center gap-2 px-2 group cursor-pointer">
-              <img 
-                src={logo} 
-                alt="Spaark Logo" 
-                className="h-7 w-7 object-contain drop-shadow-md" 
-              />
-              <span className="text-xl font-bold gradient-text">Spaark</span>
+              <div className="bg-white/90 p-1.5 rounded-lg shadow-md">
+                <img 
+                  src={logo} 
+                  alt="Spaark Logo" 
+                  className="h-7 w-7 object-contain" 
+                />
+              </div>
+              <span className="text-xl font-bold text-white">Spaark</span>
             </div>
             
             <nav className="flex flex-col gap-2">

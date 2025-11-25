@@ -94,12 +94,14 @@ const Profile = () => {
               <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
             </Button>
             <div className="flex items-center gap-2 group cursor-pointer">
-              <img 
-                src={logo} 
-                alt="Spaark Logo" 
-                className="h-6 w-6 md:h-7 md:w-7 object-contain drop-shadow-md"
-              />
-              <span className="text-xl md:text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              <div className="bg-white/90 p-1.5 rounded-lg shadow-md">
+                <img 
+                  src={logo} 
+                  alt="Spaark Logo" 
+                  className="h-6 w-6 md:h-7 md:w-7 object-contain"
+                />
+              </div>
+              <span className="text-xl md:text-2xl font-bold text-white">
                 Profile
               </span>
             </div>

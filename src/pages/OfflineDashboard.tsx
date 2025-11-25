@@ -209,13 +209,15 @@ export const OfflineDashboard = ({ user, onLogout }: OfflineDashboardProps) => {
       <header className="border-b border-border/50 bg-card/80 backdrop-blur-md sticky top-0 z-10 shadow-sm">
         <div className="container mx-auto px-4 py-3 md:py-4 flex justify-between items-center">
           <div className="flex items-center gap-2 animate-fade-in group cursor-pointer">
-            <img 
-              src={logo} 
-              alt="Spaark Logo" 
-              className="h-6 w-6 md:h-7 md:w-7 object-contain drop-shadow-md"
-            />
-            <span className="text-xl md:text-2xl font-bold gradient-text">
-              Spaark <span className="text-sm font-normal text-muted-foreground">Offline</span>
+            <div className="bg-white/90 p-1.5 rounded-lg shadow-md">
+              <img 
+                src={logo} 
+                alt="Spaark Logo" 
+                className="h-6 w-6 md:h-7 md:w-7 object-contain"
+              />
+            </div>
+            <span className="text-xl md:text-2xl font-bold text-white">
+              Spaark <span className="text-sm font-normal text-white/70">Offline</span>
             </span>
           </div>
           
