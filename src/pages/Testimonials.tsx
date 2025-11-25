@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Heart, Star, Search, Filter, ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import logo from "@/assets/spaark-logo.jpeg";
+import logo from "@/assets/spaark-logo.png";
 
 const ITEMS_PER_PAGE = 9;
 

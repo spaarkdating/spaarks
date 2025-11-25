@@ -1,6 +1,6 @@
 import { Heart } from "lucide-react";
 import { motion } from "framer-motion";
-import logo from "@/assets/spaark-logo.jpeg";
+import logo from "@/assets/spaark-logo.png";
 
 export const LoadingScreen = () => {
   return (

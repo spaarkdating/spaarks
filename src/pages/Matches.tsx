@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Heart, ArrowLeft, Settings, LogOut, MessageCircle, MapPin } from "lucide-react";
-import logo from "@/assets/spaark-logo.jpeg";
+import logo from "@/assets/spaark-logo.png";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { MobileNav } from "@/components/navigation/MobileNav";

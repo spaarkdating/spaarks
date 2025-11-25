@@ -1,6 +1,6 @@
 import { Heart } from "lucide-react";
 import { Link } from "react-router-dom";
-import logo from "@/assets/spaark-logo.jpeg";
+import logo from "@/assets/spaark-logo.png";
 
 export const Footer = () => {
   return (
