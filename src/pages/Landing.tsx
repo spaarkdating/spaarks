@@ -122,7 +122,7 @@ const Landing = () => {
             <img 
               src={logo} 
               alt="Spaark Logo" 
-              className="h-16 w-16 md:h-20 md:w-20 object-contain filter drop-shadow-[0_0_15px_rgba(236,72,153,0.5)] transition-transform duration-300 group-hover:scale-110"
+              className="h-16 w-16 md:h-20 md:w-20 object-contain filter brightness-110 contrast-125 drop-shadow-[0_0_25px_rgba(255,255,255,0.9)] transition-transform duration-300 group-hover:scale-110"
             />
           </motion.div>
           <span className="text-xl md:text-2xl font-bold text-white drop-shadow-lg">
