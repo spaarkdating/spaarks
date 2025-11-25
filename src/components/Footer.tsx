@@ -1,5 +1,6 @@
 import { Heart } from "lucide-react";
 import { Link } from "react-router-dom";
+import logo from "@/assets/spaark-logo.png";
 
 export const Footer = () => {
   return (
@@ -8,7 +9,11 @@ export const Footer = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
           <div>
             <div className="flex items-center gap-2 mb-4 group cursor-pointer">
-              <Heart className="h-6 w-6 text-primary fill-primary" />
+              <img 
+                src={logo} 
+                alt="Spaark Logo" 
+                className="h-6 w-6 object-contain drop-shadow-md" 
+              />
               <span className="text-xl sm:text-2xl font-bold gradient-text">Spaark</span>
             </div>
             <p className="text-sm text-muted-foreground">

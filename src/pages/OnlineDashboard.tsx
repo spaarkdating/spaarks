@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Heart, MessageCircle, User as UserIcon, Settings, LogOut, RefreshCw, Eye, HelpCircle, Filter, Bell } from "lucide-react";
+import logo from "@/assets/spaark-logo.png";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/useNotifications";
 import { SwipeCard } from "@/components/swipe/SwipeCard";
@@ -358,7 +359,11 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
       <header className="border-b border-border/50 bg-card/80 backdrop-blur-md sticky top-0 z-10 shadow-sm">
         <div className="container mx-auto px-4 py-3 md:py-4 flex justify-between items-center">
           <div className="flex items-center gap-2 animate-fade-in group cursor-pointer">
-            <Heart className="h-6 w-6 md:h-7 md:w-7 text-primary fill-primary" />
+            <img 
+              src={logo} 
+              alt="Spaark Logo" 
+              className="h-6 w-6 md:h-7 md:w-7 object-contain drop-shadow-md"
+            />
             <span className="text-xl md:text-2xl font-bold gradient-text">
               Spaark <span className="text-sm font-normal text-muted-foreground">Online</span>
             </span>
