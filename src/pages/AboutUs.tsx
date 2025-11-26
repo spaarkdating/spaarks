@@ -26,7 +26,7 @@ const AboutUs = () => {
         .from("team_photos")
         .select("*")
         .order("display_order", { ascending: true });
-      
+
       if (error) throw error;
       return data;
     },
@@ -34,60 +34,57 @@ const AboutUs = () => {
 
   // Upload photo mutation
   const uploadPhotoMutation = useMutation({
-    mutationFn: async ({ file, memberName, memberRole, displayOrder }: { 
-      file: File; 
-      memberName: string; 
+    mutationFn: async ({
+      file,
+      memberName,
+      memberRole,
+      displayOrder,
+    }: {
+      file: File;
+      memberName: string;
       memberRole: string;
       displayOrder: number;
     }) => {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${memberName.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.${fileExt}`;
-      
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${memberName.toLowerCase().replace(/\s+/g, "-")}-${Date.now()}.${fileExt}`;
+
       // Upload to storage
-      const { error: uploadError } = await supabase.storage
-        .from('team-photos')
-        .upload(fileName, file);
+      const { error: uploadError } = await supabase.storage.from("team-photos").upload(fileName, file);
 
       if (uploadError) throw uploadError;
 
       // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('team-photos')
-        .getPublicUrl(fileName);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("team-photos").getPublicUrl(fileName);
 
       // Check if member already has a photo
-      const { data: existing } = await supabase
-        .from('team_photos')
-        .select('*')
-        .eq('member_name', memberName)
-        .single();
+      const { data: existing } = await supabase.from("team_photos").select("*").eq("member_name", memberName).single();
 
       if (existing) {
         // Update existing photo
         const { error: updateError } = await supabase
-          .from('team_photos')
+          .from("team_photos")
           .update({ photo_url: publicUrl, updated_at: new Date().toISOString() })
-          .eq('member_name', memberName);
+          .eq("member_name", memberName);
 
         if (updateError) throw updateError;
 
         // Delete old photo from storage if it exists
         if (existing.photo_url) {
-          const oldFileName = existing.photo_url.split('/').pop();
+          const oldFileName = existing.photo_url.split("/").pop();
           if (oldFileName) {
-            await supabase.storage.from('team-photos').remove([oldFileName]);
+            await supabase.storage.from("team-photos").remove([oldFileName]);
           }
         }
       } else {
         // Insert new record
-        const { error: insertError } = await supabase
-          .from('team_photos')
-          .insert({
-            member_name: memberName,
-            member_role: memberRole,
-            photo_url: publicUrl,
-            display_order: displayOrder,
-          });
+        const { error: insertError } = await supabase.from("team_photos").insert({
+          member_name: memberName,
+          member_role: memberRole,
+          photo_url: publicUrl,
+          display_order: displayOrder,
+        });
 
         if (insertError) throw insertError;
       }
@@ -107,20 +104,17 @@ const AboutUs = () => {
   // Delete photo mutation
   const deletePhotoMutation = useMutation({
     mutationFn: async (memberName: string) => {
-      const photo = teamPhotos?.find(p => p.member_name === memberName);
+      const photo = teamPhotos?.find((p) => p.member_name === memberName);
       if (!photo) return;
 
       // Delete from storage
-      const fileName = photo.photo_url.split('/').pop();
+      const fileName = photo.photo_url.split("/").pop();
       if (fileName) {
-        await supabase.storage.from('team-photos').remove([fileName]);
+        await supabase.storage.from("team-photos").remove([fileName]);
       }
 
       // Delete from database
-      const { error } = await supabase
-        .from('team_photos')
-        .delete()
-        .eq('member_name', memberName);
+      const { error } = await supabase.from("team_photos").delete().eq("member_name", memberName);
 
       if (error) throw error;
     },
@@ -134,11 +128,16 @@ const AboutUs = () => {
     },
   });
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, memberName: string, memberRole: string, displayOrder: number) => {
+  const handleFileChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    memberName: string,
+    memberRole: string,
+    displayOrder: number,
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
+    if (!file.type.startsWith("image/")) {
       toast.error("Please upload an image file");
       return;
     }
@@ -148,11 +147,11 @@ const AboutUs = () => {
   };
 
   const getPhotoUrl = (memberName: string) => {
-    return teamPhotos?.find(p => p.member_name === memberName)?.photo_url;
+    return teamPhotos?.find((p) => p.member_name === memberName)?.photo_url;
   };
 
   const teamMembers = [
-    { name: "Sourabh Sharma", role: "Co-Founder", initials: "SS", order: 1 },
+    { name: "Saurabh Sharma", role: "Co-Founder", initials: "SS", order: 1 },
     { name: "Aakanksha Singh", role: "Co-Founder", initials: "AS", order: 2 },
     { name: "Mandhata Singh", role: "Lead Developer", initials: "MS", order: 3 },
   ];
@@ -164,9 +163,7 @@ const AboutUs = () => {
       <div className="container mx-auto px-4 py-20 max-w-4xl">
         <div className="text-center mb-16">
           <h1 className="text-5xl font-bold mb-4 gradient-text">About Spaark</h1>
-          <p className="text-xl text-muted-foreground">
-            Connecting hearts, creating meaningful relationships
-          </p>
+          <p className="text-xl text-muted-foreground">Connecting hearts, creating meaningful relationships</p>
         </div>
 
         <Card className="mb-12">
@@ -176,14 +173,14 @@ const AboutUs = () => {
               Our Mission
             </h2>
             <p className="text-lg text-muted-foreground leading-relaxed mb-4">
-              At Spaark, we believe that everyone deserves to find meaningful connections and lasting love. 
-              Our mission is to create a safe, authentic, and engaging platform where people can discover 
-              compatible matches based on shared interests, values, and life goals.
+              At Spaark, we believe that everyone deserves to find meaningful connections and lasting love. Our mission
+              is to create a safe, authentic, and engaging platform where people can discover compatible matches based
+              on shared interests, values, and life goals.
             </p>
             <p className="text-lg text-muted-foreground leading-relaxed">
-              We're committed to fostering genuine relationships by combining innovative technology with 
-              human-centered design, ensuring that every interaction on our platform brings people closer 
-              to finding their perfect match.
+              We're committed to fostering genuine relationships by combining innovative technology with human-centered
+              design, ensuring that every interaction on our platform brings people closer to finding their perfect
+              match.
             </p>
           </CardContent>
         </Card>
@@ -195,19 +192,17 @@ const AboutUs = () => {
               Our Story
             </h2>
             <p className="text-lg text-muted-foreground leading-relaxed mb-4">
-              Spaark was founded with a simple yet powerful vision: to revolutionize online dating by 
-              creating a platform that prioritizes authenticity, safety, and meaningful connections over 
-              superficial interactions.
+              Spaark was founded with a simple yet powerful vision: to revolutionize online dating by creating a
+              platform that prioritizes authenticity, safety, and meaningful connections over superficial interactions.
             </p>
             <p className="text-lg text-muted-foreground leading-relaxed mb-4">
-              We've built a community where users can be themselves, express their true interests, and 
-              connect with like-minded individuals who share their values and relationship goals. Every 
-              feature we develop is designed with one purpose in mind: helping people find genuine love 
-              and companionship.
+              We've built a community where users can be themselves, express their true interests, and connect with
+              like-minded individuals who share their values and relationship goals. Every feature we develop is
+              designed with one purpose in mind: helping people find genuine love and companionship.
             </p>
             <p className="text-lg text-muted-foreground leading-relaxed">
-              Today, Spaark continues to grow as a trusted platform for singles seeking meaningful 
-              relationships, with thousands of success stories and counting.
+              Today, Spaark continues to grow as a trusted platform for singles seeking meaningful relationships, with
+              thousands of success stories and counting.
             </p>
           </CardContent>
         </Card>
@@ -229,8 +224,8 @@ const AboutUs = () => {
                         <CardContent className="p-6">
                           <div className="relative group">
                             {photoUrl ? (
-                              <img 
-                                src={photoUrl} 
+                              <img
+                                src={photoUrl}
                                 alt={member.name}
                                 className="w-20 h-20 rounded-full object-cover mx-auto mb-4"
                               />
@@ -239,13 +234,10 @@ const AboutUs = () => {
                                 <span className="text-3xl font-bold text-white">{member.initials}</span>
                               </div>
                             )}
-                            
+
                             {isAdmin && (
                               <div className="absolute top-0 right-1/2 translate-x-10 flex gap-2">
-                                <Label 
-                                  htmlFor={`upload-${member.name}`}
-                                  className="cursor-pointer"
-                                >
+                                <Label htmlFor={`upload-${member.name}`} className="cursor-pointer">
                                   <div className="p-2 bg-primary rounded-full hover:bg-primary/80 transition-colors">
                                     <Upload className="h-3 w-3 text-white" />
                                   </div>
@@ -271,7 +263,7 @@ const AboutUs = () => {
                               </div>
                             )}
                           </div>
-                          
+
                           <h4 className="text-xl font-bold text-center mb-1">{member.name}</h4>
                           <p className="text-muted-foreground text-center">{member.role}</p>
                         </CardContent>
@@ -280,7 +272,7 @@ const AboutUs = () => {
                   })}
                 </div>
               </div>
-              
+
               <div>
                 <h3 className="text-2xl font-semibold mb-4">Development Team</h3>
                 <Card>
@@ -291,8 +283,8 @@ const AboutUs = () => {
                       return (
                         <div className="relative group">
                           {photoUrl ? (
-                            <img 
-                              src={photoUrl} 
+                            <img
+                              src={photoUrl}
                               alt={member.name}
                               className="w-20 h-20 rounded-full object-cover mx-auto mb-4"
                             />
@@ -301,13 +293,10 @@ const AboutUs = () => {
                               <span className="text-3xl font-bold text-white">{member.initials}</span>
                             </div>
                           )}
-                          
+
                           {isAdmin && (
                             <div className="absolute top-0 right-1/2 translate-x-10 flex gap-2">
-                              <Label 
-                                htmlFor={`upload-${member.name}`}
-                                className="cursor-pointer"
-                              >
+                              <Label htmlFor={`upload-${member.name}`} className="cursor-pointer">
                                 <div className="p-2 bg-primary rounded-full hover:bg-primary/80 transition-colors">
                                   <Upload className="h-3 w-3 text-white" />
                                 </div>
@@ -332,7 +321,7 @@ const AboutUs = () => {
                               )}
                             </div>
                           )}
-                          
+
                           <h4 className="text-xl font-bold text-center mb-1">{member.name}</h4>
                           <p className="text-muted-foreground text-center">{member.role}</p>
                         </div>
@@ -349,9 +338,7 @@ const AboutUs = () => {
           <CardContent className="p-8 text-center">
             <Mail className="h-12 w-12 text-primary mx-auto mb-4" />
             <h2 className="text-2xl font-bold mb-4">Get in Touch</h2>
-            <p className="text-muted-foreground mb-6">
-              Have questions or want to learn more about Spaark?
-            </p>
+            <p className="text-muted-foreground mb-6">Have questions or want to learn more about Spaark?</p>
             <Link to="/support">
               <Button size="lg" className="bg-gradient-to-r from-primary to-secondary">
                 Contact Us
@@ -360,7 +347,7 @@ const AboutUs = () => {
           </CardContent>
         </Card>
       </div>
-      
+
       <Footer />
     </div>
   );
