@@ -17,11 +17,11 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const { email }: WelcomeEmailRequest = await req.json();
-    const GMAIL_USER = Deno.env.get("GMAIL_USER");
-    const GMAIL_APP_PASSWORD = Deno.env.get("GMAIL_APP_PASSWORD");
+    const TITAN_USER = Deno.env.get("TITAN_EMAIL_USER");
+    const TITAN_PASSWORD = Deno.env.get("TITAN_EMAIL_PASSWORD");
     
-    if (!GMAIL_USER || !GMAIL_APP_PASSWORD) {
-      throw new Error("Gmail credentials are not configured");
+    if (!TITAN_USER || !TITAN_PASSWORD) {
+      throw new Error("Titan email credentials are not configured");
     }
 
     if (!email) {
@@ -36,22 +36,22 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Sending welcome email to:", email);
 
-    // Create Gmail SMTP client
+    // Create Titan SMTP client
     const client = new SMTPClient({
       connection: {
-        hostname: "smtp.gmail.com",
-        port: 465,
+        hostname: "smtp.titan.email",
+        port: 587,
         tls: true,
         auth: {
-          username: GMAIL_USER,
-          password: GMAIL_APP_PASSWORD,
+          username: TITAN_USER,
+          password: TITAN_PASSWORD,
         },
       },
     });
 
-    // Send welcome email using Gmail SMTP
+    // Send welcome email using Titan SMTP
     await client.send({
-      from: GMAIL_USER,
+      from: TITAN_USER,
       to: email,
       subject: "Welcome to Spaark! 💖",
       content: "auto",
