@@ -40,7 +40,7 @@ const handler = async (req: Request): Promise<Response> => {
     const client = new SMTPClient({
       connection: {
         hostname: "smtp.titan.email",
-        port: 587,
+        port: 465,
         tls: true,
         auth: {
           username: TITAN_USER,
