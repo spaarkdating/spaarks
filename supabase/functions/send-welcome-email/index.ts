@@ -51,10 +51,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send welcome email using Titan SMTP
     await client.send({
-      from: TITAN_USER,
+      from: `Spaark <${TITAN_USER}>`,
       to: email,
       subject: "Welcome to Spaark! 💖",
-      content: "auto",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="text-align: center; margin-bottom: 30px;">

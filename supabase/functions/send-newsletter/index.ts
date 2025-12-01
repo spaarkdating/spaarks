@@ -51,15 +51,14 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Sending newsletter to ${emails.length} subscribers...`);
 
-    // Send emails using Gmail SMTP
+    // Send emails using Titan SMTP
     let successCount = 0;
     for (const email of emails) {
       try {
         await client.send({
-          from: TITAN_USER,
+          from: `Spaark <${TITAN_USER}>`,
           to: email,
-          subject: subject,
-          content: "auto",
+          subject,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
               <h1 style="color: #dc2663; text-align: center; margin-bottom: 30px;">❤️ Spaark Update</h1>
