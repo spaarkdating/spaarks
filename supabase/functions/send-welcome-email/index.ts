@@ -19,19 +19,16 @@ const handler = async (req: Request): Promise<Response> => {
     const { email }: WelcomeEmailRequest = await req.json();
     const GMAIL_USER = Deno.env.get("GMAIL_USER");
     const GMAIL_APP_PASSWORD = Deno.env.get("GMAIL_APP_PASSWORD");
-    
+
     if (!GMAIL_USER || !GMAIL_APP_PASSWORD) {
       throw new Error("Gmail credentials are not configured");
     }
 
     if (!email) {
-      return new Response(
-        JSON.stringify({ error: "Email is required" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: "Email is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     console.log("Sending welcome email to:", email);
@@ -98,7 +95,7 @@ const handler = async (req: Request): Promise<Response> => {
             </p>
             <p style="text-align: center; color: #999; font-size: 12px; margin-top: 15px;">
               © 2024 Spaark. All rights reserved.<br>
-              Made with ❤️ by Sourabh Sharma, Aakanksha Singh & Mandhata Singh
+              Made with ❤️ by Saurabh Sharma, Aakanksha Singh & Mandhata Singh
             </p>
           </div>
         </div>
@@ -110,24 +107,21 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Welcome email sent successfully to:", email);
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         success: true,
-        message: "Welcome email sent successfully" 
+        message: "Welcome email sent successfully",
       }),
       {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      },
     );
   } catch (error: any) {
     console.error("Error sending welcome email:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 };
 
