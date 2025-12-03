@@ -10,17 +10,11 @@ export const Footer = () => {
           <div>
             <div className="flex items-center gap-2 mb-4 group cursor-pointer">
               <div className="bg-white/90 p-1.5 rounded-lg shadow-md">
-                <img 
-                  src={logo} 
-                  alt="Spaark Logo" 
-                  className="h-6 w-6 object-contain" 
-                />
+                <img src={logo} alt="Spaark Logo" className="h-6 w-6 object-contain" />
               </div>
               <span className="text-xl sm:text-2xl font-bold text-white">Spaark</span>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Connecting hearts, creating meaningful relationships.
-            </p>
+            <p className="text-sm text-muted-foreground">Connecting hearts, creating meaningful relationships.</p>
           </div>
 
           <div>
@@ -79,7 +73,9 @@ export const Footer = () => {
 
         <div className="border-t border-border mt-8 pt-8 text-center">
           <p className="text-xs sm:text-sm text-muted-foreground px-2">
-            © 2025 Spaark. All rights reserved. Made with <Heart className="h-3 w-3 inline text-primary fill-primary" /> by Sourabh Sharma, Aakanksha Singh & Mandhata Singh
+            © 2025 Spaark. All rights reserved. Made with{" "}
+            <Heart className="h-3 w-3 inline text-primary fill-primary" /> by Saurabh Sharma, Aakanksha Singh & Mandhata
+            Singh
           </p>
         </div>
       </div>
