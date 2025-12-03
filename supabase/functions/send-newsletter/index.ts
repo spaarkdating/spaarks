@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { SmtpClient } from "https://deno.land/x/smtp@v0.7.0/mod.ts";
+import { Resend } from "https://esm.sh/resend@2.0.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -19,12 +19,11 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const { subject, message, emails }: NewsletterRequest = await req.json();
-    const GMAIL_USER = Deno.env.get("GMAIL_USER");
-    const GMAIL_APP_PASSWORD = Deno.env.get("GMAIL_APP_PASSWORD");
+    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
     
-    if (!GMAIL_USER || !GMAIL_APP_PASSWORD) {
-      console.error("Gmail credentials are not configured");
-      throw new Error("Gmail credentials are not configured");
+    if (!RESEND_API_KEY) {
+      console.error("RESEND_API_KEY is not configured");
+      throw new Error("Email service is not configured");
     }
 
     if (!emails || emails.length === 0) {
@@ -40,7 +39,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Sending newsletter to ${emails.length} subscribers...`);
     console.log(`Subject: ${subject}`);
-    console.log(`Gmail user: ${GMAIL_USER}`);
+    console.log(`Emails: ${emails.join(', ')}`);
+
+    const resend = new Resend(RESEND_API_KEY);
 
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -54,7 +55,7 @@ const handler = async (req: Request): Promise<Response> => {
       </div>
     `;
 
-    // Send emails using Deno SMTP client
+    // Send emails using Resend
     let successCount = 0;
     const errors: string[] = [];
 
@@ -62,27 +63,20 @@ const handler = async (req: Request): Promise<Response> => {
       try {
         console.log(`Sending email to: ${email}`);
         
-        const client = new SmtpClient();
-        
-        await client.connectTLS({
-          hostname: "smtp.gmail.com",
-          port: 465,
-          username: GMAIL_USER,
-          password: GMAIL_APP_PASSWORD,
-        });
-
-        await client.send({
-          from: GMAIL_USER,
-          to: email,
+        const { data, error } = await resend.emails.send({
+          from: "Spaark <onboarding@resend.dev>",
+          to: [email],
           subject: subject,
-          content: htmlContent,
           html: htmlContent,
         });
 
-        await client.close();
-        
-        successCount++;
-        console.log(`Email sent successfully to: ${email}`);
+        if (error) {
+          console.error(`Failed to send to ${email}:`, JSON.stringify(error));
+          errors.push(`${email}: ${error.message}`);
+        } else {
+          successCount++;
+          console.log(`Email sent successfully to: ${email}, id: ${data?.id}`);
+        }
       } catch (error: any) {
         console.error(`Failed to send to ${email}:`, error.message);
         errors.push(`${email}: ${error.message}`);
