@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -19,14 +18,15 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const { subject, message, emails }: NewsletterRequest = await req.json();
-    const GMAIL_USER = Deno.env.get("GMAIL_USER");
-    const GMAIL_APP_PASSWORD = Deno.env.get("GMAIL_APP_PASSWORD");
+    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
     
-    if (!GMAIL_USER || !GMAIL_APP_PASSWORD) {
-      throw new Error("Gmail credentials are not configured");
+    if (!RESEND_API_KEY) {
+      console.error("RESEND_API_KEY is not configured");
+      throw new Error("Email service is not configured");
     }
 
     if (!emails || emails.length === 0) {
+      console.log("No emails provided");
       return new Response(
         JSON.stringify({ message: "No emails provided" }),
         {
@@ -36,56 +36,69 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Create Gmail SMTP client
-    const client = new SMTPClient({
-      connection: {
-        hostname: "smtp.gmail.com",
-        port: 465,
-        tls: true,
-        auth: {
-          username: GMAIL_USER,
-          password: GMAIL_APP_PASSWORD,
-        },
-      },
-    });
-
     console.log(`Sending newsletter to ${emails.length} subscribers...`);
+    console.log(`Subject: ${subject}`);
 
-    // Send emails using Gmail SMTP
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #dc2663; text-align: center; margin-bottom: 30px;">❤️ Spaark Update</h1>
+        <div style="padding: 30px; background: #fef2f2; border-radius: 10px; line-height: 1.6;">
+          ${message.replace(/\n/g, '<br>')}
+        </div>
+        <p style="text-align: center; color: #666; font-size: 12px; margin-top: 30px;">
+          You're receiving this because you subscribed to Spaark updates.
+        </p>
+      </div>
+    `;
+
+    // Send emails using Resend API directly
     let successCount = 0;
+    const errors: string[] = [];
+
     for (const email of emails) {
       try {
-        await client.send({
-          from: GMAIL_USER,
-          to: email,
-          subject: subject,
-          content: "auto",
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-              <h1 style="color: #dc2663; text-align: center; margin-bottom: 30px;">❤️ Spaark Update</h1>
-              <div style="padding: 30px; background: #fef2f2; border-radius: 10px; line-height: 1.6;">
-                ${message.replace(/\n/g, '<br>')}
-              </div>
-              <p style="text-align: center; color: #666; font-size: 12px; margin-top: 30px;">
-                You're receiving this because you subscribed to Spaark updates.
-              </p>
-            </div>
-          `,
+        console.log(`Sending email to: ${email}`);
+        
+        const response = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${RESEND_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: "Spaark <onboarding@resend.dev>",
+            to: [email],
+            subject: subject,
+            html: htmlContent,
+          }),
         });
-        successCount++;
-        console.log(`Email sent successfully to: ${email}`);
-      } catch (error) {
+
+        const result = await response.json();
+        
+        if (!response.ok) {
+          console.error(`Failed to send to ${email}:`, result);
+          errors.push(`${email}: ${result.message || 'Unknown error'}`);
+        } else {
+          successCount++;
+          console.log(`Email sent successfully to: ${email}, id: ${result.id}`);
+        }
+      } catch (error: any) {
         console.error(`Failed to send to ${email}:`, error);
+        errors.push(`${email}: ${error.message}`);
       }
     }
 
-    await client.close();
-
     console.log(`Newsletter sent to ${successCount}/${emails.length} subscribers`);
+    if (errors.length > 0) {
+      console.log(`Errors: ${errors.join(', ')}`);
+    }
 
     return new Response(
       JSON.stringify({ 
-        message: `Newsletter sent successfully to ${successCount} subscribers` 
+        message: `Newsletter sent successfully to ${successCount} subscribers`,
+        successCount,
+        totalEmails: emails.length,
+        errors: errors.length > 0 ? errors : undefined
       }),
       {
         status: 200,
