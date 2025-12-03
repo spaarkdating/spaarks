@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "https://esm.sh/resend@2.0.0";
+import nodemailer from "https://esm.sh/nodemailer@6.9.10";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -19,10 +19,11 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const { subject, message, emails }: NewsletterRequest = await req.json();
-    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+    const TITAN_EMAIL_USER = Deno.env.get("TITAN_EMAIL_USER");
+    const TITAN_EMAIL_PASSWORD = Deno.env.get("TITAN_EMAIL_PASSWORD");
     
-    if (!RESEND_API_KEY) {
-      console.error("RESEND_API_KEY is not configured");
+    if (!TITAN_EMAIL_USER || !TITAN_EMAIL_PASSWORD) {
+      console.error("Titan email credentials are not configured");
       throw new Error("Email service is not configured");
     }
 
@@ -39,9 +40,18 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Sending newsletter to ${emails.length} subscribers...`);
     console.log(`Subject: ${subject}`);
-    console.log(`Emails: ${emails.join(', ')}`);
+    console.log(`Titan user: ${TITAN_EMAIL_USER}`);
 
-    const resend = new Resend(RESEND_API_KEY);
+    // Create Titan SMTP transporter
+    const transporter = nodemailer.createTransport({
+      host: "smtp.titan.email",
+      port: 465,
+      secure: true,
+      auth: {
+        user: TITAN_EMAIL_USER,
+        pass: TITAN_EMAIL_PASSWORD,
+      },
+    });
 
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -55,7 +65,7 @@ const handler = async (req: Request): Promise<Response> => {
       </div>
     `;
 
-    // Send emails using Resend
+    // Send emails
     let successCount = 0;
     const errors: string[] = [];
 
@@ -63,20 +73,15 @@ const handler = async (req: Request): Promise<Response> => {
       try {
         console.log(`Sending email to: ${email}`);
         
-        const { data, error } = await resend.emails.send({
-          from: "Spaark <onboarding@resend.dev>",
-          to: [email],
+        const info = await transporter.sendMail({
+          from: `"Spaark" <${TITAN_EMAIL_USER}>`,
+          to: email,
           subject: subject,
           html: htmlContent,
         });
-
-        if (error) {
-          console.error(`Failed to send to ${email}:`, JSON.stringify(error));
-          errors.push(`${email}: ${error.message}`);
-        } else {
-          successCount++;
-          console.log(`Email sent successfully to: ${email}, id: ${data?.id}`);
-        }
+        
+        successCount++;
+        console.log(`Email sent successfully to: ${email}, messageId: ${info.messageId}`);
       } catch (error: any) {
         console.error(`Failed to send to ${email}:`, error.message);
         errors.push(`${email}: ${error.message}`);
