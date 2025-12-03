@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import nodemailer from "https://esm.sh/nodemailer@6.9.10";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -19,11 +18,10 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const { subject, message, emails }: NewsletterRequest = await req.json();
-    const TITAN_EMAIL_USER = Deno.env.get("TITAN_EMAIL_USER");
-    const TITAN_EMAIL_PASSWORD = Deno.env.get("TITAN_EMAIL_PASSWORD");
+    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
     
-    if (!TITAN_EMAIL_USER || !TITAN_EMAIL_PASSWORD) {
-      console.error("Titan email credentials are not configured");
+    if (!RESEND_API_KEY) {
+      console.error("RESEND_API_KEY is not configured");
       throw new Error("Email service is not configured");
     }
 
@@ -40,18 +38,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Sending newsletter to ${emails.length} subscribers...`);
     console.log(`Subject: ${subject}`);
-    console.log(`Titan user: ${TITAN_EMAIL_USER}`);
-
-    // Create Titan SMTP transporter
-    const transporter = nodemailer.createTransport({
-      host: "smtp.titan.email",
-      port: 465,
-      secure: true,
-      auth: {
-        user: TITAN_EMAIL_USER,
-        pass: TITAN_EMAIL_PASSWORD,
-      },
-    });
+    console.log(`Emails: ${emails.join(', ')}`);
 
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -65,7 +52,7 @@ const handler = async (req: Request): Promise<Response> => {
       </div>
     `;
 
-    // Send emails
+    // Send emails using Resend HTTP API directly
     let successCount = 0;
     const errors: string[] = [];
 
@@ -73,15 +60,30 @@ const handler = async (req: Request): Promise<Response> => {
       try {
         console.log(`Sending email to: ${email}`);
         
-        const info = await transporter.sendMail({
-          from: `"Spaark" <${TITAN_EMAIL_USER}>`,
-          to: email,
-          subject: subject,
-          html: htmlContent,
+        const response = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${RESEND_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: "Spaark <onboarding@resend.dev>",
+            to: [email],
+            subject: subject,
+            html: htmlContent,
+          }),
         });
+
+        const result = await response.json();
+        console.log(`Response for ${email}:`, JSON.stringify(result));
         
-        successCount++;
-        console.log(`Email sent successfully to: ${email}, messageId: ${info.messageId}`);
+        if (!response.ok) {
+          console.error(`Failed to send to ${email}:`, JSON.stringify(result));
+          errors.push(`${email}: ${result.message || result.name || 'Unknown error'}`);
+        } else {
+          successCount++;
+          console.log(`Email sent successfully to: ${email}, id: ${result.id}`);
+        }
       } catch (error: any) {
         console.error(`Failed to send to ${email}:`, error.message);
         errors.push(`${email}: ${error.message}`);
