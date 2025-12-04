@@ -62,7 +62,7 @@ const handler = async (req: Request): Promise<Response> => {
             </ul>
             
             <div style="text-align: center; margin: 30px 0;">
-              <a href="https://cd7111eb-2755-4ab1-a11a-cbd30c682682.lovableproject.com" 
+              <a href="https://spaarkdating.com" 
                  style="background: linear-gradient(135deg, #dc2663, #b91c5c); 
                         color: white; 
                         padding: 15px 40px; 
@@ -87,7 +87,7 @@ const handler = async (req: Request): Promise<Response> => {
             </p>
             <p style="color: #999999; font-size: 11px; margin: 0;">
               You're receiving this because you subscribed to Spaark updates.<br>
-              <a href="https://cd7111eb-2755-4ab1-a11a-cbd30c682682.lovableproject.com/unsubscribe?email=${encodeURIComponent(email)}" style="color: #dc2663; text-decoration: underline;">Unsubscribe</a> from these emails.
+              <a href="https://spaarkdating.com/unsubscribe?email=${encodeURIComponent(email)}" style="color: #dc2663; text-decoration: underline;">Unsubscribe</a> from these emails.
             </p>
           </div>
         </div>
