@@ -26,6 +26,7 @@ import SafetyTips from "./pages/SafetyTips";
 import ProfileViews from "./pages/ProfileViews";
 import SubmitTestimonial from "./pages/SubmitTestimonial";
 import Testimonials from "./pages/Testimonials";
+import Unsubscribe from "./pages/Unsubscribe";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -58,6 +59,7 @@ const App = () => (
           <Route path="/safety" element={<SafetyTips />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/register" element={<AdminRegister />} />
+          <Route path="/unsubscribe" element={<Unsubscribe />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
