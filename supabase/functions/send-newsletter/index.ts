@@ -37,18 +37,6 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`Subject: ${subject}`);
     console.log(`Emails: ${emails.join(", ")}`);
 
-    const htmlContent = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h1 style="color: #dc2663; text-align: center; margin-bottom: 30px;">❤️ Spaark Update</h1>
-        <div style="padding: 30px; background: #fef2f2; border-radius: 10px; line-height: 1.6;">
-          ${message.replace(/\n/g, "<br>")}
-        </div>
-        <p style="text-align: center; color: #666; font-size: 12px; margin-top: 30px;">
-          You're receiving this because you subscribed to Spaark updates.
-        </p>
-      </div>
-    `;
-
     // Send emails using Resend HTTP API directly
     let successCount = 0;
     const errors: string[] = [];
@@ -56,6 +44,46 @@ const handler = async (req: Request): Promise<Response> => {
     for (const email of emails) {
       try {
         console.log(`Sending email to: ${email}`);
+
+        const htmlContent = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          </head>
+          <body style="margin: 0; padding: 0; background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+              <!-- Header -->
+              <div style="background: linear-gradient(135deg, #dc2663 0%, #e84393 100%); padding: 30px; border-radius: 16px 16px 0 0; text-align: center;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold;">💕 Spaark</h1>
+                <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 14px;">Find Your Perfect Match</p>
+              </div>
+              
+              <!-- Content -->
+              <div style="background-color: #ffffff; padding: 40px 30px; border-left: 1px solid #e9ecef; border-right: 1px solid #e9ecef;">
+                <div style="color: #333333; font-size: 16px; line-height: 1.8;">
+                  ${message.replace(/\n/g, "<br>")}
+                </div>
+              </div>
+              
+              <!-- Footer -->
+              <div style="background-color: #f8f9fa; padding: 30px; border-radius: 0 0 16px 16px; border: 1px solid #e9ecef; border-top: none; text-align: center;">
+                <p style="color: #666666; font-size: 14px; margin: 0 0 15px 0;">
+                  Follow us for more updates
+                </p>
+                <p style="color: #999999; font-size: 12px; margin: 0 0 15px 0;">
+                  © 2025 Spaark Dating. All rights reserved.
+                </p>
+                <p style="color: #999999; font-size: 11px; margin: 0;">
+                  You're receiving this because you subscribed to Spaark updates.<br>
+                  <a href="https://spaarkdating.com/unsubscribe?email=${encodeURIComponent(email)}" style="color: #dc2663; text-decoration: underline;">Unsubscribe</a> from these emails.
+                </p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `;
 
         const response = await fetch("https://api.resend.com/emails", {
           method: "POST",

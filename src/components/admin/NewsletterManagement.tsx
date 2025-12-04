@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Send, Eye, Users, FileText, Megaphone, Sparkles } from "lucide-react";
+import { Mail, Send, Eye, Users, FileText, Megaphone, Sparkles, Heart, Calendar, Lightbulb, Trophy, Gift } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -53,7 +53,7 @@ The Spaark Team ❤️`,
   },
   promotion: {
     name: "Promotion",
-    icon: Sparkles,
+    icon: Gift,
     subject: "Special Offer Just for You! 💝",
     message: `Hello Spaark Community!
 
@@ -94,6 +94,125 @@ What's New:
 We hope you love these new additions as much as we do! As always, we're here to help if you have any questions.
 
 Happy dating,
+The Spaark Team`,
+  },
+  welcome: {
+    name: "Welcome Back",
+    icon: Heart,
+    subject: "We Miss You! Come Back to Spaark 💕",
+    message: `Hey there!
+
+We noticed you haven't visited Spaark in a while, and we wanted to reach out!
+
+Here's what you might have missed:
+• New profiles waiting to meet you
+• Exciting features we've added
+• Active community members looking for connections
+
+Your perfect match could be just a swipe away. Why not give it another try?
+
+We'd love to see you back on Spaark!
+
+With love,
+The Spaark Team 💕`,
+  },
+  tips: {
+    name: "Dating Tips",
+    icon: Lightbulb,
+    subject: "Dating Tips to Find Your Perfect Match! 💡",
+    message: `Hi there!
+
+Looking to improve your dating success? Here are some tips from the Spaark team:
+
+📸 Profile Photo Tips:
+• Use a clear, recent photo showing your face
+• Smile naturally - it makes you more approachable
+• Include photos of you doing activities you love
+
+✍️ Bio Writing Tips:
+• Be authentic and show your personality
+• Mention your interests and hobbies
+• Keep it positive and engaging
+
+💬 Conversation Starters:
+• Ask about something specific in their profile
+• Share a fun fact about yourself
+• Use our icebreaker feature!
+
+Good luck out there!
+
+The Spaark Team ❤️`,
+  },
+  success: {
+    name: "Success Stories",
+    icon: Trophy,
+    subject: "Love Stories from the Spaark Community! 💑",
+    message: `Hello Spaark Family!
+
+We love hearing about your success stories, and today we're sharing some heartwarming tales from our community!
+
+💕 [Couple 1 Names]
+"[Brief quote about how they met on Spaark]"
+
+💕 [Couple 2 Names]
+"[Brief quote about their experience]"
+
+These beautiful connections remind us why we do what we do. Your love story could be next!
+
+Have a success story to share? We'd love to feature you!
+
+With love,
+The Spaark Team ❤️`,
+  },
+  event: {
+    name: "Event Invitation",
+    icon: Calendar,
+    subject: "You're Invited! Special Spaark Event 🎊",
+    message: `Hey Spaark Community!
+
+We're excited to invite you to a special event!
+
+📅 Event: [Event Name]
+📆 Date: [Date and Time]
+📍 Location: [Physical or Virtual Location]
+
+What to expect:
+• [Activity/Feature 1]
+• [Activity/Feature 2]
+• [Activity/Feature 3]
+
+[Additional details, registration info, or special instructions]
+
+Don't miss out on this chance to connect with other Spaark members!
+
+RSVP by [Date] to secure your spot.
+
+See you there!
+The Spaark Team 🎉`,
+  },
+  maintenance: {
+    name: "Maintenance Notice",
+    icon: FileText,
+    subject: "Scheduled Maintenance Notice 🔧",
+    message: `Dear Spaark Users,
+
+We wanted to let you know about some scheduled maintenance to improve your experience.
+
+🔧 Maintenance Window:
+Date: [Date]
+Time: [Start Time] - [End Time] (Estimated)
+
+What to expect:
+• The app may be temporarily unavailable
+• Some features might work intermittently
+
+Why we're doing this:
+• [Reason 1 - e.g., Performance improvements]
+• [Reason 2 - e.g., Security updates]
+
+We apologize for any inconvenience and appreciate your patience!
+
+Thank you for being part of Spaark,
 The Spaark Team`,
   },
 };
@@ -195,14 +314,33 @@ export const NewsletterManagement = () => {
 
   const getPreviewHtml = () => {
     return `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h1 style="color: #dc2663; text-align: center; margin-bottom: 30px;">❤️ Spaark Update</h1>
-        <div style="padding: 30px; background: #fef2f2; border-radius: 10px; line-height: 1.6;">
-          ${message.replace(/\n/g, '<br>')}
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto;">
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #dc2663 0%, #e84393 100%); padding: 30px; border-radius: 16px 16px 0 0; text-align: center;">
+          <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold;">💕 Spaark</h1>
+          <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 14px;">Find Your Perfect Match</p>
         </div>
-        <p style="text-align: center; color: #666; font-size: 12px; margin-top: 30px;">
-          You're receiving this because you subscribed to Spaark updates.
-        </p>
+        
+        <!-- Content -->
+        <div style="background-color: #ffffff; padding: 40px 30px; border-left: 1px solid #e9ecef; border-right: 1px solid #e9ecef;">
+          <div style="color: #333333; font-size: 16px; line-height: 1.8;">
+            ${message.replace(/\n/g, '<br>')}
+          </div>
+        </div>
+        
+        <!-- Footer -->
+        <div style="background-color: #f8f9fa; padding: 30px; border-radius: 0 0 16px 16px; border: 1px solid #e9ecef; border-top: none; text-align: center;">
+          <p style="color: #666666; font-size: 14px; margin: 0 0 15px 0;">
+            Follow us for more updates
+          </p>
+          <p style="color: #999999; font-size: 12px; margin: 0 0 15px 0;">
+            © 2025 Spaark Dating. All rights reserved.
+          </p>
+          <p style="color: #999999; font-size: 11px; margin: 0;">
+            You're receiving this because you subscribed to Spaark updates.<br>
+            <a href="#" style="color: #dc2663; text-decoration: underline;">Unsubscribe</a> from these emails.
+          </p>
+        </div>
       </div>
     `;
   };
