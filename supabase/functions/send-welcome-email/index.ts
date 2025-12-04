@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,11 +16,10 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const { email }: WelcomeEmailRequest = await req.json();
-    const GMAIL_USER = Deno.env.get("GMAIL_USER");
-    const GMAIL_APP_PASSWORD = Deno.env.get("GMAIL_APP_PASSWORD");
+    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
-    if (!GMAIL_USER || !GMAIL_APP_PASSWORD) {
-      throw new Error("Gmail credentials are not configured");
+    if (!RESEND_API_KEY) {
+      throw new Error("RESEND_API_KEY is not configured");
     }
 
     if (!email) {
@@ -33,76 +31,91 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Sending welcome email to:", email);
 
-    // Create Gmail SMTP client
-    const client = new SMTPClient({
-      connection: {
-        hostname: "smtp.gmail.com",
-        port: 465,
-        tls: true,
-        auth: {
-          username: GMAIL_USER,
-          password: GMAIL_APP_PASSWORD,
-        },
-      },
-    });
-
-    // Send welcome email using Gmail SMTP
-    await client.send({
-      from: GMAIL_USER,
-      to: email,
-      subject: "Welcome to Spaark! 💖",
-      content: "auto",
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #dc2663; font-size: 36px; margin: 0;">❤️ Spaark</h1>
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="margin: 0; padding: 0; background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #dc2663 0%, #e84393 100%); padding: 30px; border-radius: 16px 16px 0 0; text-align: center;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 32px; font-weight: bold;">💕 Welcome to Spaark!</h1>
+            <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;">Your journey to finding love begins here</p>
           </div>
           
-          <div style="background: linear-gradient(135deg, #fef2f2 0%, #fff 100%); padding: 30px; border-radius: 15px; margin-bottom: 30px;">
-            <h2 style="color: #dc2663; margin-top: 0;">Welcome to Spaark!</h2>
-            <p style="color: #333; line-height: 1.8; font-size: 16px;">
-              Thank you for subscribing to our newsletter! 🎉
+          <!-- Content -->
+          <div style="background-color: #ffffff; padding: 40px 30px; border-left: 1px solid #e9ecef; border-right: 1px solid #e9ecef;">
+            <h2 style="color: #333333; margin: 0 0 20px 0; font-size: 24px;">Thank you for subscribing! 🎉</h2>
+            
+            <p style="color: #555555; font-size: 16px; line-height: 1.8; margin: 0 0 20px 0;">
+              We're thrilled to have you join our community. You'll now receive exclusive updates about:
             </p>
-            <p style="color: #333; line-height: 1.8; font-size: 16px;">
-              You'll now receive exclusive updates about:
-            </p>
-            <ul style="color: #555; line-height: 2; font-size: 15px;">
-              <li>New features and improvements</li>
-              <li>Dating tips and advice from experts</li>
-              <li>Success stories from real couples</li>
-              <li>Special promotions and offers</li>
+            
+            <ul style="color: #555555; font-size: 15px; line-height: 2; margin: 0 0 25px 0; padding-left: 20px;">
+              <li>✨ New features and improvements</li>
+              <li>💡 Dating tips and advice from experts</li>
+              <li>💑 Success stories from real couples</li>
+              <li>🎁 Special promotions and offers</li>
             </ul>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="https://cd7111eb-2755-4ab1-a11a-cbd30c682682.lovableproject.com" 
+                 style="background: linear-gradient(135deg, #dc2663, #b91c5c); 
+                        color: white; 
+                        padding: 15px 40px; 
+                        text-decoration: none; 
+                        border-radius: 25px; 
+                        display: inline-block; 
+                        font-weight: bold;
+                        font-size: 16px;">
+                Visit Spaark
+              </a>
+            </div>
           </div>
-
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="https://cd7111eb-2755-4ab1-a11a-cbd30c682682.lovableproject.com" 
-               style="background: linear-gradient(135deg, #dc2663, #b91c5c); 
-                      color: white; 
-                      padding: 15px 40px; 
-                      text-decoration: none; 
-                      border-radius: 25px; 
-                      display: inline-block; 
-                      font-weight: bold;
-                      font-size: 16px;">
-              Visit Spaark
-            </a>
-          </div>
-
-          <div style="border-top: 1px solid #e5e5e5; margin-top: 30px; padding-top: 20px;">
-            <p style="text-align: center; color: #999; font-size: 13px; line-height: 1.6;">
-              You're receiving this email because you subscribed to updates from Spaark.<br>
-              If you no longer wish to receive these emails, you can unsubscribe at any time.
+          
+          <!-- Footer -->
+          <div style="background-color: #f8f9fa; padding: 30px; border-radius: 0 0 16px 16px; border: 1px solid #e9ecef; border-top: none; text-align: center;">
+            <p style="color: #666666; font-size: 14px; margin: 0 0 15px 0;">
+              Follow us for more updates
             </p>
-            <p style="text-align: center; color: #999; font-size: 12px; margin-top: 15px;">
-              © 2024 Spaark. All rights reserved.<br>
+            <p style="color: #999999; font-size: 12px; margin: 0 0 15px 0;">
+              © 2025 Spaark Dating. All rights reserved.<br>
               Made with ❤️ by Saurabh Sharma, Aakanksha Singh & Mandhata Singh
+            </p>
+            <p style="color: #999999; font-size: 11px; margin: 0;">
+              You're receiving this because you subscribed to Spaark updates.<br>
+              <a href="https://cd7111eb-2755-4ab1-a11a-cbd30c682682.lovableproject.com/unsubscribe?email=${encodeURIComponent(email)}" style="color: #dc2663; text-decoration: underline;">Unsubscribe</a> from these emails.
             </p>
           </div>
         </div>
-      `,
+      </body>
+      </html>
+    `;
+
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "Spaark <no-reply@spaarkdating.com>",
+        to: [email],
+        subject: "Welcome to Spaark! 💕",
+        html: htmlContent,
+      }),
     });
 
-    await client.close();
+    const result = await response.json();
+    console.log("Resend response:", JSON.stringify(result));
+
+    if (!response.ok) {
+      console.error("Failed to send welcome email:", JSON.stringify(result));
+      throw new Error(result.message || "Failed to send email");
+    }
 
     console.log("Welcome email sent successfully to:", email);
 
