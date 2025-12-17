@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Header } from "@/components/navigation/Header";
 import { Footer } from "@/components/Footer";
+import { SEO, JsonLd, getBreadcrumbSchema } from "@/components/SEO";
 
 const AboutUs = () => {
   const { role } = useAdminRole();
@@ -158,13 +159,23 @@ const AboutUs = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background">
+      <SEO 
+        title="About Us"
+        description="Learn about Spaark - the modern dating platform founded in 2025 by Sourabh Sharma and Aakanksha Singh. Our mission is connecting hearts and creating meaningful relationships."
+        keywords="about Spaark, dating platform, Spaark founders, dating app mission, online dating company"
+        canonicalUrl="/about"
+      />
+      <JsonLd data={getBreadcrumbSchema([
+        { name: "Home", url: "/" },
+        { name: "About Us", url: "/about" }
+      ])} />
       <Header />
 
-      <div className="container mx-auto px-4 py-20 max-w-4xl">
-        <div className="text-center mb-16">
+      <main className="container mx-auto px-4 py-20 max-w-4xl">
+        <header className="text-center mb-16">
           <h1 className="text-5xl font-bold mb-4 gradient-text">About Spaark</h1>
           <p className="text-xl text-muted-foreground">Connecting hearts, creating meaningful relationships</p>
-        </div>
+        </header>
 
         <Card className="mb-12">
           <CardContent className="p-8">
@@ -346,7 +357,7 @@ const AboutUs = () => {
             </Link>
           </CardContent>
         </Card>
-      </div>
+      </main>
 
       <Footer />
     </div>

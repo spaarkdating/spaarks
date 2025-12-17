@@ -4,18 +4,29 @@ import { Heart, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Header } from "@/components/navigation/Header";
 import { Footer } from "@/components/Footer";
+import { SEO, JsonLd, getBreadcrumbSchema } from "@/components/SEO";
 
 const TermsOfService = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background">
+      <SEO 
+        title="Terms of Service"
+        description="Read Spaark's Terms of Service. Understand your rights and responsibilities when using our dating platform."
+        keywords="Spaark terms of service, dating app terms, user agreement, terms and conditions"
+        canonicalUrl="/terms"
+      />
+      <JsonLd data={getBreadcrumbSchema([
+        { name: "Home", url: "/" },
+        { name: "Terms of Service", url: "/terms" }
+      ])} />
       <Header />
 
-      <div className="container mx-auto px-4 py-20 max-w-4xl">
-        <div className="text-center mb-12">
+      <main className="container mx-auto px-4 py-20 max-w-4xl">
+        <header className="text-center mb-12">
           <FileText className="h-16 w-16 text-primary mx-auto mb-4" />
           <h1 className="text-5xl font-bold mb-4 gradient-text">Terms of Service</h1>
-          <p className="text-muted-foreground">Last updated: November 2024</p>
-        </div>
+          <p className="text-muted-foreground">Last updated: December 2025</p>
+        </header>
 
         <Card className="mb-8">
           <CardContent className="p-8 space-y-6">
@@ -146,7 +157,7 @@ const TermsOfService = () => {
             </section>
           </CardContent>
         </Card>
-      </div>
+      </main>
       
       <Footer />
     </div>

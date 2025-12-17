@@ -4,20 +4,31 @@ import { Heart, Shield, AlertTriangle, Lock, Eye, MapPin, Phone } from "lucide-r
 import { Link } from "react-router-dom";
 import { Header } from "@/components/navigation/Header";
 import { Footer } from "@/components/Footer";
+import { SEO, JsonLd, getBreadcrumbSchema } from "@/components/SEO";
 
 const SafetyTips = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background">
+      <SEO 
+        title="Safety Tips"
+        description="Stay safe while dating on Spaark. Learn essential online dating safety tips, how to spot red flags, meeting safely, and protecting your personal information."
+        keywords="dating safety, online dating tips, safe dating, red flags dating, meeting strangers safely, dating security"
+        canonicalUrl="/safety"
+      />
+      <JsonLd data={getBreadcrumbSchema([
+        { name: "Home", url: "/" },
+        { name: "Safety Tips", url: "/safety" }
+      ])} />
       <Header />
 
-      <div className="container mx-auto px-4 py-20 max-w-5xl">
-        <div className="text-center mb-12">
+      <main className="container mx-auto px-4 py-20 max-w-5xl">
+        <header className="text-center mb-12">
           <Shield className="h-16 w-16 text-primary mx-auto mb-4" />
           <h1 className="text-5xl font-bold mb-4 gradient-text">Safety Tips</h1>
           <p className="text-xl text-muted-foreground">
             Your safety is our priority. Follow these guidelines for a secure dating experience.
           </p>
-        </div>
+        </header>
 
         <div className="grid md:grid-cols-2 gap-6 mb-12">
           <Card>
@@ -158,7 +169,7 @@ const SafetyTips = () => {
             </Link>
           </CardContent>
         </Card>
-      </div>
+      </main>
       
       <Footer />
     </div>

@@ -1,3 +1,23 @@
+# Spaark Dating Platform - robots.txt
+# https://spaarkdating.com
+
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /onboarding
+Disallow: /messages
+Disallow: /matches
+Disallow: /profile
+Disallow: /settings
+Disallow: /admin
+
+# Sitemap location
+Sitemap: https://spaarkdating.com/sitemap.xml
+
+# Crawl-delay for responsible crawling
+Crawl-delay: 1
+
+# Allow social media bots for rich previews
 User-agent: Googlebot
 Allow: /
 
@@ -10,5 +30,5 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
-User-agent: *
+User-agent: LinkedInBot
 Allow: /
