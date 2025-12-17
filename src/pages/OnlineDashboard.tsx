@@ -142,19 +142,6 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
         query = query.eq("gender", currentUserProfile.looking_for);
       }
 
-      // Filter by age preferences
-      if (currentUserProfile?.min_age) {
-        const minBirthDate = new Date();
-        minBirthDate.setFullYear(minBirthDate.getFullYear() - currentUserProfile.min_age);
-        query = query.lte("date_of_birth", minBirthDate.toISOString().split('T')[0]);
-      }
-
-      if (currentUserProfile?.max_age) {
-        const maxBirthDate = new Date();
-        maxBirthDate.setFullYear(maxBirthDate.getFullYear() - currentUserProfile.max_age - 1);
-        query = query.gte("date_of_birth", maxBirthDate.toISOString().split('T')[0]);
-      }
-
       // Exclude already swiped profiles
       if (swipedIds.length > 0) {
         query = query.not("id", "in", `(${swipedIds.join(",")})`);
@@ -162,12 +149,32 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
 
       const { data: potentialMatches } = await query
         .order("created_at", { ascending: false })
-        .limit(20);
+        .limit(50);
 
-      if (potentialMatches && currentUserProfile) {
+      // Filter by age preferences client-side to handle NULL date_of_birth
+      let filteredMatches = potentialMatches || [];
+      if (currentUserProfile?.min_age || currentUserProfile?.max_age) {
+        const today = new Date();
+        filteredMatches = filteredMatches.filter((profile) => {
+          if (!profile.date_of_birth) return true; // Include profiles without DOB
+          
+          const birthDate = new Date(profile.date_of_birth);
+          let age = today.getFullYear() - birthDate.getFullYear();
+          const monthDiff = today.getMonth() - birthDate.getMonth();
+          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+          }
+          
+          const minAge = currentUserProfile.min_age || 18;
+          const maxAge = currentUserProfile.max_age || 99;
+          return age >= minAge && age <= maxAge;
+        });
+      }
+
+      if (filteredMatches.length > 0 && currentUserProfile) {
         const userInterests = (currentUserProfile as any).user_interests?.map((ui: any) => ui.interest.name) || [];
         const scores: Record<string, number> = {};
-        const sortedProfiles = potentialMatches.map((profile) => {
+        const sortedProfiles = filteredMatches.map((profile) => {
           const otherInterests = profile.user_interests?.map((ui: any) => ui.interest.name) || [];
           const score = calculateCompatibilityScore(
             { ...currentUserProfile, interests: userInterests },
