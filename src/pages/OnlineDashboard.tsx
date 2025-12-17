@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Heart, MessageCircle, User as UserIcon, Settings, LogOut, RefreshCw, Eye, HelpCircle, Filter, Bell } from "lucide-react";
 import logo from "@/assets/spaark-logo.png";
 import { useToast } from "@/hooks/use-toast";
@@ -48,6 +49,7 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
     looking_for: "",
     min_age: 18,
     max_age: 99,
+    location: "",
   });
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -75,7 +77,7 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
   const loadUserFilters = async () => {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("looking_for, min_age, max_age")
+      .select("looking_for, min_age, max_age, location")
       .eq("id", user.id)
       .single();
 
@@ -84,11 +86,13 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
         looking_for: profile.looking_for || "everyone",
         min_age: profile.min_age || 18,
         max_age: profile.max_age || 99,
+        location: "", // Don't default to user's location, let them choose
       });
     }
   };
 
   const applyQuickFilters = async () => {
+    // Save preferences to profile (except location filter which is temporary)
     await supabase
       .from("profiles")
       .update({
@@ -99,14 +103,16 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
       .eq("id", user.id);
 
     setShowFilterDialog(false);
-    await fetchProfiles(user.id);
+    await fetchProfiles(user.id, tempFilters.location);
     toast({
       title: "Filters applied!",
-      description: "Showing new matches based on your preferences.",
+      description: tempFilters.location 
+        ? `Showing matches in ${tempFilters.location}` 
+        : "Showing new matches based on your preferences.",
     });
   };
 
-  const fetchProfiles = async (userId: string) => {
+  const fetchProfiles = async (userId: string, locationFilter?: string) => {
     setIsLoading(true);
     
     try {
@@ -140,6 +146,11 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
       // Filter by gender preference (looking_for)
       if (currentUserProfile?.looking_for && currentUserProfile.looking_for !== 'everyone') {
         query = query.eq("gender", currentUserProfile.looking_for);
+      }
+
+      // Filter by location (case-insensitive partial match)
+      if (locationFilter && locationFilter.trim()) {
+        query = query.ilike("location", `%${locationFilter.trim()}%`);
       }
 
       // Exclude already swiped profiles
@@ -664,6 +675,19 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
           </DialogHeader>
           
           <div className="space-y-6 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="location-filter">Location</Label>
+              <Input
+                id="location-filter"
+                value={tempFilters.location}
+                onChange={(e) => setTempFilters({ ...tempFilters, location: e.target.value })}
+                placeholder="City or region (e.g., New York, London)"
+              />
+              <p className="text-xs text-muted-foreground">
+                Leave empty to see all locations
+              </p>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="gender-filter">Looking for</Label>
               <Select

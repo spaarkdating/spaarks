@@ -2,13 +2,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface BasicInfoStepProps {
   data: any;
@@ -16,12 +10,67 @@ interface BasicInfoStepProps {
   onNext: () => void;
 }
 
+const months = [
+  { value: "01", label: "January" },
+  { value: "02", label: "February" },
+  { value: "03", label: "March" },
+  { value: "04", label: "April" },
+  { value: "05", label: "May" },
+  { value: "06", label: "June" },
+  { value: "07", label: "July" },
+  { value: "08", label: "August" },
+  { value: "09", label: "September" },
+  { value: "10", label: "October" },
+  { value: "11", label: "November" },
+  { value: "12", label: "December" },
+];
+
+const generateYears = () => {
+  const currentYear = new Date().getFullYear();
+  const years = [];
+  for (let year = currentYear - 18; year >= 1940; year--) {
+    years.push(year.toString());
+  }
+  return years;
+};
+
+const generateDays = (month: string, year: string) => {
+  const daysInMonth = month && year 
+    ? new Date(parseInt(year), parseInt(month), 0).getDate() 
+    : 31;
+  return Array.from({ length: daysInMonth }, (_, i) => 
+    (i + 1).toString().padStart(2, "0")
+  );
+};
+
 export const BasicInfoStep = ({ data, updateData }: BasicInfoStepProps) => {
-  const [calendarOpen, setCalendarOpen] = useState(false);
-  
-  // Calculate default date (18 years ago from today)
-  const defaultDate = new Date();
-  defaultDate.setFullYear(defaultDate.getFullYear() - 18);
+  const [dobDay, setDobDay] = useState("");
+  const [dobMonth, setDobMonth] = useState("");
+  const [dobYear, setDobYear] = useState("");
+
+  // Parse existing date of birth if available
+  useEffect(() => {
+    if (data.dateOfBirth) {
+      const date = new Date(data.dateOfBirth);
+      setDobDay(date.getDate().toString().padStart(2, "0"));
+      setDobMonth((date.getMonth() + 1).toString().padStart(2, "0"));
+      setDobYear(date.getFullYear().toString());
+    }
+  }, []);
+
+  // Update combined date when any part changes
+  useEffect(() => {
+    if (dobDay && dobMonth && dobYear) {
+      const dateStr = `${dobYear}-${dobMonth}-${dobDay}`;
+      const date = new Date(dateStr);
+      if (!isNaN(date.getTime())) {
+        updateData({ dateOfBirth: date.toISOString() });
+      }
+    }
+  }, [dobDay, dobMonth, dobYear]);
+
+  const years = generateYears();
+  const days = generateDays(dobMonth, dobYear);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -53,39 +102,46 @@ export const BasicInfoStep = ({ data, updateData }: BasicInfoStepProps) => {
 
       <div className="space-y-2">
         <Label>Date of Birth *</Label>
-        <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "w-full justify-start text-left font-normal",
-                !data.dateOfBirth && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {data.dateOfBirth ? format(new Date(data.dateOfBirth), "MMMM d, yyyy") : "Select your birth date"}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={data.dateOfBirth ? new Date(data.dateOfBirth) : undefined}
-              onSelect={(date) => {
-                updateData({ dateOfBirth: date?.toISOString() });
-                setCalendarOpen(false);
-              }}
-              disabled={(date) =>
-                date > new Date() || date < new Date("1900-01-01")
-              }
-              defaultMonth={data.dateOfBirth ? new Date(data.dateOfBirth) : defaultDate}
-              captionLayout="dropdown-buttons"
-              fromYear={1900}
-              toYear={new Date().getFullYear()}
-              initialFocus
-              className="pointer-events-auto"
-            />
-          </PopoverContent>
-        </Popover>
+        <div className="grid grid-cols-3 gap-2">
+          <Select value={dobDay} onValueChange={setDobDay}>
+            <SelectTrigger>
+              <SelectValue placeholder="Day" />
+            </SelectTrigger>
+            <SelectContent className="max-h-[200px]">
+              {days.map((day) => (
+                <SelectItem key={day} value={day}>
+                  {day}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={dobMonth} onValueChange={setDobMonth}>
+            <SelectTrigger>
+              <SelectValue placeholder="Month" />
+            </SelectTrigger>
+            <SelectContent className="max-h-[200px]">
+              {months.map((month) => (
+                <SelectItem key={month.value} value={month.value}>
+                  {month.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={dobYear} onValueChange={setDobYear}>
+            <SelectTrigger>
+              <SelectValue placeholder="Year" />
+            </SelectTrigger>
+            <SelectContent className="max-h-[200px]">
+              {years.map((year) => (
+                <SelectItem key={year} value={year}>
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <p className="text-xs text-muted-foreground">
           You must be 18 or older to use Spaark
         </p>
