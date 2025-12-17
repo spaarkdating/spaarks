@@ -371,8 +371,8 @@ export const IdCardVerification = () => {
                 )}
               </div>
 
-              {selectedVerification.status === "pending" && (
-                <DialogFooter className="gap-2">
+              <DialogFooter className="gap-2">
+                {selectedVerification.status !== "rejected" && (
                   <Button
                     variant="outline"
                     onClick={() => {
@@ -381,8 +381,10 @@ export const IdCardVerification = () => {
                     disabled={processing}
                   >
                     <XCircle className="h-4 w-4 mr-2" />
-                    Reject
+                    {selectedVerification.status === "approved" ? "Change to Reject" : "Reject"}
                   </Button>
+                )}
+                {selectedVerification.status !== "approved" && (
                   <Button
                     onClick={() => handleApprove(selectedVerification)}
                     disabled={processing}
@@ -393,10 +395,10 @@ export const IdCardVerification = () => {
                     ) : (
                       <CheckCircle className="h-4 w-4 mr-2" />
                     )}
-                    Approve
+                    {selectedVerification.status === "rejected" ? "Change to Approve" : "Approve"}
                   </Button>
-                </DialogFooter>
-              )}
+                )}
+              </DialogFooter>
             </div>
           )}
         </DialogContent>

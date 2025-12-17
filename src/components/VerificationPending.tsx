@@ -45,7 +45,11 @@ export const VerificationPending = ({ status, rejectionReason }: VerificationPen
               Please contact support or try registering again with a valid student ID card.
             </p>
             <div className="flex gap-3 pt-4">
-              <Button variant="outline" onClick={handleLogout} className="flex-1">
+              <Button 
+                variant="outline" 
+                onClick={() => window.open("/support", "_blank")} 
+                className="flex-1"
+              >
                 <Mail className="h-4 w-4 mr-2" />
                 Contact Support
               </Button>
