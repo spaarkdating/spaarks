@@ -111,11 +111,36 @@ export const IdCardVerification = () => {
     setViewDialogOpen(true);
   };
 
+  const sendVerificationEmail = async (
+    email: string,
+    displayName: string,
+    status: "approved" | "rejected",
+    rejectionReason?: string
+  ) => {
+    try {
+      const { error } = await supabase.functions.invoke("send-verification-email", {
+        body: { email, displayName, status, rejectionReason },
+      });
+      if (error) {
+        console.error("Failed to send verification email:", error);
+      } else {
+        console.log(`Verification ${status} email sent to:`, email);
+      }
+    } catch (err) {
+      console.error("Error invoking email function:", err);
+    }
+  };
+
   const handleApprove = async (verification: IdCardVerification) => {
     setProcessing(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
+
+      // Get user profile for email
+      const verificationWithProfile = verifications.find(v => v.id === verification.id);
+      const userEmail = verificationWithProfile?.profile?.email;
+      const displayName = verificationWithProfile?.profile?.display_name || "User";
 
       // Update verification status
       const { error: verifyError } = await supabase
@@ -144,9 +169,14 @@ export const IdCardVerification = () => {
         details: { action: "id_card_approved" },
       });
 
+      // Send email notification
+      if (userEmail) {
+        await sendVerificationEmail(userEmail, displayName, "approved");
+      }
+
       toast({
         title: "Approved",
-        description: "User's ID card has been verified and account activated.",
+        description: "User's ID card has been verified and notification email sent.",
       });
 
       setViewDialogOpen(false);
@@ -177,6 +207,11 @@ export const IdCardVerification = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Get user profile for email
+      const verificationWithProfile = verifications.find(v => v.id === selectedVerification.id);
+      const userEmail = verificationWithProfile?.profile?.email;
+      const displayName = verificationWithProfile?.profile?.display_name || "User";
+
       // Update verification status
       const { error: verifyError } = await supabase
         .from("id_card_verifications")
@@ -205,9 +240,14 @@ export const IdCardVerification = () => {
         details: { reason: rejectionReason },
       });
 
+      // Send email notification
+      if (userEmail) {
+        await sendVerificationEmail(userEmail, displayName, "rejected", rejectionReason);
+      }
+
       toast({
         title: "Rejected",
-        description: "User's ID card has been rejected.",
+        description: "User's ID card has been rejected and notification email sent.",
       });
 
       setRejectDialogOpen(false);
