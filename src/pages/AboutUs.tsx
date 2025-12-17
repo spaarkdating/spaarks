@@ -151,7 +151,7 @@ const AboutUs = () => {
   };
 
   const teamMembers = [
-    { name: "Saurabh Sharma", role: "Co-Founder", initials: "SS", order: 1 },
+    { name: "Saurabh Sharma", role: "Founder", initials: "SS", order: 1 },
     { name: "Aakanksha Singh", role: "Co-Founder", initials: "AS", order: 2 },
     { name: "Mandhata Singh", role: "Lead Developer", initials: "MS", order: 3 },
   ];
