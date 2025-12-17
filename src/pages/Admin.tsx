@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, ArrowLeft, LogOut, Crown, UserCog, Headset } from "lucide-react";
+import { Shield, ArrowLeft, LogOut, Crown, UserCog, Headset, IdCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import UserManagement from "@/components/admin/UserManagement";
@@ -16,6 +16,7 @@ import AdminRoleManagement from "@/components/admin/AdminRoleManagement";
 import { TestimonialManagement } from "@/components/admin/TestimonialManagement";
 import { NewsletterManagement } from "@/components/admin/NewsletterManagement";
 import { NewsletterHistory } from "@/components/admin/NewsletterHistory";
+import { IdCardVerification } from "@/components/admin/IdCardVerification";
 import DangerZone from "@/components/admin/DangerZone";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminRole } from "@/hooks/useAdminRole";
@@ -107,10 +108,11 @@ const Admin = () => {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue={canManageTickets ? "tickets" : undefined} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-10">
+          <TabsList className="grid w-full grid-cols-11">
             {canViewRevenue && <TabsTrigger value="analytics">Analytics</TabsTrigger>}
             {canViewRevenue && <TabsTrigger value="revenue">Revenue</TabsTrigger>}
             {canManageUsers && <TabsTrigger value="users">Users</TabsTrigger>}
+            {isModerator && <TabsTrigger value="idcards">ID Cards</TabsTrigger>}
             {canManageTickets && <TabsTrigger value="tickets">Support</TabsTrigger>}
             {canManageReports && <TabsTrigger value="reports">Reports</TabsTrigger>}
             {isSuperAdmin && <TabsTrigger value="testimonials">Testimonials</TabsTrigger>}
@@ -129,6 +131,10 @@ const Admin = () => {
 
           {canManageUsers && (
             <TabsContent value="users"><UserManagement /></TabsContent>
+          )}
+
+          {isModerator && (
+            <TabsContent value="idcards"><IdCardVerification /></TabsContent>
           )}
 
           {canManageTickets && (

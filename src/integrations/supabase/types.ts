@@ -162,6 +162,45 @@ export type Database = {
           },
         ]
       }
+      id_card_verifications: {
+        Row: {
+          admin_notes: string | null
+          card_url: string
+          created_at: string
+          id: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          submitted_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          card_url: string
+          created_at?: string
+          id?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          card_url?: string
+          created_at?: string
+          id?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       interests: {
         Row: {
           category: string | null
@@ -619,6 +658,7 @@ export type Database = {
           religion: string | null
           smoking: string | null
           updated_at: string | null
+          verification_status: string | null
         }
         Insert: {
           account_status?: string | null
@@ -645,6 +685,7 @@ export type Database = {
           religion?: string | null
           smoking?: string | null
           updated_at?: string | null
+          verification_status?: string | null
         }
         Update: {
           account_status?: string | null
@@ -671,6 +712,7 @@ export type Database = {
           religion?: string | null
           smoking?: string | null
           updated_at?: string | null
+          verification_status?: string | null
         }
         Relationships: [
           {
@@ -938,6 +980,8 @@ export type Database = {
         | "role_change"
         | "admin_create"
         | "admin_delete"
+        | "id_card_approved"
+        | "id_card_rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1077,6 +1121,8 @@ export const Constants = {
         "role_change",
         "admin_create",
         "admin_delete",
+        "id_card_approved",
+        "id_card_rejected",
       ],
     },
   },

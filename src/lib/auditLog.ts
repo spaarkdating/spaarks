@@ -11,7 +11,9 @@ type AdminActionType =
   | "report_reject"
   | "role_change"
   | "admin_create"
-  | "admin_delete";
+  | "admin_delete"
+  | "id_card_approved"
+  | "id_card_rejected";
 
 interface AuditLogParams {
   actionType: AdminActionType;

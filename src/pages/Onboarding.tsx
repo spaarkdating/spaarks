@@ -10,6 +10,7 @@ import { PhotoStep } from "@/components/onboarding/PhotoStep";
 import { BasicInfoStep } from "@/components/onboarding/BasicInfoStep";
 import { InterestsStep } from "@/components/onboarding/InterestsStep";
 import { PreferencesStep } from "@/components/onboarding/PreferencesStep";
+import { IdCardStep } from "@/components/onboarding/IdCardStep";
 
 const steps = [
   { id: 1, title: "Welcome", component: WelcomeStep },
@@ -17,6 +18,7 @@ const steps = [
   { id: 3, title: "About You", component: BasicInfoStep },
   { id: 4, title: "Interests", component: InterestsStep },
   { id: 5, title: "Preferences", component: PreferencesStep },
+  { id: 6, title: "Verify ID", component: IdCardStep },
 ];
 
 const Onboarding = () => {
@@ -108,6 +110,17 @@ const Onboarding = () => {
       }
     }
 
+    if (currentStep === 6) {
+      if (!formData.idCardUploaded) {
+        toast({
+          title: "ID card required",
+          description: "Please upload your student ID card before continuing.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     if (currentStep < steps.length) {
       setCurrentStep(currentStep + 1);
     }
@@ -137,6 +150,15 @@ const Onboarding = () => {
       toast({
         title: "More photos needed",
         description: "Please upload at least 5 photos to complete your profile.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!formData.idCardUploaded) {
+      toast({
+        title: "ID card required",
+        description: "Please upload your student ID card for verification.",
         variant: "destructive",
       });
       return;
@@ -182,23 +204,23 @@ const Onboarding = () => {
         await Promise.all(interestPromises);
       }
 
+      // Submit ID card verification
+      if (formData.idCardUrl) {
+        await supabase.from("id_card_verifications").insert({
+          user_id: userId,
+          card_url: formData.idCardUrl,
+          status: "pending",
+        });
+      }
+
       toast({
-        title: "Profile completed!",
-        description: "Welcome to Spaark! Start swiping to find your match.",
+        title: "Profile submitted!",
+        description: "Your account is pending verification. You'll be notified once approved.",
       });
 
-      // Check if user is admin and redirect accordingly
-      const { data: adminData } = await (supabase as any)
-        .from("admin_users")
-        .select("role")
-        .eq("user_id", userId)
-        .maybeSingle();
+      // Redirect to verification pending page
+      navigate("/dashboard");
 
-      if (adminData) {
-        navigate("/admin");
-      } else {
-        navigate("/dashboard");
-      }
     } catch (error: any) {
       toast({
         title: "Error",
