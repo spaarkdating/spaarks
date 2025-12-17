@@ -5,10 +5,13 @@ import { User } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
 import { OnlineDashboard } from "./OnlineDashboard";
 import { OfflineDashboard } from "./OfflineDashboard";
+import { VerificationPending } from "@/components/VerificationPending";
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [datingMode, setDatingMode] = useState<string | null>(null);
+  const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
+  const [rejectionReason, setRejectionReason] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -35,7 +38,7 @@ const Dashboard = () => {
 
       setUser(session.user);
 
-      // Get user's dating mode
+      // Get user's profile and verification status
       const { data: profile } = await supabase
         .from("profiles")
         .select("*")
@@ -45,6 +48,19 @@ const Dashboard = () => {
       if (!profile?.bio || !profile?.gender || !profile?.looking_for) {
         navigate("/onboarding");
         return;
+      }
+
+      // Check verification status
+      const vs = (profile as any).verification_status || "pending";
+      setVerificationStatus(vs);
+
+      if (vs === "rejected") {
+        const { data: verification } = await supabase
+          .from("id_card_verifications")
+          .select("rejection_reason")
+          .eq("user_id", session.user.id)
+          .maybeSingle();
+        setRejectionReason(verification?.rejection_reason || undefined);
       }
 
       setDatingMode(profile.dating_mode || "online");
@@ -78,6 +94,11 @@ const Dashboard = () => {
   };
 
   if (!user || isLoading) return null;
+
+  // Show verification pending/rejected screen
+  if (verificationStatus === "pending" || verificationStatus === "rejected") {
+    return <VerificationPending status={verificationStatus} rejectionReason={rejectionReason} />;
+  }
 
   // Route to appropriate dashboard based on dating mode
   if (datingMode === "offline") {
