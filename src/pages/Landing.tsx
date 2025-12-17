@@ -127,7 +127,10 @@ const Landing = () => {
             <img 
               src={logo} 
               alt="Spaark Logo" 
-              className="h-10 w-10 md:h-14 md:w-14 object-contain" 
+              className="h-10 w-10 md:h-14 md:w-14 object-contain"
+              width={56}
+              height={56}
+              fetchPriority="high"
             />
           </div>
           <span className="text-xl md:text-2xl font-bold text-white drop-shadow-lg">
@@ -433,12 +436,19 @@ const Landing = () => {
                               src={testimonial.video_url}
                               controls
                               className="w-full h-48 object-cover rounded-lg"
+                              preload="metadata"
+                              width={400}
+                              height={192}
                             />
                           ) : testimonial.photo_url && (
                             <img 
                               src={testimonial.photo_url}
-                              alt="Testimonial"
+                              alt={`Success story from ${displayName}`}
                               className="w-full h-48 object-cover rounded-lg"
+                              loading="lazy"
+                              decoding="async"
+                              width={400}
+                              height={192}
                             />
                           )}
                         </div>

@@ -100,8 +100,12 @@ export const HeroCarousel = () => {
             >
               <img 
                 src={slides[currentSlide].images[0]} 
-                alt="Happy couple" 
+                alt="Happy couple finding love on Spaark dating app" 
                 className="w-full h-full object-cover"
+                width={128}
+                height={128}
+                loading={currentSlide === 0 ? "eager" : "lazy"}
+                decoding="async"
               />
             </motion.div>
             <motion.div
@@ -112,8 +116,12 @@ export const HeroCarousel = () => {
             >
               <img 
                 src={slides[currentSlide].images[1]} 
-                alt="Romantic couple" 
+                alt="Romantic couple matched on Spaark" 
                 className="w-full h-full object-cover"
+                width={128}
+                height={128}
+                loading={currentSlide === 0 ? "eager" : "lazy"}
+                decoding="async"
               />
             </motion.div>
           </div>
