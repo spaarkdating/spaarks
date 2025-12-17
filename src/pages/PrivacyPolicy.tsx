@@ -4,18 +4,29 @@ import { Heart, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Header } from "@/components/navigation/Header";
 import { Footer } from "@/components/Footer";
+import { SEO, JsonLd, getBreadcrumbSchema } from "@/components/SEO";
 
 const PrivacyPolicy = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background">
+      <SEO 
+        title="Privacy Policy"
+        description="Read Spaark's Privacy Policy. Learn how we collect, use, and protect your personal information on our dating platform."
+        keywords="Spaark privacy policy, dating app privacy, data protection, personal information, user data"
+        canonicalUrl="/privacy"
+      />
+      <JsonLd data={getBreadcrumbSchema([
+        { name: "Home", url: "/" },
+        { name: "Privacy Policy", url: "/privacy" }
+      ])} />
       <Header />
 
-      <div className="container mx-auto px-4 py-20 max-w-4xl">
-        <div className="text-center mb-12">
+      <main className="container mx-auto px-4 py-20 max-w-4xl">
+        <header className="text-center mb-12">
           <Shield className="h-16 w-16 text-primary mx-auto mb-4" />
           <h1 className="text-5xl font-bold mb-4 gradient-text">Privacy Policy</h1>
-          <p className="text-muted-foreground">Last updated: November 2024</p>
-        </div>
+          <p className="text-muted-foreground">Last updated: December 2025</p>
+        </header>
 
         <Card className="mb-8">
           <CardContent className="p-8 space-y-6">
@@ -132,7 +143,7 @@ const PrivacyPolicy = () => {
             </section>
           </CardContent>
         </Card>
-      </div>
+      </main>
       
       <Footer />
     </div>

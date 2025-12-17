@@ -8,6 +8,7 @@ import { Heart } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { SEO } from "@/components/SEO";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -201,6 +202,12 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background flex items-center justify-center p-4">
+      <SEO 
+        title="Sign In or Sign Up"
+        description="Join Spaark today! Create an account or sign in to start finding meaningful connections with verified singles in your area."
+        keywords="Spaark login, dating sign up, create dating account, online dating registration"
+        canonicalUrl="/auth"
+      />
       <div className="w-full max-w-md">
         <Link to="/" className="flex items-center justify-center gap-2 mb-8">
           <Heart className="h-10 w-10 text-primary fill-primary" />

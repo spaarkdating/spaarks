@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Heart, ArrowLeft, Settings, LogOut, Send, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
+import { SEO } from "@/components/SEO";
 
 const Support = () => {
   const [user, setUser] = useState<any>(null);
@@ -133,6 +134,13 @@ const Support = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background">
+      <SEO 
+        title="Customer Support"
+        description="Get help with your Spaark account. Contact our support team, submit tickets, and get answers to your dating platform questions."
+        keywords="Spaark support, dating app help, customer service, contact support"
+        canonicalUrl="/support"
+        noIndex={true}
+      />
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-4">

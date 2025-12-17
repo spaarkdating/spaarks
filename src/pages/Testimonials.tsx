@@ -8,6 +8,7 @@ import { Heart, Star, Search, Filter, ArrowLeft, ChevronLeft, ChevronRight } fro
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import logo from "@/assets/spaark-logo.png";
+import { SEO, JsonLd, getBreadcrumbSchema } from "@/components/SEO";
 
 const ITEMS_PER_PAGE = 9;
 
@@ -97,6 +98,16 @@ const Testimonials = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background">
+      <SEO 
+        title="Success Stories"
+        description="Read real success stories from couples who found love on Spaark. Discover how our dating platform has helped thousands find their perfect match."
+        keywords="dating success stories, love stories, Spaark testimonials, found love online, dating app reviews"
+        canonicalUrl="/testimonials"
+      />
+      <JsonLd data={getBreadcrumbSchema([
+        { name: "Home", url: "/" },
+        { name: "Success Stories", url: "/testimonials" }
+      ])} />
       {/* Header */}
       <header className="border-b border-border/50 bg-card/80 backdrop-blur-md sticky top-0 z-10 shadow-sm">
         <div className="container mx-auto px-4 py-4">
