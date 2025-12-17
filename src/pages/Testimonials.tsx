@@ -126,6 +126,9 @@ const Testimonials = () => {
                   src={logo} 
                   alt="Spaark Logo" 
                   className="h-6 w-6 object-contain"
+                  width={24}
+                  height={24}
+                  loading="eager"
                 />
               </div>
               <h1 className="text-2xl md:text-3xl font-bold text-white">Success Stories</h1>
@@ -223,17 +226,24 @@ const Testimonials = () => {
                         {/* Media Section */}
                         {(testimonial.photo_url || testimonial.video_url) && (
                           <div className="mb-4 rounded-lg overflow-hidden">
-                            {testimonial.video_url ? (
+                          {testimonial.video_url ? (
                               <video 
                                 src={testimonial.video_url}
                                 controls
                                 className="w-full h-48 object-cover rounded-lg"
+                                preload="metadata"
+                                width={400}
+                                height={192}
                               />
                             ) : testimonial.photo_url && (
                               <img 
                                 src={testimonial.photo_url}
-                                alt="Testimonial"
+                                alt={`Success story from ${displayName}`}
                                 className="w-full h-48 object-cover rounded-lg"
+                                loading="lazy"
+                                decoding="async"
+                                width={400}
+                                height={192}
                               />
                             )}
                           </div>

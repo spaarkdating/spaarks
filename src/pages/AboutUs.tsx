@@ -237,8 +237,12 @@ const AboutUs = () => {
                             {photoUrl ? (
                               <img
                                 src={photoUrl}
-                                alt={member.name}
+                                alt={`${member.name} - ${member.role} at Spaark`}
                                 className="w-20 h-20 rounded-full object-cover mx-auto mb-4"
+                                loading="lazy"
+                                decoding="async"
+                                width={80}
+                                height={80}
                               />
                             ) : (
                               <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-secondary mx-auto mb-4 flex items-center justify-center">
@@ -296,8 +300,12 @@ const AboutUs = () => {
                           {photoUrl ? (
                             <img
                               src={photoUrl}
-                              alt={member.name}
+                              alt={`${member.name} - ${member.role} at Spaark`}
                               className="w-20 h-20 rounded-full object-cover mx-auto mb-4"
+                              loading="lazy"
+                              decoding="async"
+                              width={80}
+                              height={80}
                             />
                           ) : (
                             <div className="w-20 h-20 rounded-full bg-gradient-to-br from-secondary to-accent mx-auto mb-4 flex items-center justify-center">
