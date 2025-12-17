@@ -80,3 +80,6 @@ verify_jwt = true
 
 [functions.verify-admin-registration]
 verify_jwt = false
+
+[functions.send-verification-email]
+verify_jwt = true
