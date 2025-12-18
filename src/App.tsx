@@ -27,6 +27,7 @@ import ProfileViews from "./pages/ProfileViews";
 import SubmitTestimonial from "./pages/SubmitTestimonial";
 import Testimonials from "./pages/Testimonials";
 import Unsubscribe from "./pages/Unsubscribe";
+import ViewProfile from "./pages/ViewProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -47,6 +48,7 @@ const App = () => (
           <Route path="/matches" element={<Matches />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/profile/:id" element={<ViewProfile />} />
           <Route path="/profile-views" element={<ProfileViews />} />
           <Route path="/submit-testimonial" element={<SubmitTestimonial />} />
           <Route path="/testimonials" element={<Testimonials />} />
