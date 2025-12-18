@@ -11,25 +11,25 @@ import { ThemeToggle } from "@/components/landing/ThemeToggle";
 import { ChatbotWidget } from "@/components/landing/ChatbotWidget";
 import { SEO, JsonLd, getOrganizationSchema, getDatingServiceSchema } from "@/components/SEO";
 
-// Import couple images for phone mockups
-import couple1 from "@/assets/couple-1.png";
-import couple2 from "@/assets/couple-2.png";
-import couple3 from "@/assets/couple-3.png";
-import couple4 from "@/assets/couple-4.png";
-import couple5 from "@/assets/couple-5.png";
-import couple6 from "@/assets/couple-6.png";
+// Import profile images for phone mockups
+import profile1 from "@/assets/profile-1.jpg";
+import profile2 from "@/assets/profile-2.jpg";
+import profile3 from "@/assets/profile-3.jpg";
+import profile4 from "@/assets/profile-4.jpg";
+import profile5 from "@/assets/profile-5.jpg";
+import profile6 from "@/assets/profile-6.jpg";
 
 const Landing = () => {
   const [stats, setStats] = useState({ users: 0, matches: 0 });
 
   // Profile cards for the phone mockups - simulating real dating profiles
   const phoneProfiles = [
-    { name: "Priya", age: 23, image: couple1, verified: true },
-    { name: "Rahul", age: 25, image: couple2, verified: true },
-    { name: "Ananya", age: 22, image: couple3, verified: true },
-    { name: "Arjun", age: 26, image: couple4, verified: false },
-    { name: "Neha", age: 24, image: couple5, verified: true },
-    { name: "Vikram", age: 27, image: couple6, verified: true },
+    { name: "Priya", age: 22, image: profile1, verified: true },
+    { name: "Rahul", age: 25, image: profile2, verified: true },
+    { name: "Ananya", age: 24, image: profile3, verified: true },
+    { name: "Arjun", age: 26, image: profile4, verified: false },
+    { name: "Neha", age: 23, image: profile5, verified: true },
+    { name: "Vikram", age: 27, image: profile6, verified: true },
   ];
 
   useEffect(() => {
