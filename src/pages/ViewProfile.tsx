@@ -97,9 +97,13 @@ const ViewProfile = () => {
     if (viewerId === viewedId) return; // Don't record self-views
     
     try {
-      await supabase.from("profile_views").insert({
+      // Use upsert to update timestamp if view already exists
+      await supabase.from("profile_views").upsert({
         viewer_id: viewerId,
         viewed_profile_id: viewedId,
+        viewed_at: new Date().toISOString(),
+      }, {
+        onConflict: 'viewer_id,viewed_profile_id'
       });
     } catch (error) {
       // Silently fail - view recording is not critical
