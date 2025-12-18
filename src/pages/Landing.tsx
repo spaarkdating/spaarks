@@ -69,13 +69,18 @@ const Landing = () => {
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <motion.div 
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 group cursor-pointer"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
+            whileHover={{ scale: 1.05 }}
           >
-            <div className="bg-white/90 p-1.5 rounded-xl shadow-md">
+            <motion.div 
+              className="bg-white/90 p-1.5 rounded-xl shadow-md"
+              whileHover={{ rotate: [0, -10, 10, -10, 0], scale: 1.1 }}
+              transition={{ duration: 0.5 }}
+            >
               <img src={logo} alt="Spaark" className="h-8 w-8 object-contain" />
-            </div>
+            </motion.div>
             <span className="text-xl font-bold text-foreground">Spaark</span>
           </motion.div>
           
@@ -280,7 +285,7 @@ const Landing = () => {
             <p className="text-muted-foreground text-lg">Finding your match is easy</p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-8 max-w-4xl mx-auto">
             {[
               { icon: Users, title: "Create Profile", desc: "Sign up and build your profile in minutes" },
               { icon: Heart, title: "Swipe & Match", desc: "Like profiles you're interested in" },
@@ -288,17 +293,22 @@ const Landing = () => {
             ].map((step, idx) => (
               <motion.div
                 key={idx}
-                className="text-center p-6"
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                className="text-center p-2 sm:p-4 md:p-6"
+                initial={{ opacity: 0, y: 30, scale: 0.8 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
                 viewport={{ once: true }}
-                transition={{ delay: idx * 0.15 }}
+                transition={{ delay: idx * 0.15, type: "spring", stiffness: 100 }}
+                whileHover={{ scale: 1.05, y: -5 }}
               >
-                <div className="w-20 h-20 bg-gradient-to-br from-primary to-accent rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-                  <step.icon className="h-10 w-10 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold text-foreground mb-2">{step.title}</h3>
-                <p className="text-muted-foreground">{step.desc}</p>
+                <motion.div 
+                  className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-gradient-to-br from-primary to-accent rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-2 sm:mb-4 md:mb-6 shadow-lg"
+                  whileHover={{ rotate: [0, -5, 5, 0], scale: 1.1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <step.icon className="h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10 text-white" />
+                </motion.div>
+                <h3 className="text-xs sm:text-sm md:text-xl font-semibold text-foreground mb-1 sm:mb-2">{step.title}</h3>
+                <p className="text-[10px] sm:text-xs md:text-base text-muted-foreground leading-tight">{step.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -318,7 +328,7 @@ const Landing = () => {
             <p className="text-muted-foreground text-lg">Features designed for real connections</p>
           </motion.div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 max-w-5xl mx-auto">
             {[
               { icon: Shield, title: "Safe & Verified", desc: "All profiles are verified for your safety" },
               { icon: Heart, title: "Smart Matching", desc: "AI-powered compatibility algorithm" },
@@ -327,17 +337,22 @@ const Landing = () => {
             ].map((feature, idx) => (
               <motion.div
                 key={idx}
-                className="bg-card/80 backdrop-blur-sm border border-border/50 rounded-2xl p-6 hover:shadow-xl transition-all hover:-translate-y-1"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                className="bg-card/80 backdrop-blur-sm border border-border/50 rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-6"
+                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
                 viewport={{ once: true }}
-                transition={{ delay: idx * 0.1 }}
+                transition={{ delay: idx * 0.1, type: "spring", stiffness: 100 }}
+                whileHover={{ scale: 1.03, y: -5, boxShadow: "0 20px 40px rgba(0,0,0,0.3)" }}
               >
-                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-4">
-                  <feature.icon className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="font-semibold text-foreground mb-2">{feature.title}</h3>
-                <p className="text-sm text-muted-foreground">{feature.desc}</p>
+                <motion.div 
+                  className="w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 rounded-lg sm:rounded-xl flex items-center justify-center mb-2 sm:mb-4"
+                  whileHover={{ rotate: 360 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <feature.icon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                </motion.div>
+                <h3 className="text-xs sm:text-sm md:text-base font-semibold text-foreground mb-1 sm:mb-2">{feature.title}</h3>
+                <p className="text-[10px] sm:text-xs md:text-sm text-muted-foreground leading-tight">{feature.desc}</p>
               </motion.div>
             ))}
           </div>
