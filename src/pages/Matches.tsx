@@ -228,11 +228,14 @@ const Matches = () => {
     setProfilePhotos(photos || []);
     setProfileInterests(interests?.map((i: any) => i.interest) || []);
     
-    // Record profile view
+    // Record profile view (upsert to prevent duplicates)
     if (user && user.id !== profile.id) {
-      const { error: viewError } = await supabase.from("profile_views").insert({
+      const { error: viewError } = await supabase.from("profile_views").upsert({
         viewer_id: user.id,
         viewed_profile_id: profile.id,
+        viewed_at: new Date().toISOString(),
+      }, {
+        onConflict: 'viewer_id,viewed_profile_id'
       });
 
       if (!viewError) {
