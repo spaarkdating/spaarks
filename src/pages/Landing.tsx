@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Heart, MessageCircle, Shield, Users, Star, Sparkles, ChevronRight, Check, X } from "lucide-react";
+import { Heart, MessageCircle, Shield, Users, Star, Sparkles, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import logo from "@/assets/spaark-logo.png";
@@ -11,7 +11,7 @@ import { ThemeToggle } from "@/components/landing/ThemeToggle";
 import { ChatbotWidget } from "@/components/landing/ChatbotWidget";
 import { SEO, JsonLd, getOrganizationSchema, getDatingServiceSchema } from "@/components/SEO";
 
-// Import couple images
+// Import couple images for phone mockups
 import couple1 from "@/assets/couple-1.png";
 import couple2 from "@/assets/couple-2.png";
 import couple3 from "@/assets/couple-3.png";
@@ -21,60 +21,40 @@ import couple6 from "@/assets/couple-6.png";
 
 const Landing = () => {
   const [stats, setStats] = useState({ users: 0, matches: 0 });
-  const [currentCard, setCurrentCard] = useState(0);
-  const cards = [
-    { name: "Sarah", age: 24, image: couple1 },
-    { name: "Emma", age: 26, image: couple2 },
-    { name: "Sophie", age: 23, image: couple3 },
-  ];
 
-  const floatingImages = [
-    { src: couple1, delay: 0, x: "5%", y: "15%" },
-    { src: couple2, delay: 0.5, x: "80%", y: "10%" },
-    { src: couple3, delay: 1, x: "10%", y: "60%" },
-    { src: couple4, delay: 1.5, x: "85%", y: "55%" },
-    { src: couple5, delay: 2, x: "25%", y: "85%" },
-    { src: couple6, delay: 2.5, x: "70%", y: "80%" },
-  ];
-
-  const comparisonFeatures = [
-    { feature: "Free to use", spaark: true, tinder: true, bumble: true, hinge: true },
-    { feature: "Verified profiles", spaark: true, tinder: false, bumble: true, hinge: false },
-    { feature: "ID verification", spaark: true, tinder: false, bumble: false, hinge: false },
-    { feature: "Smart matching AI", spaark: true, tinder: true, bumble: true, hinge: true },
-    { feature: "Unlimited swipes", spaark: true, tinder: false, bumble: false, hinge: false },
-    { feature: "No hidden fees", spaark: true, tinder: false, bumble: false, hinge: false },
-    { feature: "Real-time chat", spaark: true, tinder: true, bumble: true, hinge: true },
-    { feature: "Profile boost", spaark: true, tinder: true, bumble: true, hinge: true },
-    { feature: "See who liked you", spaark: true, tinder: false, bumble: false, hinge: false },
-    { feature: "Icebreakers", spaark: true, tinder: false, bumble: true, hinge: true },
+  // Profile cards for the phone mockups - simulating real dating profiles
+  const phoneProfiles = [
+    { name: "Priya", age: 23, image: couple1, verified: true },
+    { name: "Rahul", age: 25, image: couple2, verified: true },
+    { name: "Ananya", age: 22, image: couple3, verified: true },
+    { name: "Arjun", age: 26, image: couple4, verified: false },
+    { name: "Neha", age: 24, image: couple5, verified: true },
+    { name: "Vikram", age: 27, image: couple6, verified: true },
   ];
 
   useEffect(() => {
     fetchStats();
-    const interval = setInterval(() => {
-      setCurrentCard((prev) => (prev + 1) % cards.length);
-    }, 3000);
-    return () => clearInterval(interval);
   }, []);
 
   const fetchStats = async () => {
     try {
-      const { count: userCount } = await supabase
-        .from("profiles")
-        .select("*", { count: "exact", head: true });
-      const { count: matchCount } = await supabase
-        .from("matches")
-        .select("*", { count: "exact", head: true })
-        .eq("is_match", true);
-      setStats({ users: userCount || 0, matches: matchCount || 0 });
+      // Use the get_public_stats RPC function to get real stats
+      const { data, error } = await supabase.rpc('get_public_stats');
+      if (error) throw error;
+      if (data && typeof data === 'object' && !Array.isArray(data)) {
+        const statsData = data as { activeUsers?: number; totalMatches?: number };
+        setStats({ 
+          users: statsData.activeUsers || 0, 
+          matches: statsData.totalMatches || 0 
+        });
+      }
     } catch (error) {
       console.error("Error fetching stats:", error);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-card to-background">
+    <div className="min-h-screen bg-background">
       <SEO 
         title="Find Your Perfect Match"
         description="Discover meaningful connections on Spaark. Swipe, match, and chat with compatible singles in your area."
@@ -86,7 +66,7 @@ const Landing = () => {
       <ChatbotWidget />
       
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border/50">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <motion.div 
             className="flex items-center gap-2"
@@ -124,182 +104,166 @@ const Landing = () => {
         </div>
       </header>
 
-      {/* Hero Section with Animated Floating Images */}
-      <section className="pt-24 pb-16 md:pt-32 md:pb-24 overflow-hidden relative min-h-screen">
-        {/* Animated Background with Floating Couple Images */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-b from-background/90 via-background/70 to-background z-10" />
-          
-          {/* Floating images */}
-          {floatingImages.map((img, idx) => (
-            <motion.div
-              key={idx}
-              className="absolute w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-2xl overflow-hidden shadow-2xl opacity-40"
-              style={{ left: img.x, top: img.y }}
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ 
-                opacity: [0.3, 0.5, 0.3],
-                scale: [1, 1.05, 1],
-                y: [0, -20, 0],
-              }}
-              transition={{
-                duration: 6,
-                delay: img.delay,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            >
-              <img src={img.src} alt="" className="w-full h-full object-cover" loading="lazy" />
-            </motion.div>
-          ))}
-          
-          {/* Animated gradient orbs */}
-          <motion.div 
-            className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl"
-            animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
-            transition={{ duration: 8, repeat: Infinity }}
-          />
-          <motion.div 
-            className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-accent/20 rounded-full blur-3xl"
-            animate={{ scale: [1.2, 1, 1.2], opacity: [0.5, 0.3, 0.5] }}
-            transition={{ duration: 8, repeat: Infinity }}
-          />
-        </div>
-
-        <div className="container mx-auto px-4 relative z-20">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left Content */}
-            <motion.div 
-              className="text-center lg:text-left space-y-6"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              <motion.div 
-                className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 px-4 py-2 rounded-full text-sm text-primary"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.2 }}
+      {/* Hero Section - Tinder Style with Phone Mockups */}
+      <section className="relative min-h-screen overflow-hidden bg-gradient-to-br from-background via-card to-background">
+        {/* Dark overlay for text readability */}
+        <div className="absolute inset-0 bg-background/60 z-10" />
+        
+        {/* Phone Mockup Grid Background */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="relative w-full h-full">
+            {/* Row 1 - Top phones (tilted) */}
+            {phoneProfiles.slice(0, 3).map((profile, idx) => (
+              <motion.div
+                key={`top-${idx}`}
+                className="absolute"
+                style={{
+                  left: `${15 + idx * 30}%`,
+                  top: '5%',
+                  transform: `rotate(${-15 + idx * 8}deg)`,
+                }}
+                initial={{ opacity: 0, y: -100 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.15, duration: 0.8 }}
               >
-                <Sparkles className="h-4 w-4" />
-                <span>Over {stats.users.toLocaleString()}+ active users</span>
-              </motion.div>
-              
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight text-foreground">
-                Swipe Right®
-                <br />
-                <span className="text-primary">Find Love</span>
-              </h1>
-              
-              <p className="text-lg md:text-xl text-muted-foreground max-w-lg mx-auto lg:mx-0">
-                Join millions of singles discovering meaningful connections. Your next great love story starts with a single swipe.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <Link to="/auth">
-                  <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-primary to-accent hover:opacity-90 text-primary-foreground rounded-full px-8 py-6 text-lg font-semibold shadow-lg">
-                    Get Started
-                    <ChevronRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </Link>
-                <Link to="/testimonials">
-                  <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 border-primary/30 text-foreground hover:bg-primary/10 rounded-full px-8 py-6 text-lg">
-                    Success Stories
-                  </Button>
-                </Link>
-              </div>
-              
-              {/* Trust indicators */}
-              <div className="flex items-center gap-6 justify-center lg:justify-start pt-4">
-                <div className="flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-primary" />
-                  <span className="text-sm text-muted-foreground">Verified profiles</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Heart className="h-5 w-5 text-primary" />
-                  <span className="text-sm text-muted-foreground">{stats.matches}+ matches</span>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Right - Phone Mockup with Cards */}
-            <motion.div 
-              className="relative flex justify-center"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-            >
-              {/* Glow effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/30 to-accent/30 blur-3xl rounded-full scale-75" />
-              
-              {/* Phone Frame */}
-              <div className="relative w-72 sm:w-80 md:w-96">
-                <div className="bg-card/90 backdrop-blur-sm rounded-[3rem] p-3 shadow-2xl border border-border/50">
-                  <div className="bg-background rounded-[2.5rem] overflow-hidden">
-                    {/* Status bar */}
-                    <div className="h-8 bg-card flex items-center justify-center">
-                      <div className="w-20 h-1 bg-foreground/20 rounded-full" />
-                    </div>
-                    
-                    {/* Card Stack */}
-                    <div className="relative h-[400px] sm:h-[450px] md:h-[500px] p-4">
-                      {cards.map((card, index) => (
-                        <motion.div
-                          key={index}
-                          className="absolute inset-4 rounded-3xl overflow-hidden shadow-xl"
-                          initial={false}
-                          animate={{
-                            scale: index === currentCard ? 1 : 0.95 - (index - currentCard) * 0.05,
-                            y: index === currentCard ? 0 : (index - currentCard) * 20,
-                            opacity: index === currentCard ? 1 : 0.7,
-                            zIndex: cards.length - Math.abs(index - currentCard),
-                          }}
-                          transition={{ duration: 0.5 }}
-                        >
-                          <img 
-                            src={card.image} 
-                            alt={card.name}
-                            className="w-full h-full object-cover"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-                          <div className="absolute bottom-6 left-6 text-white">
-                            <h3 className="text-2xl font-bold">{card.name}, {card.age}</h3>
-                            <p className="text-white/80 text-sm">2 miles away</p>
-                          </div>
-                        </motion.div>
-                      ))}
-                      
-                      {/* Action buttons overlay */}
-                      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 z-50">
-                        <motion.button 
-                          className="w-14 h-14 rounded-full bg-white shadow-lg flex items-center justify-center border-2 border-destructive"
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                        >
-                          <span className="text-destructive text-2xl">✕</span>
-                        </motion.button>
-                        <motion.button 
-                          className="w-16 h-16 rounded-full bg-gradient-to-r from-primary to-accent shadow-lg flex items-center justify-center"
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                        >
-                          <Heart className="h-8 w-8 text-white fill-white" />
-                        </motion.button>
-                        <motion.button 
-                          className="w-14 h-14 rounded-full bg-white shadow-lg flex items-center justify-center border-2 border-accent"
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                        >
-                          <Star className="h-6 w-6 text-accent fill-accent" />
-                        </motion.button>
+                <div className="w-40 sm:w-48 md:w-56 lg:w-64 bg-card rounded-[2rem] p-2 shadow-2xl border border-border/30">
+                  <div className="bg-background rounded-[1.5rem] overflow-hidden">
+                    <div className="relative aspect-[3/4]">
+                      <img 
+                        src={profile.image} 
+                        alt={profile.name}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                      <div className="absolute bottom-3 left-3 text-white">
+                        <div className="flex items-center gap-1">
+                          <span className="font-bold text-sm">{profile.name}</span>
+                          <span className="text-sm">{profile.age}</span>
+                          {profile.verified && (
+                            <span className="text-blue-400 text-xs">✓</span>
+                          )}
+                        </div>
+                      </div>
+                      {/* Swipe buttons */}
+                      <div className="absolute bottom-2 right-2 flex gap-1">
+                        <div className="w-6 h-6 bg-white/90 rounded-full flex items-center justify-center text-xs">
+                          <span className="text-red-500">✕</span>
+                        </div>
+                        <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                          <Heart className="w-3 h-3 text-white fill-white" />
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </motion.div>
+              </motion.div>
+            ))}
+
+            {/* Row 2 - Bottom phones (tilted opposite) */}
+            {phoneProfiles.slice(3, 6).map((profile, idx) => (
+              <motion.div
+                key={`bottom-${idx}`}
+                className="absolute"
+                style={{
+                  left: `${5 + idx * 35}%`,
+                  bottom: '10%',
+                  transform: `rotate(${10 - idx * 6}deg)`,
+                }}
+                initial={{ opacity: 0, y: 100 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 + idx * 0.15, duration: 0.8 }}
+              >
+                <div className="w-40 sm:w-48 md:w-56 lg:w-64 bg-card rounded-[2rem] p-2 shadow-2xl border border-border/30">
+                  <div className="bg-background rounded-[1.5rem] overflow-hidden">
+                    <div className="relative aspect-[3/4]">
+                      <img 
+                        src={profile.image} 
+                        alt={profile.name}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                      <div className="absolute bottom-3 left-3 text-white">
+                        <div className="flex items-center gap-1">
+                          <span className="font-bold text-sm">{profile.name}</span>
+                          <span className="text-sm">{profile.age}</span>
+                          {profile.verified && (
+                            <span className="text-blue-400 text-xs">✓</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="absolute bottom-2 right-2 flex gap-1">
+                        <div className="w-6 h-6 bg-white/90 rounded-full flex items-center justify-center text-xs">
+                          <span className="text-red-500">✕</span>
+                        </div>
+                        <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                          <Heart className="w-3 h-3 text-white fill-white" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
           </div>
+        </div>
+
+        {/* Center Content */}
+        <div className="relative z-20 flex flex-col items-center justify-center min-h-screen px-4 text-center">
+          <motion.h1 
+            className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-foreground mb-6"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            Start something
+            <br />
+            <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">epic.</span>
+          </motion.h1>
+          
+          <motion.div 
+            className="flex flex-col sm:flex-row gap-4 mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+          >
+            <Link to="/auth">
+              <Button 
+                size="lg" 
+                className="bg-gradient-to-r from-primary to-accent hover:opacity-90 text-primary-foreground rounded-full px-10 py-6 text-lg font-semibold shadow-xl"
+              >
+                Create account
+              </Button>
+            </Link>
+          </motion.div>
+
+          {/* Stats badge */}
+          <motion.div 
+            className="flex items-center gap-6 text-muted-foreground"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-primary" />
+              <span className="text-sm">{stats.users.toLocaleString()}+ active users</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Heart className="h-5 w-5 text-primary" />
+              <span className="text-sm">{stats.matches.toLocaleString()}+ matches made</span>
+            </div>
+          </motion.div>
+
+          {/* Disclaimer */}
+          <motion.p 
+            className="absolute bottom-4 text-xs text-muted-foreground/60"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 }}
+          >
+            All photos are of models and used for illustrative purposes only
+          </motion.p>
         </div>
       </section>
 
@@ -341,94 +305,8 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Comparison Section */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <motion.div 
-            className="text-center mb-16"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Why Spaark Stands Out</h2>
-            <p className="text-muted-foreground text-lg">See how we compare to other dating apps</p>
-          </motion.div>
-
-          <motion.div 
-            className="max-w-4xl mx-auto overflow-x-auto"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <table className="w-full min-w-[600px]">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-4 px-4 text-foreground font-semibold">Features</th>
-                  <th className="py-4 px-4">
-                    <div className="flex flex-col items-center gap-1">
-                      <div className="bg-gradient-to-r from-primary to-accent text-white px-3 py-1 rounded-full text-sm font-semibold">
-                        Spaark
-                      </div>
-                    </div>
-                  </th>
-                  <th className="py-4 px-4 text-muted-foreground">Tinder</th>
-                  <th className="py-4 px-4 text-muted-foreground">Bumble</th>
-                  <th className="py-4 px-4 text-muted-foreground">Hinge</th>
-                </tr>
-              </thead>
-              <tbody>
-                {comparisonFeatures.map((row, idx) => (
-                  <motion.tr 
-                    key={idx}
-                    className="border-b border-border/50 hover:bg-card/50 transition-colors"
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: idx * 0.05 }}
-                  >
-                    <td className="py-4 px-4 text-foreground">{row.feature}</td>
-                    <td className="py-4 px-4 text-center">
-                      {row.spaark ? (
-                        <div className="inline-flex items-center justify-center w-8 h-8 bg-primary/20 rounded-full">
-                          <Check className="h-5 w-5 text-primary" />
-                        </div>
-                      ) : (
-                        <div className="inline-flex items-center justify-center w-8 h-8 bg-muted/50 rounded-full">
-                          <X className="h-5 w-5 text-muted-foreground" />
-                        </div>
-                      )}
-                    </td>
-                    <td className="py-4 px-4 text-center">
-                      {row.tinder ? (
-                        <Check className="h-5 w-5 text-muted-foreground mx-auto" />
-                      ) : (
-                        <X className="h-5 w-5 text-muted-foreground/50 mx-auto" />
-                      )}
-                    </td>
-                    <td className="py-4 px-4 text-center">
-                      {row.bumble ? (
-                        <Check className="h-5 w-5 text-muted-foreground mx-auto" />
-                      ) : (
-                        <X className="h-5 w-5 text-muted-foreground/50 mx-auto" />
-                      )}
-                    </td>
-                    <td className="py-4 px-4 text-center">
-                      {row.hinge ? (
-                        <Check className="h-5 w-5 text-muted-foreground mx-auto" />
-                      ) : (
-                        <X className="h-5 w-5 text-muted-foreground/50 mx-auto" />
-                      )}
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
-          </motion.div>
-        </div>
-      </section>
-
       {/* Features Grid */}
-      <section className="py-20 bg-card/50">
+      <section className="py-20">
         <div className="container mx-auto px-4">
           <motion.div 
             className="text-center mb-16"
