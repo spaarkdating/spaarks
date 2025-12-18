@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Heart, MessageCircle, Shield, Users, Star, Sparkles, ChevronRight } from "lucide-react";
+import { Heart, MessageCircle, Shield, Users, Star, Sparkles, ChevronRight, Check, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import logo from "@/assets/spaark-logo.png";
@@ -11,10 +11,13 @@ import { ThemeToggle } from "@/components/landing/ThemeToggle";
 import { ChatbotWidget } from "@/components/landing/ChatbotWidget";
 import { SEO, JsonLd, getOrganizationSchema, getDatingServiceSchema } from "@/components/SEO";
 
-// Import couple images for the phone mockup
+// Import couple images
 import couple1 from "@/assets/couple-1.png";
 import couple2 from "@/assets/couple-2.png";
 import couple3 from "@/assets/couple-3.png";
+import couple4 from "@/assets/couple-4.png";
+import couple5 from "@/assets/couple-5.png";
+import couple6 from "@/assets/couple-6.png";
 
 const Landing = () => {
   const [stats, setStats] = useState({ users: 0, matches: 0 });
@@ -23,6 +26,28 @@ const Landing = () => {
     { name: "Sarah", age: 24, image: couple1 },
     { name: "Emma", age: 26, image: couple2 },
     { name: "Sophie", age: 23, image: couple3 },
+  ];
+
+  const floatingImages = [
+    { src: couple1, delay: 0, x: "5%", y: "15%" },
+    { src: couple2, delay: 0.5, x: "80%", y: "10%" },
+    { src: couple3, delay: 1, x: "10%", y: "60%" },
+    { src: couple4, delay: 1.5, x: "85%", y: "55%" },
+    { src: couple5, delay: 2, x: "25%", y: "85%" },
+    { src: couple6, delay: 2.5, x: "70%", y: "80%" },
+  ];
+
+  const comparisonFeatures = [
+    { feature: "Free to use", spaark: true, tinder: true, bumble: true, hinge: true },
+    { feature: "Verified profiles", spaark: true, tinder: false, bumble: true, hinge: false },
+    { feature: "ID verification", spaark: true, tinder: false, bumble: false, hinge: false },
+    { feature: "Smart matching AI", spaark: true, tinder: true, bumble: true, hinge: true },
+    { feature: "Unlimited swipes", spaark: true, tinder: false, bumble: false, hinge: false },
+    { feature: "No hidden fees", spaark: true, tinder: false, bumble: false, hinge: false },
+    { feature: "Real-time chat", spaark: true, tinder: true, bumble: true, hinge: true },
+    { feature: "Profile boost", spaark: true, tinder: true, bumble: true, hinge: true },
+    { feature: "See who liked you", spaark: true, tinder: false, bumble: false, hinge: false },
+    { feature: "Icebreakers", spaark: true, tinder: false, bumble: true, hinge: true },
   ];
 
   useEffect(() => {
@@ -99,9 +124,50 @@ const Landing = () => {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="pt-24 pb-16 md:pt-32 md:pb-24 overflow-hidden">
-        <div className="container mx-auto px-4">
+      {/* Hero Section with Animated Floating Images */}
+      <section className="pt-24 pb-16 md:pt-32 md:pb-24 overflow-hidden relative min-h-screen">
+        {/* Animated Background with Floating Couple Images */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-background/90 via-background/70 to-background z-10" />
+          
+          {/* Floating images */}
+          {floatingImages.map((img, idx) => (
+            <motion.div
+              key={idx}
+              className="absolute w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-2xl overflow-hidden shadow-2xl opacity-40"
+              style={{ left: img.x, top: img.y }}
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ 
+                opacity: [0.3, 0.5, 0.3],
+                scale: [1, 1.05, 1],
+                y: [0, -20, 0],
+              }}
+              transition={{
+                duration: 6,
+                delay: img.delay,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            >
+              <img src={img.src} alt="" className="w-full h-full object-cover" loading="lazy" />
+            </motion.div>
+          ))}
+          
+          {/* Animated gradient orbs */}
+          <motion.div 
+            className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl"
+            animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+            transition={{ duration: 8, repeat: Infinity }}
+          />
+          <motion.div 
+            className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-accent/20 rounded-full blur-3xl"
+            animate={{ scale: [1.2, 1, 1.2], opacity: [0.5, 0.3, 0.5] }}
+            transition={{ duration: 8, repeat: Infinity }}
+          />
+        </div>
+
+        <div className="container mx-auto px-4 relative z-20">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
             <motion.div 
@@ -275,8 +341,94 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Features Grid */}
+      {/* Comparison Section */}
       <section className="py-20">
+        <div className="container mx-auto px-4">
+          <motion.div 
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Why Spaark Stands Out</h2>
+            <p className="text-muted-foreground text-lg">See how we compare to other dating apps</p>
+          </motion.div>
+
+          <motion.div 
+            className="max-w-4xl mx-auto overflow-x-auto"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <table className="w-full min-w-[600px]">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="text-left py-4 px-4 text-foreground font-semibold">Features</th>
+                  <th className="py-4 px-4">
+                    <div className="flex flex-col items-center gap-1">
+                      <div className="bg-gradient-to-r from-primary to-accent text-white px-3 py-1 rounded-full text-sm font-semibold">
+                        Spaark
+                      </div>
+                    </div>
+                  </th>
+                  <th className="py-4 px-4 text-muted-foreground">Tinder</th>
+                  <th className="py-4 px-4 text-muted-foreground">Bumble</th>
+                  <th className="py-4 px-4 text-muted-foreground">Hinge</th>
+                </tr>
+              </thead>
+              <tbody>
+                {comparisonFeatures.map((row, idx) => (
+                  <motion.tr 
+                    key={idx}
+                    className="border-b border-border/50 hover:bg-card/50 transition-colors"
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: idx * 0.05 }}
+                  >
+                    <td className="py-4 px-4 text-foreground">{row.feature}</td>
+                    <td className="py-4 px-4 text-center">
+                      {row.spaark ? (
+                        <div className="inline-flex items-center justify-center w-8 h-8 bg-primary/20 rounded-full">
+                          <Check className="h-5 w-5 text-primary" />
+                        </div>
+                      ) : (
+                        <div className="inline-flex items-center justify-center w-8 h-8 bg-muted/50 rounded-full">
+                          <X className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                      )}
+                    </td>
+                    <td className="py-4 px-4 text-center">
+                      {row.tinder ? (
+                        <Check className="h-5 w-5 text-muted-foreground mx-auto" />
+                      ) : (
+                        <X className="h-5 w-5 text-muted-foreground/50 mx-auto" />
+                      )}
+                    </td>
+                    <td className="py-4 px-4 text-center">
+                      {row.bumble ? (
+                        <Check className="h-5 w-5 text-muted-foreground mx-auto" />
+                      ) : (
+                        <X className="h-5 w-5 text-muted-foreground/50 mx-auto" />
+                      )}
+                    </td>
+                    <td className="py-4 px-4 text-center">
+                      {row.hinge ? (
+                        <Check className="h-5 w-5 text-muted-foreground mx-auto" />
+                      ) : (
+                        <X className="h-5 w-5 text-muted-foreground/50 mx-auto" />
+                      )}
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Features Grid */}
+      <section className="py-20 bg-card/50">
         <div className="container mx-auto px-4">
           <motion.div 
             className="text-center mb-16"
