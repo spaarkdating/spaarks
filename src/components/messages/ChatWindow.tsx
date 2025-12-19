@@ -2,13 +2,19 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, MessageCircle, Sparkles, Image, Video, Mic, X, ArrowLeft } from "lucide-react";
+import { Send, MessageCircle, Sparkles, Image, Video, Mic, X, ArrowLeft, Check, CheckCheck, Smile } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/useNotifications";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format } from "date-fns";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { getRandomIcebreakers } from "@/data/icebreakers";
 import { useNavigate } from "react-router-dom";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+
 interface ChatWindowProps {
   match: any;
   currentUserId: string;
@@ -16,14 +22,23 @@ interface ChatWindowProps {
   onBack?: () => void;
 }
 
+// Common emoji reactions
+const EMOJI_REACTIONS = ["❤️", "😂", "😮", "😢", "😡", "👍"];
+
 export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: ChatWindowProps) => {
   const [messages, setMessages] = useState<any[]>([]);
+  const [reactions, setReactions] = useState<Record<string, any[]>>({});
   const [newMessage, setNewMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [showIcebreakers, setShowIcebreakers] = useState(false);
   const [icebreakers, setIcebreakers] = useState<string[]>([]);
   const [showMediaOptions, setShowMediaOptions] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
@@ -32,11 +47,12 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
   const { toast } = useToast();
   const { showNotification } = useNotifications();
   const navigate = useNavigate();
+
   useEffect(() => {
     if (!match) return;
 
     fetchMessages();
-    // Delay icebreaker generation to avoid rapid changes when switching conversations
+    fetchReactions();
     const icebreakerTimeout = setTimeout(() => {
       setIcebreakers(getRandomIcebreakers(3));
     }, 800);
@@ -47,24 +63,21 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
       }
+      stopRecording();
     };
   }, [match]);
 
   useEffect(() => {
-    // Only auto-scroll after initial load or when new messages arrive
     if (messages.length > 0) {
       if (!initialScrollDone.current) {
-        // First load - scroll instantly without animation
         messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
         initialScrollDone.current = true;
       } else {
-        // Subsequent messages - smooth scroll
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
       }
     }
   }, [messages]);
 
-  // Reset initial scroll flag when match changes
   useEffect(() => {
     initialScrollDone.current = false;
   }, [match?.id]);
@@ -72,6 +85,186 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
+
+  const fetchReactions = async () => {
+    if (!match) return;
+
+    const messageIds = messages.map(m => m.id);
+    if (messageIds.length === 0) return;
+
+    const { data } = await supabase
+      .from("message_reactions")
+      .select("*")
+      .in("message_id", messageIds);
+
+    if (data) {
+      const grouped: Record<string, any[]> = {};
+      data.forEach(reaction => {
+        if (!grouped[reaction.message_id]) {
+          grouped[reaction.message_id] = [];
+        }
+        grouped[reaction.message_id].push(reaction);
+      });
+      setReactions(grouped);
+    }
+  };
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      fetchReactions();
+    }
+  }, [messages]);
+
+  const handleAddReaction = async (messageId: string, emoji: string) => {
+    try {
+      // Check if reaction already exists
+      const existingReaction = reactions[messageId]?.find(
+        r => r.user_id === currentUserId && r.emoji === emoji
+      );
+
+      if (existingReaction) {
+        // Remove reaction
+        await supabase
+          .from("message_reactions")
+          .delete()
+          .eq("id", existingReaction.id);
+      } else {
+        // Add reaction
+        await supabase.from("message_reactions").insert({
+          message_id: messageId,
+          user_id: currentUserId,
+          emoji,
+        });
+      }
+
+      fetchReactions();
+    } catch (error) {
+      console.error("Error toggling reaction:", error);
+    }
+  };
+
+  // Voice recording functions
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4'
+      });
+      
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      setRecordingTime(0);
+
+      recordingIntervalRef.current = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+
+    } catch (error) {
+      console.error("Error starting recording:", error);
+      toast({
+        title: "Microphone access denied",
+        description: "Please allow microphone access to record voice messages.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const stopRecording = () => {
+    if (recordingIntervalRef.current) {
+      clearInterval(recordingIntervalRef.current);
+      recordingIntervalRef.current = null;
+    }
+
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+    }
+
+    setIsRecording(false);
+    setRecordingTime(0);
+  };
+
+  const sendVoiceMessage = async () => {
+    if (!mediaRecorderRef.current) return;
+
+    mediaRecorderRef.current.onstop = async () => {
+      const audioBlob = new Blob(audioChunksRef.current, { 
+        type: MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4' 
+      });
+
+      if (audioBlob.size > 10 * 1024 * 1024) {
+        toast({
+          title: "Recording too long",
+          description: "Please record a shorter message.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setIsSending(true);
+      try {
+        const fileName = `${currentUserId}/${Date.now()}.webm`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('chat-media')
+          .upload(fileName, audioBlob);
+        
+        if (uploadError) throw uploadError;
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('chat-media')
+          .getPublicUrl(fileName);
+        
+        const { error } = await supabase.from("messages").insert({
+          sender_id: currentUserId,
+          receiver_id: match.liked_user_id,
+          content: `[VOICE]${publicUrl}`,
+        });
+
+        if (error) throw error;
+
+        await (supabase as any).from("notifications").insert({
+          user_id: match.liked_user_id,
+          type: "message",
+          title: "New Voice Message",
+          message: `You received a voice message from ${match.profile.display_name}`,
+          data: { match_id: match.id, sender_id: currentUserId },
+        });
+
+        onMessagesUpdate();
+        toast({
+          title: "Sent!",
+          description: "Your voice message has been sent.",
+        });
+      } catch (error: any) {
+        console.error("Upload error:", error);
+        toast({
+          title: "Upload failed",
+          description: error.message || "Failed to send voice message.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsSending(false);
+      }
+    };
+
+    stopRecording();
+  };
+
+  const formatRecordingTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const handleMediaUpload = async (type: 'image' | 'video' | 'audio') => {
     const input = document.createElement('input');
@@ -82,7 +275,6 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
       
-      // Check file size (10MB limit)
       if (file.size > 10 * 1024 * 1024) {
         toast({
           title: "File too large",
@@ -97,7 +289,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
         const fileExt = file.name.split('.').pop();
         const fileName = `${currentUserId}/${Date.now()}.${fileExt}`;
         
-        const { data: uploadData, error: uploadError } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
           .from('chat-media')
           .upload(fileName, file);
         
@@ -107,7 +299,6 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
           .from('chat-media')
           .getPublicUrl(fileName);
         
-        // Send message with media URL
         const mediaPrefix = type === 'image' ? '[IMAGE]' : type === 'video' ? '[VIDEO]' : '[AUDIO]';
         const { error } = await supabase.from("messages").insert({
           sender_id: currentUserId,
@@ -117,7 +308,6 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
 
         if (error) throw error;
 
-        // Create notification
         await (supabase as any).from("notifications").insert({
           user_id: match.liked_user_id,
           type: "message",
@@ -165,9 +355,10 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
   const markMessagesAsRead = async () => {
     if (!match) return;
 
+    const now = new Date().toISOString();
     await supabase
       .from("messages")
-      .update({ read: true })
+      .update({ read: true, read_at: now })
       .eq("sender_id", match.liked_user_id)
       .eq("receiver_id", currentUserId)
       .eq("read", false);
@@ -191,6 +382,32 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
         (payload) => {
           setMessages((current) => [...current, payload.new]);
           markMessagesAsRead();
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "messages",
+        },
+        (payload) => {
+          setMessages((current) =>
+            current.map((msg) =>
+              msg.id === payload.new.id ? payload.new : msg
+            )
+          );
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "message_reactions",
+        },
+        () => {
+          fetchReactions();
         }
       )
       .on("presence", { event: "sync" }, () => {
@@ -236,7 +453,6 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
 
       if (error) throw error;
 
-      // Create notification for receiver
       await (supabase as any).from("notifications").insert({
         user_id: match.liked_user_id,
         type: "message",
@@ -258,6 +474,31 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
       });
     } finally {
       setIsSending(false);
+    }
+  };
+
+  // Render read receipt status
+  const renderReadStatus = (message: any, isSender: boolean) => {
+    if (!isSender) return null;
+
+    if (message.read && message.read_at) {
+      return (
+        <span className="flex items-center gap-1 text-xs opacity-70" title={`Seen ${format(new Date(message.read_at), 'MMM d, h:mm a')}`}>
+          <CheckCheck className="h-3.5 w-3.5 text-blue-400" />
+        </span>
+      );
+    } else if (message.read) {
+      return (
+        <span className="flex items-center gap-1 text-xs opacity-70">
+          <CheckCheck className="h-3.5 w-3.5 text-blue-400" />
+        </span>
+      );
+    } else {
+      return (
+        <span className="flex items-center gap-1 text-xs opacity-50">
+          <Check className="h-3.5 w-3.5" />
+        </span>
+      );
     }
   };
 
@@ -283,7 +524,6 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
       {/* Chat Header */}
       <div className="p-4 border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-3">
-          {/* Back button for mobile */}
           <Button
             variant="ghost"
             size="icon"
@@ -311,55 +551,105 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
         {messages.map((message) => {
           const isSender = message.sender_id === currentUserId;
           const content = message.content;
+          const messageReactions = reactions[message.id] || [];
           
-          // Check for media messages
           const isImage = content.startsWith('[IMAGE]');
           const isVideo = content.startsWith('[VIDEO]');
           const isAudio = content.startsWith('[AUDIO]');
-          const mediaUrl = isImage ? content.slice(7) : isVideo ? content.slice(7) : isAudio ? content.slice(7) : null;
+          const isVoice = content.startsWith('[VOICE]');
+          const mediaUrl = isImage ? content.slice(7) : isVideo ? content.slice(7) : isAudio ? content.slice(7) : isVoice ? content.slice(7) : null;
           
           return (
             <div
               key={message.id}
-              className={`flex ${isSender ? "justify-end" : "justify-start"}`}
+              className={`flex ${isSender ? "justify-end" : "justify-start"} group`}
             >
-              <div
-                className={`max-w-[70%] rounded-2xl px-4 py-2 ${
-                  isSender
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-foreground"
-                }`}
-              >
-                {isImage && mediaUrl ? (
-                  <img 
-                    src={mediaUrl} 
-                    alt="Shared image" 
-                    className="max-w-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                    onClick={() => window.open(mediaUrl, '_blank')}
-                  />
-                ) : isVideo && mediaUrl ? (
-                  <video 
-                    src={mediaUrl} 
-                    controls 
-                    className="max-w-full rounded-lg"
-                  />
-                ) : isAudio && mediaUrl ? (
-                  <audio 
-                    src={mediaUrl} 
-                    controls 
-                    className="max-w-full"
-                  />
-                ) : (
-                  <p className="text-sm">{content}</p>
-                )}
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-xs opacity-70">
-                    {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
-                  </span>
-                  {isSender && message.read && (
-                    <span className="text-xs opacity-70">• Read</span>
+              <div className="relative">
+                <div
+                  className={`max-w-[70%] min-w-[120px] rounded-2xl px-4 py-2 ${
+                    isSender
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-foreground"
+                  }`}
+                >
+                  {isImage && mediaUrl ? (
+                    <img 
+                      src={mediaUrl} 
+                      alt="Shared image" 
+                      className="max-w-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                      onClick={() => window.open(mediaUrl, '_blank')}
+                    />
+                  ) : isVideo && mediaUrl ? (
+                    <video 
+                      src={mediaUrl} 
+                      controls 
+                      className="max-w-full rounded-lg"
+                    />
+                  ) : (isAudio || isVoice) && mediaUrl ? (
+                    <div className="flex items-center gap-2">
+                      <Mic className="h-4 w-4 flex-shrink-0" />
+                      <audio 
+                        src={mediaUrl} 
+                        controls 
+                        className="max-w-[200px] h-8"
+                      />
+                    </div>
+                  ) : (
+                    <p className="text-sm">{content}</p>
                   )}
+                  <div className="flex items-center justify-end gap-2 mt-1">
+                    <span className="text-xs opacity-70">
+                      {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
+                    </span>
+                    {renderReadStatus(message, isSender)}
+                  </div>
                 </div>
+
+                {/* Reactions display */}
+                {messageReactions.length > 0 && (
+                  <div className={`absolute -bottom-3 ${isSender ? 'right-2' : 'left-2'} flex gap-0.5 bg-card rounded-full px-1.5 py-0.5 shadow-md border border-border`}>
+                    {Object.entries(
+                      messageReactions.reduce((acc: Record<string, number>, r: any) => {
+                        acc[r.emoji] = (acc[r.emoji] || 0) + 1;
+                        return acc;
+                      }, {})
+                    ).map(([emoji, count]) => (
+                      <span key={emoji} className="text-xs flex items-center">
+                        {emoji}{(count as number) > 1 && <span className="ml-0.5 text-[10px] text-muted-foreground">{count as number}</span>}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Reaction button */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={`absolute ${isSender ? '-left-8' : '-right-8'} top-1/2 -translate-y-1/2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity bg-card border border-border shadow-sm`}
+                    >
+                      <Smile className="h-3.5 w-3.5" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-2" side={isSender ? "left" : "right"}>
+                    <div className="flex gap-1">
+                      {EMOJI_REACTIONS.map((emoji) => (
+                        <button
+                          key={emoji}
+                          onClick={() => handleAddReaction(message.id, emoji)}
+                          className={`text-lg hover:scale-125 transition-transform p-1 rounded ${
+                            messageReactions.some(r => r.user_id === currentUserId && r.emoji === emoji)
+                              ? 'bg-primary/20'
+                              : ''
+                          }`}
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
           );
@@ -402,93 +692,141 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
           </div>
         )}
 
-        <form onSubmit={handleSendMessage}>
-          <div className="flex gap-2 items-center">
-            {/* Media options toggle */}
-            <div className="relative">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className={`h-10 w-10 transition-all ${showMediaOptions ? 'bg-primary/10 text-primary' : ''}`}
-                onClick={() => setShowMediaOptions(!showMediaOptions)}
-                disabled={isSending}
-              >
-                {showMediaOptions ? <X className="h-5 w-5" /> : <Image className="h-5 w-5" />}
-              </Button>
-              
-              {/* Media options dropdown */}
-              {showMediaOptions && (
-                <div className="absolute bottom-full left-0 mb-2 bg-card border border-border rounded-lg shadow-lg p-2 flex flex-col gap-1 animate-fade-in z-10">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="justify-start gap-2"
-                    onClick={() => handleMediaUpload('image')}
-                    disabled={isSending}
-                  >
-                    <Image className="h-4 w-4 text-primary" />
-                    <span>Photo</span>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="justify-start gap-2"
-                    onClick={() => handleMediaUpload('video')}
-                    disabled={isSending}
-                  >
-                    <Video className="h-4 w-4 text-primary" />
-                    <span>Video</span>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="justify-start gap-2"
-                    onClick={() => handleMediaUpload('audio')}
-                    disabled={isSending}
-                  >
-                    <Mic className="h-4 w-4 text-primary" />
-                    <span>Audio</span>
-                  </Button>
-                </div>
-              )}
+        {/* Recording UI */}
+        {isRecording && (
+          <div className="flex items-center justify-between bg-destructive/10 rounded-lg px-4 py-3 animate-pulse">
+            <div className="flex items-center gap-3">
+              <div className="w-3 h-3 bg-destructive rounded-full animate-pulse" />
+              <span className="text-sm font-medium">Recording... {formatRecordingTime(recordingTime)}</span>
             </div>
-            
-            <div className="relative flex-1">
-              <Input
-                value={newMessage}
-                onChange={(e) => {
-                  setNewMessage(e.target.value);
-                  handleTyping();
-                }}
-                placeholder="Type a message..."
-                disabled={isSending}
-                className="pr-10"
-              />
-              {messages.length > 0 && (
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={stopRecording}
+                className="text-destructive"
+              >
+                <X className="h-4 w-4 mr-1" />
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={sendVoiceMessage}
+                className="bg-primary"
+              >
+                <Send className="h-4 w-4 mr-1" />
+                Send
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {!isRecording && (
+          <form onSubmit={handleSendMessage}>
+            <div className="flex gap-2 items-center">
+              {/* Media options toggle */}
+              <div className="relative">
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 hover:bg-primary/10"
-                  onClick={() => setShowIcebreakers(!showIcebreakers)}
+                  className={`h-10 w-10 transition-all ${showMediaOptions ? 'bg-primary/10 text-primary' : ''}`}
+                  onClick={() => setShowMediaOptions(!showMediaOptions)}
+                  disabled={isSending}
                 >
-                  <Sparkles className="h-4 w-4 text-primary" />
+                  {showMediaOptions ? <X className="h-5 w-5" /> : <Image className="h-5 w-5" />}
                 </Button>
-              )}
+                
+                {showMediaOptions && (
+                  <div className="absolute bottom-full left-0 mb-2 bg-card border border-border rounded-lg shadow-lg p-2 flex flex-col gap-1 animate-fade-in z-10">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="justify-start gap-2"
+                      onClick={() => handleMediaUpload('image')}
+                      disabled={isSending}
+                    >
+                      <Image className="h-4 w-4 text-primary" />
+                      <span>Photo</span>
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="justify-start gap-2"
+                      onClick={() => handleMediaUpload('video')}
+                      disabled={isSending}
+                    >
+                      <Video className="h-4 w-4 text-primary" />
+                      <span>Video</span>
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="justify-start gap-2"
+                      onClick={() => handleMediaUpload('audio')}
+                      disabled={isSending}
+                    >
+                      <Mic className="h-4 w-4 text-primary" />
+                      <span>Audio File</span>
+                    </Button>
+                  </div>
+                )}
+              </div>
+              
+              <div className="relative flex-1">
+                <Input
+                  value={newMessage}
+                  onChange={(e) => {
+                    setNewMessage(e.target.value);
+                    handleTyping();
+                  }}
+                  placeholder="Type a message..."
+                  disabled={isSending}
+                  className="pr-10"
+                />
+                {messages.length > 0 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 hover:bg-primary/10"
+                    onClick={() => setShowIcebreakers(!showIcebreakers)}
+                  >
+                    <Sparkles className="h-4 w-4 text-primary" />
+                  </Button>
+                )}
+              </div>
+
+              {/* Voice record button */}
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 hover:bg-primary/10"
+                onMouseDown={startRecording}
+                onMouseUp={sendVoiceMessage}
+                onMouseLeave={() => isRecording && stopRecording()}
+                onTouchStart={startRecording}
+                onTouchEnd={sendVoiceMessage}
+                disabled={isSending}
+                title="Hold to record"
+              >
+                <Mic className="h-5 w-5" />
+              </Button>
+
+              <Button 
+                type="submit" 
+                disabled={!newMessage.trim() || isSending} 
+                className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 shadow-lg hover:shadow-primary/50 transition-all"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
             </div>
-            <Button 
-              type="submit" 
-              disabled={!newMessage.trim() || isSending} 
-              className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 shadow-lg hover:shadow-primary/50 transition-all"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
-        </form>
+          </form>
+        )}
 
         {showIcebreakers && messages.length > 0 && (
           <div className="p-3 bg-muted/50 rounded-lg border animate-slide-up">
