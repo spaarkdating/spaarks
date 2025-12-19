@@ -472,11 +472,11 @@ const Auth = () => {
                     />
                     <label htmlFor="terms" className="text-sm text-muted-foreground leading-tight">
                       I agree to the{" "}
-                      <Link to="/terms-of-service" className="text-primary hover:underline font-medium">
+                      <Link to="/terms" className="text-primary hover:underline font-medium">
                         Terms of Service
                       </Link>{" "}
                       and{" "}
-                      <Link to="/privacy-policy" className="text-primary hover:underline font-medium">
+                      <Link to="/privacy" className="text-primary hover:underline font-medium">
                         Privacy Policy
                       </Link>
                     </label>
