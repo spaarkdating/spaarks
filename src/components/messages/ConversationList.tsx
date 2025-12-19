@@ -1,7 +1,7 @@
 import { formatDistanceToNow } from "date-fns";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, Image, Video, Mic } from "lucide-react";
 
 interface ConversationListProps {
   matches: any[];
@@ -9,6 +9,20 @@ interface ConversationListProps {
   onSelectMatch: (match: any) => void;
   currentUserId: string;
 }
+
+// Helper to format last message preview
+const formatMessagePreview = (content: string): { text: string; icon?: React.ReactNode } => {
+  if (content.startsWith('[IMAGE]')) {
+    return { text: 'Photo', icon: <Image className="h-3 w-3 inline mr-1" /> };
+  }
+  if (content.startsWith('[VIDEO]')) {
+    return { text: 'Video', icon: <Video className="h-3 w-3 inline mr-1" /> };
+  }
+  if (content.startsWith('[AUDIO]') || content.startsWith('[VOICE]')) {
+    return { text: 'Audio', icon: <Mic className="h-3 w-3 inline mr-1" /> };
+  }
+  return { text: content };
+};
 
 export const ConversationList = ({
   matches,
@@ -70,10 +84,16 @@ export const ConversationList = ({
                   )}
                 </div>
                 {lastMessage ? (
-                  <p className={`text-sm truncate ${isUnread ? "font-semibold text-foreground" : "text-muted-foreground"}`}>
-                    {lastMessage.sender_id === currentUserId ? "You: " : ""}
-                    {lastMessage.content}
-                  </p>
+                  (() => {
+                    const preview = formatMessagePreview(lastMessage.content);
+                    return (
+                      <p className={`text-sm truncate ${isUnread ? "font-semibold text-foreground" : "text-muted-foreground"}`}>
+                        {lastMessage.sender_id === currentUserId ? "You: " : ""}
+                        {preview.icon}
+                        {preview.text}
+                      </p>
+                    );
+                  })()
                 ) : (
                   <p className="text-sm text-muted-foreground">No messages yet</p>
                 )}
