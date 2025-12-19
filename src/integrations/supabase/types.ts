@@ -162,6 +162,27 @@ export type Database = {
           },
         ]
       }
+      founding_members: {
+        Row: {
+          created_at: string | null
+          id: string
+          order_number: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          order_number: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          order_number?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       id_card_verifications: {
         Row: {
           admin_notes: string | null
@@ -787,6 +808,63 @@ export type Database = {
           },
         ]
       }
+      subscription_plans: {
+        Row: {
+          active_matches_limit: number | null
+          audio_messages_per_day: number | null
+          can_send_images: boolean | null
+          can_send_video: boolean | null
+          can_send_voice: boolean | null
+          created_at: string | null
+          daily_swipes_limit: number | null
+          display_name: string
+          id: string
+          images_per_chat_per_day: number | null
+          messages_per_match_limit: number | null
+          name: Database["public"]["Enums"]["subscription_plan"]
+          price_inr: number
+          profile_views_limit: number | null
+          video_max_duration_seconds: number | null
+          videos_per_chat_per_day: number | null
+        }
+        Insert: {
+          active_matches_limit?: number | null
+          audio_messages_per_day?: number | null
+          can_send_images?: boolean | null
+          can_send_video?: boolean | null
+          can_send_voice?: boolean | null
+          created_at?: string | null
+          daily_swipes_limit?: number | null
+          display_name: string
+          id?: string
+          images_per_chat_per_day?: number | null
+          messages_per_match_limit?: number | null
+          name: Database["public"]["Enums"]["subscription_plan"]
+          price_inr?: number
+          profile_views_limit?: number | null
+          video_max_duration_seconds?: number | null
+          videos_per_chat_per_day?: number | null
+        }
+        Update: {
+          active_matches_limit?: number | null
+          audio_messages_per_day?: number | null
+          can_send_images?: boolean | null
+          can_send_video?: boolean | null
+          can_send_voice?: boolean | null
+          created_at?: string | null
+          daily_swipes_limit?: number | null
+          display_name?: string
+          id?: string
+          images_per_chat_per_day?: number | null
+          messages_per_match_limit?: number | null
+          name?: Database["public"]["Enums"]["subscription_plan"]
+          price_inr?: number
+          profile_views_limit?: number | null
+          video_max_duration_seconds?: number | null
+          videos_per_chat_per_day?: number | null
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           amount: number
@@ -975,6 +1053,39 @@ export type Database = {
           },
         ]
       }
+      usage_tracking: {
+        Row: {
+          audio_messages_sent: number | null
+          created_at: string | null
+          date: string
+          id: string
+          images_sent: Json | null
+          swipes_count: number | null
+          user_id: string
+          videos_sent: Json | null
+        }
+        Insert: {
+          audio_messages_sent?: number | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          images_sent?: Json | null
+          swipes_count?: number | null
+          user_id: string
+          videos_sent?: Json | null
+        }
+        Update: {
+          audio_messages_sent?: number | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          images_sent?: Json | null
+          swipes_count?: number | null
+          user_id?: string
+          videos_sent?: Json | null
+        }
+        Relationships: []
+      }
       user_interests: {
         Row: {
           created_at: string | null
@@ -1011,6 +1122,54 @@ export type Database = {
           },
         ]
       }
+      user_subscriptions: {
+        Row: {
+          cancelled_at: string | null
+          created_at: string | null
+          expires_at: string | null
+          founding_member_price_locked: number | null
+          id: string
+          is_founding_member: boolean | null
+          plan: Database["public"]["Enums"]["subscription_plan"]
+          razorpay_payment_id: string | null
+          razorpay_subscription_id: string | null
+          started_at: string | null
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          founding_member_price_locked?: number | null
+          id?: string
+          is_founding_member?: boolean | null
+          plan?: Database["public"]["Enums"]["subscription_plan"]
+          razorpay_payment_id?: string | null
+          razorpay_subscription_id?: string | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          founding_member_price_locked?: number | null
+          id?: string
+          is_founding_member?: boolean | null
+          plan?: Database["public"]["Enums"]["subscription_plan"]
+          razorpay_payment_id?: string | null
+          razorpay_subscription_id?: string | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -1020,8 +1179,13 @@ export type Database = {
         Args: { _user1_id: string; _user2_id: string }
         Returns: boolean
       }
+      check_founding_member_eligibility: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
       get_admin_role: { Args: never; Returns: string }
       get_public_stats: { Args: never; Returns: Json }
+      get_user_plan_limits: { Args: { p_user_id: string }; Returns: Json }
       has_active_boost: { Args: { user_profile_id: string }; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
       is_full_admin: { Args: never; Returns: boolean }
@@ -1045,6 +1209,7 @@ export type Database = {
         | "admin_delete"
         | "id_card_approved"
         | "id_card_rejected"
+      subscription_plan: "free" | "plus" | "pro" | "elite"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1187,6 +1352,7 @@ export const Constants = {
         "id_card_approved",
         "id_card_rejected",
       ],
+      subscription_plan: ["free", "plus", "pro", "elite"],
     },
   },
 } as const
