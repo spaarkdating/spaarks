@@ -565,12 +565,16 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
           fetchReactions();
         }
       )
-      .on("presence", { event: "sync" }, () => {
-        const state = channel.presenceState();
-        const otherUsers = Object.values(state).filter(
-          (presence: any) => presence[0]?.user_id !== currentUserId
-        );
-        setIsTyping(otherUsers.some((user: any) => user[0]?.typing));
+      .on("broadcast", { event: "typing" }, (payload) => {
+        // Handle typing indicator from other user
+        if (payload.payload?.user_id !== currentUserId) {
+          setIsTyping(payload.payload?.isTyping ?? false);
+          
+          // Auto-hide typing indicator after 3 seconds
+          if (payload.payload?.isTyping) {
+            setTimeout(() => setIsTyping(false), 3000);
+          }
+        }
       })
       .subscribe();
 
@@ -579,7 +583,12 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
 
   const handleTyping = () => {
     if (channelRef.current) {
-      channelRef.current.track({ user_id: currentUserId, typing: true });
+      // Broadcast typing status to the other user
+      channelRef.current.send({
+        type: "broadcast",
+        event: "typing",
+        payload: { user_id: currentUserId, isTyping: true },
+      });
 
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
@@ -587,9 +596,13 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
 
       typingTimeoutRef.current = setTimeout(() => {
         if (channelRef.current) {
-          channelRef.current.track({ user_id: currentUserId, typing: false });
+          channelRef.current.send({
+            type: "broadcast",
+            event: "typing",
+            payload: { user_id: currentUserId, isTyping: false },
+          });
         }
-      }, 1000);
+      }, 1500);
     }
   };
 
