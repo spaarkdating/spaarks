@@ -162,6 +162,92 @@ export type Database = {
           },
         ]
       }
+      coupon_usage: {
+        Row: {
+          coupon_id: string
+          discount_amount: number
+          id: string
+          order_amount: number
+          used_at: string
+          user_id: string
+        }
+        Insert: {
+          coupon_id: string
+          discount_amount: number
+          id?: string
+          order_amount: number
+          used_at?: string
+          user_id: string
+        }
+        Update: {
+          coupon_id?: string
+          discount_amount?: number
+          id?: string
+          order_amount?: number
+          used_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_usage_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupons: {
+        Row: {
+          applicable_plans: string[] | null
+          code: string
+          created_at: string
+          created_by: string | null
+          current_uses: number | null
+          description: string | null
+          discount_type: string
+          discount_value: number
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          max_uses: number | null
+          min_plan: string | null
+          starts_at: string | null
+        }
+        Insert: {
+          applicable_plans?: string[] | null
+          code: string
+          created_at?: string
+          created_by?: string | null
+          current_uses?: number | null
+          description?: string | null
+          discount_type: string
+          discount_value: number
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          min_plan?: string | null
+          starts_at?: string | null
+        }
+        Update: {
+          applicable_plans?: string[] | null
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          current_uses?: number | null
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          min_plan?: string | null
+          starts_at?: string | null
+        }
+        Relationships: []
+      }
       founding_members: {
         Row: {
           created_at: string | null
@@ -1187,12 +1273,20 @@ export type Database = {
       get_public_stats: { Args: never; Returns: Json }
       get_user_plan_limits: { Args: { p_user_id: string }; Returns: Json }
       has_active_boost: { Args: { user_profile_id: string }; Returns: boolean }
+      increment_coupon_usage: {
+        Args: { p_coupon_id: string }
+        Returns: undefined
+      }
       is_admin: { Args: never; Returns: boolean }
       is_full_admin: { Args: never; Returns: boolean }
       is_moderator: { Args: never; Returns: boolean }
       is_super_admin: { Args: never; Returns: boolean }
       is_support: { Args: never; Returns: boolean }
       update_last_online: { Args: never; Returns: undefined }
+      validate_coupon: {
+        Args: { p_code: string; p_plan: string; p_user_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       admin_action_type:
