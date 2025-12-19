@@ -163,9 +163,10 @@ Color Scheme:
     background: hsl(var(--background));
     background-attachment: fixed;
     scroll-behavior: smooth;
+    position: relative;
   }
   
-  /* Subtle logo pattern overlay with animation */
+  /* Elegant floating hearts pattern - CSS based */
   body::before {
     content: '';
     position: fixed;
@@ -173,16 +174,24 @@ Color Scheme:
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: url('/logo.png');
-    background-size: 80px 80px;
-    background-repeat: repeat;
-    opacity: 0.08;
     pointer-events: none;
     z-index: 0;
-    animation: logo-float 30s ease-in-out infinite, logo-pulse 4s ease-in-out infinite;
+    opacity: 0.04;
+    background-image: 
+      radial-gradient(ellipse 12px 12px at 10% 20%, hsl(var(--primary)) 0%, transparent 70%),
+      radial-gradient(ellipse 8px 8px at 25% 60%, hsl(var(--primary)) 0%, transparent 70%),
+      radial-gradient(ellipse 15px 15px at 40% 35%, hsl(var(--primary)) 0%, transparent 70%),
+      radial-gradient(ellipse 10px 10px at 55% 80%, hsl(var(--primary)) 0%, transparent 70%),
+      radial-gradient(ellipse 12px 12px at 70% 15%, hsl(var(--primary)) 0%, transparent 70%),
+      radial-gradient(ellipse 9px 9px at 85% 50%, hsl(var(--primary)) 0%, transparent 70%),
+      radial-gradient(ellipse 14px 14px at 95% 85%, hsl(var(--primary)) 0%, transparent 70%),
+      radial-gradient(ellipse 11px 11px at 15% 90%, hsl(var(--primary)) 0%, transparent 70%),
+      radial-gradient(ellipse 13px 13px at 60% 10%, hsl(var(--primary)) 0%, transparent 70%),
+      radial-gradient(ellipse 10px 10px at 30% 45%, hsl(var(--primary)) 0%, transparent 70%);
+    animation: subtle-drift 40s ease-in-out infinite;
   }
   
-  /* Secondary animated logo layer */
+  /* Secondary soft gradient overlay */
   body::after {
     content: '';
     position: fixed;
@@ -190,14 +199,37 @@ Color Scheme:
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: url('/logo.png');
-    background-size: 120px 120px;
-    background-repeat: repeat;
-    background-position: 40px 40px;
-    opacity: 0.05;
     pointer-events: none;
     z-index: 0;
-    animation: logo-float-reverse 25s ease-in-out infinite, logo-scale 6s ease-in-out infinite;
+    background: 
+      radial-gradient(circle at 20% 20%, hsla(var(--primary), 0.03) 0%, transparent 40%),
+      radial-gradient(circle at 80% 80%, hsla(var(--secondary), 0.03) 0%, transparent 40%),
+      radial-gradient(circle at 50% 50%, hsla(var(--accent), 0.02) 0%, transparent 60%);
+    animation: gentle-pulse 20s ease-in-out infinite alternate;
+  }
+  
+  @keyframes subtle-drift {
+    0%, 100% {
+      transform: translateX(0) translateY(0);
+    }
+    25% {
+      transform: translateX(10px) translateY(5px);
+    }
+    50% {
+      transform: translateX(-5px) translateY(10px);
+    }
+    75% {
+      transform: translateX(-10px) translateY(-5px);
+    }
+  }
+  
+  @keyframes gentle-pulse {
+    0% {
+      opacity: 0.5;
+    }
+    100% {
+      opacity: 0.8;
+    }
   }
 }
 
