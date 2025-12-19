@@ -1,33 +1,37 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, MessageCircle, Sparkles } from "lucide-react";
+import { Send, MessageCircle, Sparkles, Image, Video, Mic, X, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { getRandomIcebreakers } from "@/data/icebreakers";
-
+import { useNavigate } from "react-router-dom";
 interface ChatWindowProps {
   match: any;
   currentUserId: string;
   onMessagesUpdate: () => void;
+  onBack?: () => void;
 }
 
-export const ChatWindow = ({ match, currentUserId, onMessagesUpdate }: ChatWindowProps) => {
+export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: ChatWindowProps) => {
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [showIcebreakers, setShowIcebreakers] = useState(false);
   const [icebreakers, setIcebreakers] = useState<string[]>([]);
+  const [showMediaOptions, setShowMediaOptions] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   const channelRef = useRef<RealtimeChannel | null>(null);
+  const initialScrollDone = useRef(false);
   const { toast } = useToast();
   const { showNotification } = useNotifications();
-
+  const navigate = useNavigate();
   useEffect(() => {
     if (!match) return;
 
@@ -47,11 +51,100 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate }: ChatWindo
   }, [match]);
 
   useEffect(() => {
-    scrollToBottom();
+    // Only auto-scroll after initial load or when new messages arrive
+    if (messages.length > 0) {
+      if (!initialScrollDone.current) {
+        // First load - scroll instantly without animation
+        messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
+        initialScrollDone.current = true;
+      } else {
+        // Subsequent messages - smooth scroll
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }
+    }
   }, [messages]);
 
-  const scrollToBottom = () => {
+  // Reset initial scroll flag when match changes
+  useEffect(() => {
+    initialScrollDone.current = false;
+  }, [match?.id]);
+
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, []);
+
+  const handleMediaUpload = async (type: 'image' | 'video' | 'audio') => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = type === 'image' ? 'image/*' : type === 'video' ? 'video/*' : 'audio/*';
+    
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      
+      // Check file size (10MB limit)
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please select a file under 10MB",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setIsSending(true);
+      try {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${currentUserId}/${Date.now()}.${fileExt}`;
+        
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('chat-media')
+          .upload(fileName, file);
+        
+        if (uploadError) throw uploadError;
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('chat-media')
+          .getPublicUrl(fileName);
+        
+        // Send message with media URL
+        const mediaPrefix = type === 'image' ? '[IMAGE]' : type === 'video' ? '[VIDEO]' : '[AUDIO]';
+        const { error } = await supabase.from("messages").insert({
+          sender_id: currentUserId,
+          receiver_id: match.liked_user_id,
+          content: `${mediaPrefix}${publicUrl}`,
+        });
+
+        if (error) throw error;
+
+        // Create notification
+        await (supabase as any).from("notifications").insert({
+          user_id: match.liked_user_id,
+          type: "message",
+          title: "New Message",
+          message: `You received a ${type} from ${match.profile.display_name}`,
+          data: { match_id: match.id, sender_id: currentUserId },
+        });
+
+        onMessagesUpdate();
+        toast({
+          title: "Sent!",
+          description: `Your ${type} has been sent.`,
+        });
+      } catch (error: any) {
+        console.error("Upload error:", error);
+        toast({
+          title: "Upload failed",
+          description: error.message || "Failed to send media. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsSending(false);
+        setShowMediaOptions(false);
+      }
+    };
+    
+    input.click();
   };
 
   const fetchMessages = async () => {
@@ -190,6 +283,15 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate }: ChatWindo
       {/* Chat Header */}
       <div className="p-4 border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-3">
+          {/* Back button for mobile */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden h-9 w-9"
+            onClick={onBack}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
           <img
             src={photo}
             alt={profile.display_name}
@@ -205,9 +307,17 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate }: ChatWindo
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message) => {
           const isSender = message.sender_id === currentUserId;
+          const content = message.content;
+          
+          // Check for media messages
+          const isImage = content.startsWith('[IMAGE]');
+          const isVideo = content.startsWith('[VIDEO]');
+          const isAudio = content.startsWith('[AUDIO]');
+          const mediaUrl = isImage ? content.slice(7) : isVideo ? content.slice(7) : isAudio ? content.slice(7) : null;
+          
           return (
             <div
               key={message.id}
@@ -220,7 +330,28 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate }: ChatWindo
                     : "bg-muted text-foreground"
                 }`}
               >
-                <p className="text-sm">{message.content}</p>
+                {isImage && mediaUrl ? (
+                  <img 
+                    src={mediaUrl} 
+                    alt="Shared image" 
+                    className="max-w-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                    onClick={() => window.open(mediaUrl, '_blank')}
+                  />
+                ) : isVideo && mediaUrl ? (
+                  <video 
+                    src={mediaUrl} 
+                    controls 
+                    className="max-w-full rounded-lg"
+                  />
+                ) : isAudio && mediaUrl ? (
+                  <audio 
+                    src={mediaUrl} 
+                    controls 
+                    className="max-w-full"
+                  />
+                ) : (
+                  <p className="text-sm">{content}</p>
+                )}
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-xs opacity-70">
                     {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
@@ -272,7 +403,60 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate }: ChatWindo
         )}
 
         <form onSubmit={handleSendMessage}>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            {/* Media options toggle */}
+            <div className="relative">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className={`h-10 w-10 transition-all ${showMediaOptions ? 'bg-primary/10 text-primary' : ''}`}
+                onClick={() => setShowMediaOptions(!showMediaOptions)}
+                disabled={isSending}
+              >
+                {showMediaOptions ? <X className="h-5 w-5" /> : <Image className="h-5 w-5" />}
+              </Button>
+              
+              {/* Media options dropdown */}
+              {showMediaOptions && (
+                <div className="absolute bottom-full left-0 mb-2 bg-card border border-border rounded-lg shadow-lg p-2 flex flex-col gap-1 animate-fade-in z-10">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="justify-start gap-2"
+                    onClick={() => handleMediaUpload('image')}
+                    disabled={isSending}
+                  >
+                    <Image className="h-4 w-4 text-primary" />
+                    <span>Photo</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="justify-start gap-2"
+                    onClick={() => handleMediaUpload('video')}
+                    disabled={isSending}
+                  >
+                    <Video className="h-4 w-4 text-primary" />
+                    <span>Video</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="justify-start gap-2"
+                    onClick={() => handleMediaUpload('audio')}
+                    disabled={isSending}
+                  >
+                    <Mic className="h-4 w-4 text-primary" />
+                    <span>Audio</span>
+                  </Button>
+                </div>
+              )}
+            </div>
+            
             <div className="relative flex-1">
               <Input
                 value={newMessage}

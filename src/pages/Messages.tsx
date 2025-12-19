@@ -269,11 +269,15 @@ const Messages = () => {
               currentUserId={user.id}
             />
           </div>
-          <div className={selectedMatch ? "block" : "hidden md:block"}>
+          <div className={selectedMatch ? "block h-full" : "hidden md:block h-full"}>
             <ChatWindow
               match={selectedMatch}
               currentUserId={user.id}
               onMessagesUpdate={() => fetchMatches(user.id)}
+              onBack={() => {
+                setSelectedMatch(null);
+                setSearchParams({});
+              }}
             />
           </div>
         </div>
