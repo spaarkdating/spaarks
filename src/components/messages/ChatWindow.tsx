@@ -713,11 +713,10 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
           const isDeletedForEveryone = message.deleted_for_everyone;
           const wasDeletedByMe = message.deleted_by === currentUserId;
           
-          // Hide message if deleted for everyone, or show "deleted" placeholder
+          // Handle deleted messages
           if (isDeleted) {
             // If deleted for everyone, show placeholder for both users
-            // If deleted only for sender, only sender sees placeholder
-            if (isDeletedForEveryone || wasDeletedByMe) {
+            if (isDeletedForEveryone) {
               return (
                 <div
                   key={message.id}
@@ -732,7 +731,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
                   >
                     <p className="text-sm italic flex items-center gap-2">
                       <Trash2 className="h-3 w-3" />
-                      {isDeletedForEveryone ? "This message was deleted" : "You deleted this message"}
+                      This message was deleted
                     </p>
                     <span className="text-xs opacity-50">
                       {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
@@ -741,10 +740,13 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
                 </div>
               );
             }
-            // If not deleted for everyone and not deleted by current user, skip
-            if (!isDeletedForEveryone && !wasDeletedByMe) {
-              // Show nothing - the other user deleted it only for themselves
+            
+            // If deleted only for me (not for everyone), hide completely
+            if (wasDeletedByMe) {
+              return null;
             }
+            
+            // If someone else deleted for themselves only, show normal message to me
           }
           
           const isImage = content.startsWith('[IMAGE]');
