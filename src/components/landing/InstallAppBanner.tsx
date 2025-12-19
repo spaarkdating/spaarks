@@ -49,17 +49,21 @@ export function InstallAppBanner() {
         </Button>
       ) : isIOS ? (
         <div className="text-sm text-muted-foreground">
-          <p className="mb-2">To install on iOS:</p>
+          <p className="mb-2 font-medium">To install on iOS:</p>
           <ol className="text-left space-y-1 pl-4">
-            <li>1. Tap the <strong>Share</strong> button</li>
+            <li>1. Tap the <strong>Share</strong> button (square with arrow)</li>
             <li>2. Scroll and tap <strong>Add to Home Screen</strong></li>
-            <li>3. Tap <strong>Add</strong> to install</li>
+            <li>3. Tap <strong>Add</strong> to confirm</li>
           </ol>
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground">
-          Open this site in Chrome or Safari to install
-        </p>
+        <div className="text-sm text-muted-foreground">
+          <p className="mb-2">To install on Android/Desktop:</p>
+          <ol className="text-left space-y-1 pl-4">
+            <li>1. Tap the <strong>menu (⋮)</strong> in Chrome</li>
+            <li>2. Select <strong>Install app</strong> or <strong>Add to Home Screen</strong></li>
+          </ol>
+        </div>
       )}
     </motion.div>
   );
