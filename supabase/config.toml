@@ -83,3 +83,6 @@ verify_jwt = false
 
 [functions.send-verification-email]
 verify_jwt = true
+
+[functions.razorpay-checkout]
+verify_jwt = true
