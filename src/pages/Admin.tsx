@@ -16,6 +16,7 @@ import AdminRoleManagement from "@/components/admin/AdminRoleManagement";
 import { TestimonialManagement } from "@/components/admin/TestimonialManagement";
 import { NewsletterManagement } from "@/components/admin/NewsletterManagement";
 import { NewsletterHistory } from "@/components/admin/NewsletterHistory";
+import { CouponManagement } from "@/components/admin/CouponManagement";
 import { IdCardVerification } from "@/components/admin/IdCardVerification";
 import DangerZone from "@/components/admin/DangerZone";
 import { useToast } from "@/hooks/use-toast";
@@ -155,6 +156,7 @@ const Admin = () => {
               <TabsContent value="testimonials"><TestimonialManagement /></TabsContent>
               <TabsContent value="newsletter">
                 <div className="space-y-6">
+                  <CouponManagement />
                   <NewsletterManagement />
                   <NewsletterHistory />
                 </div>
