@@ -58,6 +58,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [messageToDelete, setMessageToDelete] = useState<any>(null);
   const [deleteForEveryone, setDeleteForEveryone] = useState(false);
+  const [pendingMedia, setPendingMedia] = useState<{ file: File; type: 'image' | 'video' | 'audio'; preview: string } | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -90,15 +91,14 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
   }, [match]);
 
   useEffect(() => {
-    if (messages.length > 0) {
-      if (!initialScrollDone.current) {
+    if (messages.length > 0 && !initialScrollDone.current) {
+      // Only auto-scroll on initial load
+      setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
         initialScrollDone.current = true;
-      } else {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      }
+      }, 100);
     }
-  }, [messages]);
+  }, [messages.length > 0]);
 
   useEffect(() => {
     initialScrollDone.current = false;
@@ -373,57 +373,81 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
         return;
       }
 
-      setIsSending(true);
-      try {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${currentUserId}/${Date.now()}.${fileExt}`;
-        
-        const { error: uploadError } = await supabase.storage
-          .from('chat-media')
-          .upload(fileName, file);
-        
-        if (uploadError) throw uploadError;
-        
-        const { data: { publicUrl } } = supabase.storage
-          .from('chat-media')
-          .getPublicUrl(fileName);
-        
-        const mediaPrefix = type === 'image' ? '[IMAGE]' : type === 'video' ? '[VIDEO]' : '[AUDIO]';
-        const { error } = await supabase.from("messages").insert({
-          sender_id: currentUserId,
-          receiver_id: match.liked_user_id,
-          content: `${mediaPrefix}${publicUrl}`,
-        });
-
-        if (error) throw error;
-
-        await (supabase as any).from("notifications").insert({
-          user_id: match.liked_user_id,
-          type: "message",
-          title: "New Message",
-          message: `You received a ${type} from ${match.profile.display_name}`,
-          data: { match_id: match.id, sender_id: currentUserId },
-        });
-
-        onMessagesUpdate();
-        toast({
-          title: "Sent!",
-          description: `Your ${type} has been sent.`,
-        });
-      } catch (error: any) {
-        console.error("Upload error:", error);
-        toast({
-          title: "Upload failed",
-          description: error.message || "Failed to send media. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsSending(false);
-        setShowMediaOptions(false);
-      }
+      // Create preview and show confirmation dialog
+      const preview = URL.createObjectURL(file);
+      setPendingMedia({ file, type, preview });
+      setShowMediaOptions(false);
     };
     
     input.click();
+  };
+
+  const cancelMediaSend = () => {
+    if (pendingMedia?.preview) {
+      URL.revokeObjectURL(pendingMedia.preview);
+    }
+    setPendingMedia(null);
+  };
+
+  const confirmMediaSend = async () => {
+    if (!pendingMedia) return;
+
+    setIsSending(true);
+    try {
+      const fileExt = pendingMedia.file.name.split('.').pop();
+      const fileName = `${currentUserId}/${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('chat-media')
+        .upload(fileName, pendingMedia.file);
+      
+      if (uploadError) throw uploadError;
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('chat-media')
+        .getPublicUrl(fileName);
+      
+      const mediaPrefix = pendingMedia.type === 'image' ? '[IMAGE]' : pendingMedia.type === 'video' ? '[VIDEO]' : '[AUDIO]';
+      const { error } = await supabase.from("messages").insert({
+        sender_id: currentUserId,
+        receiver_id: match.liked_user_id,
+        content: `${mediaPrefix}${publicUrl}`,
+      });
+
+      if (error) throw error;
+
+      await (supabase as any).from("notifications").insert({
+        user_id: match.liked_user_id,
+        type: "message",
+        title: "New Message",
+        message: `You received a ${pendingMedia.type} from ${match.profile.display_name}`,
+        data: { match_id: match.id, sender_id: currentUserId },
+      });
+
+      // Scroll to bottom after sending
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 300);
+
+      onMessagesUpdate();
+      toast({
+        title: "Sent!",
+        description: `Your ${pendingMedia.type} has been sent.`,
+      });
+    } catch (error: any) {
+      console.error("Upload error:", error);
+      toast({
+        title: "Upload failed",
+        description: error.message || "Failed to send media. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSending(false);
+      if (pendingMedia?.preview) {
+        URL.revokeObjectURL(pendingMedia.preview);
+      }
+      setPendingMedia(null);
+    }
   };
 
   const fetchMessages = async () => {
@@ -690,11 +714,11 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
           return (
             <div
               key={message.id}
-              className={`flex ${isSender ? "justify-end" : "justify-start"} group`}
+              className={`flex w-full ${isSender ? "justify-end" : "justify-start"} group`}
             >
-              <div className="relative">
+              <div className={`relative max-w-[75%] md:max-w-[70%] ${isSender ? 'ml-auto' : 'mr-auto'}`}>
                 <div
-                  className={`max-w-[70%] min-w-[120px] rounded-2xl px-4 py-2 ${
+                  className={`rounded-2xl px-4 py-2 ${
                     isSender
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted text-foreground"
@@ -704,14 +728,14 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
                     <img 
                       src={mediaUrl} 
                       alt="Shared image" 
-                      className="max-w-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                      className="max-w-[250px] max-h-[300px] rounded-lg cursor-pointer hover:opacity-90 transition-opacity object-cover"
                       onClick={() => window.open(mediaUrl, '_blank')}
                     />
                   ) : isVideo && mediaUrl ? (
                     <video 
                       src={mediaUrl} 
                       controls 
-                      className="max-w-full rounded-lg"
+                      className="max-w-[250px] rounded-lg"
                     />
                   ) : (isAudio || isVoice) && mediaUrl ? (
                     <div className="flex items-center gap-2">
@@ -749,8 +773,8 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
                   </div>
                 )}
 
-                {/* Message actions (reaction + delete menu) */}
-                <div className={`absolute ${isSender ? '-left-16' : '-right-16'} top-1/2 -translate-y-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity`}>
+                {/* Message actions (reaction + delete menu) - positioned inside message bubble for mobile */}
+                <div className={`absolute ${isSender ? 'left-0 -translate-x-full pr-1' : 'right-0 translate-x-full pl-1'} top-1/2 -translate-y-1/2 flex gap-1 opacity-0 group-hover:opacity-100 md:group-hover:opacity-100 transition-opacity`}>
                   {/* Reaction button */}
                   <Popover>
                     <PopoverTrigger asChild>
@@ -762,7 +786,13 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
                         <Smile className="h-3.5 w-3.5" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-2" side={isSender ? "left" : "right"}>
+                    <PopoverContent 
+                      className="w-auto p-2 z-50" 
+                      side="top" 
+                      align="center"
+                      sideOffset={5}
+                      collisionPadding={16}
+                    >
                       <div className="flex gap-1">
                         {EMOJI_REACTIONS.map((emoji) => (
                           <button
@@ -792,7 +822,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
                         <MoreVertical className="h-3.5 w-3.5" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align={isSender ? "end" : "start"}>
+                    <DropdownMenuContent align={isSender ? "end" : "start"} className="z-50">
                       <DropdownMenuItem
                         onClick={() => openDeleteDialog(message, false)}
                         className="text-destructive focus:text-destructive"
@@ -968,11 +998,25 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
                 variant="ghost"
                 size="icon"
                 className="h-10 w-10 hover:bg-primary/10"
-                onMouseDown={startRecording}
-                onMouseUp={sendVoiceMessage}
-                onMouseLeave={() => isRecording && stopRecording()}
-                onTouchStart={startRecording}
-                onTouchEnd={sendVoiceMessage}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  startRecording();
+                }}
+                onMouseUp={(e) => {
+                  e.preventDefault();
+                  if (isRecording) sendVoiceMessage();
+                }}
+                onMouseLeave={() => {
+                  if (isRecording) stopRecording();
+                }}
+                onTouchStart={(e) => {
+                  e.preventDefault();
+                  startRecording();
+                }}
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  if (isRecording) sendVoiceMessage();
+                }}
                 disabled={isSending}
                 title="Hold to record"
               >
@@ -1022,6 +1066,51 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
           </div>
         )}
       </div>
+
+      {/* Media Preview Confirmation Dialog */}
+      <AlertDialog open={!!pendingMedia} onOpenChange={(open) => !open && cancelMediaSend()}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Send {pendingMedia?.type}?</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <span className="block">Preview your {pendingMedia?.type} before sending:</span>
+              {pendingMedia?.type === 'image' && (
+                <img 
+                  src={pendingMedia.preview} 
+                  alt="Preview" 
+                  className="max-w-full max-h-[300px] rounded-lg mx-auto object-contain"
+                />
+              )}
+              {pendingMedia?.type === 'video' && (
+                <video 
+                  src={pendingMedia.preview} 
+                  controls 
+                  className="max-w-full max-h-[300px] rounded-lg mx-auto"
+                />
+              )}
+              {pendingMedia?.type === 'audio' && (
+                <audio 
+                  src={pendingMedia.preview} 
+                  controls 
+                  className="w-full"
+                />
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelMediaSend} disabled={isSending}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmMediaSend}
+              disabled={isSending}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              {isSending ? "Sending..." : "Send"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
