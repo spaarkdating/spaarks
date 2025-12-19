@@ -697,9 +697,11 @@ export type Database = {
           gender: string | null
           height: string | null
           id: string
+          instagram_handle: string | null
           last_online: string | null
           last_swipe_match_id: string | null
           last_swipe_timestamp: string | null
+          linkedin_handle: string | null
           location: string | null
           looking_for: string | null
           max_age: number | null
@@ -708,6 +710,8 @@ export type Database = {
           relationship_goal: string | null
           religion: string | null
           smoking: string | null
+          snapchat_handle: string | null
+          twitter_handle: string | null
           updated_at: string | null
           verification_status: string | null
         }
@@ -724,9 +728,11 @@ export type Database = {
           gender?: string | null
           height?: string | null
           id: string
+          instagram_handle?: string | null
           last_online?: string | null
           last_swipe_match_id?: string | null
           last_swipe_timestamp?: string | null
+          linkedin_handle?: string | null
           location?: string | null
           looking_for?: string | null
           max_age?: number | null
@@ -735,6 +741,8 @@ export type Database = {
           relationship_goal?: string | null
           religion?: string | null
           smoking?: string | null
+          snapchat_handle?: string | null
+          twitter_handle?: string | null
           updated_at?: string | null
           verification_status?: string | null
         }
@@ -751,9 +759,11 @@ export type Database = {
           gender?: string | null
           height?: string | null
           id?: string
+          instagram_handle?: string | null
           last_online?: string | null
           last_swipe_match_id?: string | null
           last_swipe_timestamp?: string | null
+          linkedin_handle?: string | null
           location?: string | null
           looking_for?: string | null
           max_age?: number | null
@@ -762,6 +772,8 @@ export type Database = {
           relationship_goal?: string | null
           religion?: string | null
           smoking?: string | null
+          snapchat_handle?: string | null
+          twitter_handle?: string | null
           updated_at?: string | null
           verification_status?: string | null
         }

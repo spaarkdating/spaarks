@@ -24,6 +24,7 @@ const Auth = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -39,6 +40,15 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!agreedToTerms) {
+      toast({
+        title: "Terms & Conditions",
+        description: "Please agree to the Terms of Service and Privacy Policy to continue",
+        variant: "destructive",
+      });
+      return;
+    }
     
     if (password !== confirmPassword) {
       toast({
@@ -450,11 +460,32 @@ const Auth = () => {
                       </button>
                     </div>
                   </div>
+
+                  {/* Terms and Conditions Checkbox */}
+                  <div className="flex items-start space-x-2">
+                    <input
+                      type="checkbox"
+                      id="terms"
+                      checked={agreedToTerms}
+                      onChange={(e) => setAgreedToTerms(e.target.checked)}
+                      className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                    />
+                    <label htmlFor="terms" className="text-sm text-muted-foreground leading-tight">
+                      I agree to the{" "}
+                      <Link to="/terms" className="text-primary hover:underline" target="_blank">
+                        Terms of Service
+                      </Link>{" "}
+                      and{" "}
+                      <Link to="/privacy" className="text-primary hover:underline" target="_blank">
+                        Privacy Policy
+                      </Link>
+                    </label>
+                  </div>
                   
                   <Button
                     type="submit"
                     className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground"
-                    disabled={isLoading}
+                    disabled={isLoading || !agreedToTerms}
                   >
                     {isLoading ? "Creating account..." : "Sign Up"}
                   </Button>
