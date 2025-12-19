@@ -188,7 +188,7 @@ const ViewProfile = () => {
 
         {/* Action Buttons */}
         {currentUserId !== id && (
-          <div className="fixed bottom-20 left-0 right-0 p-4 bg-background/80 backdrop-blur-lg border-t border-border">
+          <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-lg border-t border-border safe-area-bottom z-50">
             <div className="container mx-auto max-w-2xl flex gap-3">
               {isMatched ? (
                 <Button
