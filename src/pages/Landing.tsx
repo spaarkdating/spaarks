@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Heart, MessageCircle, Shield, Users, Star, Sparkles, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import logo from "@/assets/spaark-logo.png";
 import { MobileNav } from "@/components/navigation/MobileNav";
 import { Footer } from "@/components/Footer";
@@ -22,6 +23,8 @@ import profile6 from "@/assets/profile-6.jpg";
 
 const Landing = () => {
   const [stats, setStats] = useState({ users: 0, matches: 0 });
+  const [testimonials, setTestimonials] = useState<any[]>([]);
+  const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
 
   // Profile cards for the phone mockups - simulating real dating profiles
   const phoneProfiles = [
@@ -35,7 +38,17 @@ const Landing = () => {
 
   useEffect(() => {
     fetchStats();
+    fetchTestimonials();
   }, []);
+
+  useEffect(() => {
+    if (testimonials.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentTestimonialIndex((prev) => (prev + 1) % testimonials.length);
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [testimonials.length]);
 
   const fetchStats = async () => {
     try {
@@ -51,6 +64,26 @@ const Landing = () => {
       }
     } catch (error) {
       console.error("Error fetching stats:", error);
+    }
+  };
+
+  const fetchTestimonials = async () => {
+    try {
+      const { data, error } = await (supabase as any)
+        .from("testimonials")
+        .select(`
+          *,
+          user:profiles!testimonials_user_id_fkey(display_name),
+          partner:profiles!testimonials_partner_id_fkey(display_name)
+        `)
+        .eq("status", "approved")
+        .order("created_at", { ascending: false })
+        .limit(6);
+
+      if (error) throw error;
+      setTestimonials(data || []);
+    } catch (error) {
+      console.error("Error fetching testimonials:", error);
     }
   };
 
@@ -359,6 +392,106 @@ const Landing = () => {
           </div>
         </div>
       </section>
+
+      {/* Testimonials Section */}
+      {testimonials.length > 0 && (
+        <section className="py-20 bg-card/50">
+          <div className="container mx-auto px-4">
+            <motion.div 
+              className="text-center mb-12"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Success Stories</h2>
+              <p className="text-muted-foreground text-lg">Real love stories from real people</p>
+            </motion.div>
+
+            {/* Testimonials Carousel */}
+            <div className="relative max-w-4xl mx-auto">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentTestimonialIndex}
+                  initial={{ opacity: 0, x: 50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -50 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Card className="border-2 border-border/50 bg-card/80 backdrop-blur-sm">
+                    <CardContent className="p-8 md:p-12">
+                      {/* Rating Stars */}
+                      <div className="flex justify-center gap-1 mb-6">
+                        {[...Array(testimonials[currentTestimonialIndex]?.rating || 5)].map((_, i) => (
+                          <Star key={i} className="h-6 w-6 fill-primary text-primary" />
+                        ))}
+                      </div>
+
+                      {/* Story */}
+                      <p className="text-lg md:text-xl text-muted-foreground italic text-center mb-8 leading-relaxed">
+                        "{testimonials[currentTestimonialIndex]?.story}"
+                      </p>
+
+                      {/* Author */}
+                      <div className="flex items-center justify-center gap-4">
+                        <div className="flex -space-x-2">
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary border-2 border-background" />
+                          {testimonials[currentTestimonialIndex]?.partner && (
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-accent to-primary border-2 border-background" />
+                          )}
+                        </div>
+                        <div className="text-left">
+                          <p className="font-semibold text-foreground">
+                            {testimonials[currentTestimonialIndex]?.user?.display_name || "Anonymous"}
+                            {testimonials[currentTestimonialIndex]?.partner?.display_name && 
+                              ` & ${testimonials[currentTestimonialIndex]?.partner?.display_name}`}
+                          </p>
+                          {testimonials[currentTestimonialIndex]?.match_duration && (
+                            <p className="text-sm text-muted-foreground">
+                              {testimonials[currentTestimonialIndex]?.match_duration}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </AnimatePresence>
+
+              {/* Dots Indicator */}
+              {testimonials.length > 1 && (
+                <div className="flex justify-center gap-2 mt-6">
+                  {testimonials.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCurrentTestimonialIndex(idx)}
+                      className={`w-2 h-2 rounded-full transition-all ${
+                        idx === currentTestimonialIndex 
+                          ? "bg-primary w-6" 
+                          : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* View All Link */}
+            <motion.div 
+              className="text-center mt-8"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+            >
+              <Link to="/testimonials">
+                <Button variant="outline" className="rounded-full">
+                  View All Stories
+                  <ChevronRight className="ml-1 h-4 w-4" />
+                </Button>
+              </Link>
+            </motion.div>
+          </div>
+        </section>
+      )}
 
       {/* Newsletter Section */}
       <section className="py-16 bg-muted/30">
