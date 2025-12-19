@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ProfileView } from "@/components/profile/ProfileView";
+import { PhotoCarousel } from "@/components/profile/PhotoCarousel";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ArrowLeft, MessageCircle, Heart } from "lucide-react";
 import { toast } from "sonner";
 import ReportProfileDialog from "@/components/profile/ReportProfileDialog";
@@ -16,6 +18,8 @@ const ViewProfile = () => {
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isMatched, setIsMatched] = useState(false);
+  const [showPhotoCarousel, setShowPhotoCarousel] = useState(false);
+  const [carouselStartIndex, setCarouselStartIndex] = useState(0);
 
   useEffect(() => {
     const init = async () => {
@@ -184,6 +188,10 @@ const ViewProfile = () => {
           photos={photos}
           interests={interests}
           emailVerified={profile.verification_status === "approved"}
+          onPhotoClick={(index) => {
+            setCarouselStartIndex(index);
+            setShowPhotoCarousel(true);
+          }}
         />
 
         {/* Action Buttons */}
@@ -211,6 +219,17 @@ const ViewProfile = () => {
           </div>
         )}
       </div>
+
+      {/* Photo Carousel Dialog */}
+      <Dialog open={showPhotoCarousel} onOpenChange={setShowPhotoCarousel}>
+        <DialogContent className="max-w-4xl h-[80vh] p-0 bg-background/95">
+          <PhotoCarousel
+            photos={photos}
+            initialIndex={carouselStartIndex}
+            onClose={() => setShowPhotoCarousel(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

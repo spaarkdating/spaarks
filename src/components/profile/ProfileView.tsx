@@ -8,9 +8,11 @@ interface ProfileViewProps {
   photos: any[];
   interests: any[];
   emailVerified?: boolean;
+  showPhotos?: boolean;
+  onPhotoClick?: (index: number) => void;
 }
 
-export const ProfileView = ({ profile, photos, interests, emailVerified = false }: ProfileViewProps) => {
+export const ProfileView = ({ profile, photos, interests, emailVerified = false, showPhotos = true, onPhotoClick }: ProfileViewProps) => {
   const calculateAge = (dateOfBirth: string) => {
     const today = new Date();
     const birthDate = new Date(dateOfBirth);
@@ -26,28 +28,34 @@ export const ProfileView = ({ profile, photos, interests, emailVerified = false 
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Photos Grid */}
-      <Card>
-        <CardContent className="p-6">
-          <h2 className="text-xl font-semibold mb-4">Photos</h2>
-          <div className="grid grid-cols-3 gap-3">
-            {photos.map((photo, index) => (
-              <div key={photo.id} className="relative aspect-square group">
-                <img
-                  src={photo.photo_url}
-                  alt={`Photo ${index + 1}`}
-                  className="w-full h-full object-cover rounded-lg"
-                />
-                {index === 0 && (
-                  <div className="absolute bottom-2 left-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded">
-                    Primary
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Photos Grid - conditionally shown */}
+      {showPhotos && photos.length > 0 && (
+        <Card>
+          <CardContent className="p-6">
+            <h2 className="text-xl font-semibold mb-4">Photos</h2>
+            <div className="grid grid-cols-3 gap-3">
+              {photos.map((photo, index) => (
+                <div 
+                  key={photo.id} 
+                  className={`relative aspect-square group ${onPhotoClick ? 'cursor-pointer' : ''}`}
+                  onClick={() => onPhotoClick?.(index)}
+                >
+                  <img
+                    src={photo.photo_url}
+                    alt={`Photo ${index + 1}`}
+                    className={`w-full h-full object-cover rounded-lg ${onPhotoClick ? 'hover:opacity-90 transition-opacity' : ''}`}
+                  />
+                  {index === 0 && (
+                    <div className="absolute bottom-2 left-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded">
+                      Primary
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Basic Info */}
       <Card>

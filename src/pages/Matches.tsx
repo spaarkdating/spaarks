@@ -211,15 +211,28 @@ const Matches = () => {
   };
 
   const handleProfileClick = async (profile: any) => {
-    setSelectedProfile(profile);
+    // Fetch full profile details including all fields
+    const { data: fullProfile, error: profileError } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", profile.id)
+      .single();
     
-    // Fetch full profile details
+    if (profileError) {
+      console.error("Error fetching profile:", profileError);
+      setSelectedProfile(profile); // Fallback to partial data
+    } else {
+      setSelectedProfile(fullProfile);
+    }
+    
+    // Fetch photos
     const { data: photos } = await supabase
       .from("photos")
       .select("*")
       .eq("user_id", profile.id)
       .order("display_order");
     
+    // Fetch interests
     const { data: interests } = await supabase
       .from("user_interests")
       .select("interest:interests(*)")
@@ -446,6 +459,7 @@ const Matches = () => {
                 profile={selectedProfile}
                 photos={profilePhotos}
                 interests={profileInterests}
+                showPhotos={false}
               />
               
               <div className="flex gap-2">
@@ -471,14 +485,16 @@ const Matches = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Photo Carousel */}
-      {showPhotoCarousel && (
-        <PhotoCarousel
-          photos={profilePhotos}
-          initialIndex={carouselStartIndex}
-          onClose={() => setShowPhotoCarousel(false)}
-        />
-      )}
+      {/* Photo Carousel Dialog */}
+      <Dialog open={showPhotoCarousel} onOpenChange={setShowPhotoCarousel}>
+        <DialogContent className="max-w-4xl h-[80vh] p-0 bg-background/95">
+          <PhotoCarousel
+            photos={profilePhotos}
+            initialIndex={carouselStartIndex}
+            onClose={() => setShowPhotoCarousel(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
