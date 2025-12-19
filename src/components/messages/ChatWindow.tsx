@@ -314,7 +314,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
         
         const { error: uploadError } = await supabase.storage
           .from('chat-media')
-          .upload(fileName, audioBlob);
+          .upload(fileName, audioBlob, { contentType: mimeType });
         
         if (uploadError) throw uploadError;
         
@@ -408,7 +408,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
       
       const { error: uploadError } = await supabase.storage
         .from('chat-media')
-        .upload(fileName, pendingMedia.file);
+        .upload(fileName, pendingMedia.file, { contentType: pendingMedia.file.type || undefined });
       
       if (uploadError) throw uploadError;
       
@@ -1001,33 +1001,21 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
                 )}
               </div>
 
-              {/* Voice record button */}
+              {/* Voice record button (tap to start, then use the recording bar to send/cancel) */}
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="h-10 w-10 hover:bg-primary/10"
-                onMouseDown={(e) => {
+                className={`h-10 w-10 hover:bg-primary/10 ${isRecording ? 'bg-destructive/10 text-destructive' : ''}`}
+                onClick={async (e) => {
                   e.preventDefault();
-                  startRecording();
-                }}
-                onMouseUp={(e) => {
-                  e.preventDefault();
-                  if (isRecording) sendVoiceMessage();
-                }}
-                onMouseLeave={() => {
-                  if (isRecording) stopRecording();
-                }}
-                onTouchStart={(e) => {
-                  e.preventDefault();
-                  startRecording();
-                }}
-                onTouchEnd={(e) => {
-                  e.preventDefault();
-                  if (isRecording) sendVoiceMessage();
+                  if (isSending) return;
+                  if (!isRecording) {
+                    await startRecording();
+                  }
                 }}
                 disabled={isSending}
-                title="Hold to record"
+                title={isRecording ? "Recording…" : "Record voice message"}
               >
                 <Mic className="h-5 w-5" />
               </Button>
