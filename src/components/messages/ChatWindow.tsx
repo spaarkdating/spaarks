@@ -86,9 +86,12 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
       }
-      stopRecording();
+      // Only stop if we are currently recording (prevents "tap -> instantly stops" if match object identity changes)
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+        stopRecording();
+      }
     };
-  }, [match]);
+  }, [match?.id]);
 
   useEffect(() => {
     if (messages.length > 0 && !initialScrollDone.current) {
@@ -235,15 +238,29 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
   // Voice recording functions
   const startRecording = async () => {
     try {
+      if (!("mediaDevices" in navigator) || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("Microphone recording is not supported in this browser");
+      }
+      if (typeof MediaRecorder === "undefined") {
+        throw new Error("Audio recording is not supported in this browser");
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      // Use audio/mp4 as primary format (widely supported), fallback to ogg, then webm
-      const mimeType = MediaRecorder.isTypeSupported('audio/mp4') 
-        ? 'audio/mp4' 
-        : MediaRecorder.isTypeSupported('audio/ogg') 
-          ? 'audio/ogg' 
-          : 'audio/webm';
-      const mediaRecorder = new MediaRecorder(stream, { mimeType });
-      
+
+      // Pick a supported mimeType, but don't force one if none are supported (some browsers throw if you pass an unsupported type)
+      const preferredTypes = ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus", "audio/ogg", "audio/mp4"];
+      const pickedType = preferredTypes.find((t) => {
+        try {
+          return MediaRecorder.isTypeSupported(t);
+        } catch {
+          return false;
+        }
+      });
+
+      const mediaRecorder = pickedType
+        ? new MediaRecorder(stream, { mimeType: pickedType })
+        : new MediaRecorder(stream);
+
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
 
@@ -290,14 +307,13 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
     if (!mediaRecorderRef.current) return;
 
     mediaRecorderRef.current.onstop = async () => {
-      // Use the same mime type detection as startRecording
-      const mimeType = MediaRecorder.isTypeSupported('audio/mp4') 
-        ? 'audio/mp4' 
-        : MediaRecorder.isTypeSupported('audio/ogg') 
-          ? 'audio/ogg' 
-          : 'audio/webm';
+      const mimeType = mediaRecorderRef.current?.mimeType || "audio/webm";
       const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
-      const fileExt = mimeType.includes('mp4') ? 'mp4' : mimeType.includes('ogg') ? 'ogg' : 'webm';
+      const fileExt = mimeType.includes("mp4")
+        ? "mp4"
+        : mimeType.includes("ogg")
+          ? "ogg"
+          : "webm";
 
       if (audioBlob.size > 10 * 1024 * 1024) {
         toast({
