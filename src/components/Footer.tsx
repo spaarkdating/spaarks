@@ -30,10 +30,10 @@ const FacebookIcon = () => (
 
 export const Footer = () => {
   const socialLinks = [
-    { icon: InstagramIcon, href: "https://instagram.com/spaark_dating", label: "Instagram" },
-    { icon: TwitterIcon, href: "https://twitter.com/spaark_dating", label: "Twitter" },
-    { icon: FacebookIcon, href: "https://facebook.com/spaark_dating", label: "Facebook" },
-    { icon: LinkedInIcon, href: "https://linkedin.com/company/spaark", label: "LinkedIn" },
+    { icon: InstagramIcon, href: "https://www.instagram.com/spaark_dating", label: "Instagram" },
+    { icon: TwitterIcon, href: "https://x.com/spaark_dating", label: "X (Twitter)" },
+    { icon: FacebookIcon, href: "https://www.facebook.com/profile.php?id=spaark_dating", label: "Facebook" },
+    { icon: LinkedInIcon, href: "https://www.linkedin.com/company/spaark", label: "LinkedIn" },
   ];
   return (
     <footer className="bg-card border-t border-border mt-20">
