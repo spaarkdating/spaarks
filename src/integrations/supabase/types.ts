@@ -304,6 +304,9 @@ export type Database = {
         Row: {
           content: string
           created_at: string | null
+          deleted_at: string | null
+          deleted_by: string | null
+          deleted_for_everyone: boolean | null
           id: string
           read: boolean | null
           read_at: string | null
@@ -313,6 +316,9 @@ export type Database = {
         Insert: {
           content: string
           created_at?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          deleted_for_everyone?: boolean | null
           id?: string
           read?: boolean | null
           read_at?: string | null
@@ -322,6 +328,9 @@ export type Database = {
         Update: {
           content?: string
           created_at?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          deleted_for_everyone?: boolean | null
           id?: string
           read?: boolean | null
           read_at?: string | null

@@ -2,7 +2,23 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, MessageCircle, Sparkles, Image, Video, Mic, X, ArrowLeft, Check, CheckCheck, Smile } from "lucide-react";
+import { Send, MessageCircle, Sparkles, Image, Video, Mic, X, ArrowLeft, Check, CheckCheck, Smile, Trash2, MoreVertical } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/useNotifications";
 import { formatDistanceToNow, format } from "date-fns";
@@ -25,6 +41,9 @@ interface ChatWindowProps {
 // Common emoji reactions
 const EMOJI_REACTIONS = ["❤️", "😂", "😮", "😢", "😡", "👍"];
 
+// Delete for everyone time window (15 minutes in milliseconds)
+const DELETE_FOR_EVERYONE_WINDOW = 15 * 60 * 1000;
+
 export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: ChatWindowProps) => {
   const [messages, setMessages] = useState<any[]>([]);
   const [reactions, setReactions] = useState<Record<string, any[]>>({});
@@ -36,6 +55,9 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
   const [showMediaOptions, setShowMediaOptions] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [messageToDelete, setMessageToDelete] = useState<any>(null);
+  const [deleteForEveryone, setDeleteForEveryone] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -138,9 +160,76 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
       }
 
       fetchReactions();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error toggling reaction:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add reaction",
+        variant: "destructive",
+      });
     }
+  };
+
+  // Check if message can be deleted for everyone (within 15 min window)
+  const canDeleteForEveryone = (message: any) => {
+    if (message.sender_id !== currentUserId) return false;
+    const messageTime = new Date(message.created_at).getTime();
+    const now = Date.now();
+    return now - messageTime <= DELETE_FOR_EVERYONE_WINDOW;
+  };
+
+  // Handle delete message
+  const handleDeleteMessage = async () => {
+    if (!messageToDelete) return;
+
+    try {
+      const updateData: any = {
+        deleted_at: new Date().toISOString(),
+        deleted_by: currentUserId,
+      };
+
+      if (deleteForEveryone && canDeleteForEveryone(messageToDelete)) {
+        updateData.deleted_for_everyone = true;
+      }
+
+      const { error } = await supabase
+        .from("messages")
+        .update(updateData)
+        .eq("id", messageToDelete.id);
+
+      if (error) throw error;
+
+      // Update local state
+      setMessages(current =>
+        current.map(msg =>
+          msg.id === messageToDelete.id
+            ? { ...msg, ...updateData }
+            : msg
+        )
+      );
+
+      toast({
+        title: "Message deleted",
+        description: deleteForEveryone ? "Message deleted for everyone" : "Message deleted for you",
+      });
+    } catch (error: any) {
+      console.error("Error deleting message:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete message",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteDialogOpen(false);
+      setMessageToDelete(null);
+      setDeleteForEveryone(false);
+    }
+  };
+
+  const openDeleteDialog = (message: any, forEveryone: boolean = false) => {
+    setMessageToDelete(message);
+    setDeleteForEveryone(forEveryone);
+    setDeleteDialogOpen(true);
   };
 
   // Voice recording functions
@@ -553,6 +642,45 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
           const content = message.content;
           const messageReactions = reactions[message.id] || [];
           
+          // Check if message is deleted
+          const isDeleted = message.deleted_at !== null;
+          const isDeletedForEveryone = message.deleted_for_everyone;
+          const wasDeletedByMe = message.deleted_by === currentUserId;
+          
+          // Hide message if deleted for everyone, or show "deleted" placeholder
+          if (isDeleted) {
+            // If deleted for everyone, show placeholder for both users
+            // If deleted only for sender, only sender sees placeholder
+            if (isDeletedForEveryone || wasDeletedByMe) {
+              return (
+                <div
+                  key={message.id}
+                  className={`flex ${isSender ? "justify-end" : "justify-start"}`}
+                >
+                  <div
+                    className={`max-w-[70%] min-w-[120px] rounded-2xl px-4 py-2 ${
+                      isSender
+                        ? "bg-primary/30 text-primary-foreground/70"
+                        : "bg-muted/50 text-muted-foreground"
+                    } border border-dashed border-border`}
+                  >
+                    <p className="text-sm italic flex items-center gap-2">
+                      <Trash2 className="h-3 w-3" />
+                      {isDeletedForEveryone ? "This message was deleted" : "You deleted this message"}
+                    </p>
+                    <span className="text-xs opacity-50">
+                      {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
+                    </span>
+                  </div>
+                </div>
+              );
+            }
+            // If not deleted for everyone and not deleted by current user, skip
+            if (!isDeletedForEveryone && !wasDeletedByMe) {
+              // Show nothing - the other user deleted it only for themselves
+            }
+          }
+          
           const isImage = content.startsWith('[IMAGE]');
           const isVideo = content.startsWith('[VIDEO]');
           const isAudio = content.startsWith('[AUDIO]');
@@ -621,35 +749,69 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
                   </div>
                 )}
 
-                {/* Reaction button */}
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className={`absolute ${isSender ? '-left-8' : '-right-8'} top-1/2 -translate-y-1/2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity bg-card border border-border shadow-sm`}
-                    >
-                      <Smile className="h-3.5 w-3.5" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-2" side={isSender ? "left" : "right"}>
-                    <div className="flex gap-1">
-                      {EMOJI_REACTIONS.map((emoji) => (
-                        <button
-                          key={emoji}
-                          onClick={() => handleAddReaction(message.id, emoji)}
-                          className={`text-lg hover:scale-125 transition-transform p-1 rounded ${
-                            messageReactions.some(r => r.user_id === currentUserId && r.emoji === emoji)
-                              ? 'bg-primary/20'
-                              : ''
-                          }`}
+                {/* Message actions (reaction + delete menu) */}
+                <div className={`absolute ${isSender ? '-left-16' : '-right-16'} top-1/2 -translate-y-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity`}>
+                  {/* Reaction button */}
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 bg-card border border-border shadow-sm"
+                      >
+                        <Smile className="h-3.5 w-3.5" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-2" side={isSender ? "left" : "right"}>
+                      <div className="flex gap-1">
+                        {EMOJI_REACTIONS.map((emoji) => (
+                          <button
+                            key={emoji}
+                            onClick={() => handleAddReaction(message.id, emoji)}
+                            className={`text-lg hover:scale-125 transition-transform p-1 rounded ${
+                              messageReactions.some(r => r.user_id === currentUserId && r.emoji === emoji)
+                                ? 'bg-primary/20'
+                                : ''
+                            }`}
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+
+                  {/* Delete menu */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 bg-card border border-border shadow-sm"
+                      >
+                        <MoreVertical className="h-3.5 w-3.5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align={isSender ? "end" : "start"}>
+                      <DropdownMenuItem
+                        onClick={() => openDeleteDialog(message, false)}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete for me
+                      </DropdownMenuItem>
+                      {isSender && canDeleteForEveryone(message) && (
+                        <DropdownMenuItem
+                          onClick={() => openDeleteDialog(message, true)}
+                          className="text-destructive focus:text-destructive"
                         >
-                          {emoji}
-                        </button>
-                      ))}
-                    </div>
-                  </PopoverContent>
-                </Popover>
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete for everyone
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
             </div>
           );
@@ -860,6 +1022,35 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete message?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteForEveryone 
+                ? "This message will be deleted for everyone in this conversation. This action cannot be undone."
+                : "This message will be deleted for you. The other person will still be able to see it."
+              }
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setMessageToDelete(null);
+              setDeleteForEveryone(false);
+            }}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteMessage}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
