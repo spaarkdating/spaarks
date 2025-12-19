@@ -4,10 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Heart, MessageCircle, User as UserIcon, Settings, LogOut, RefreshCw, Eye, HelpCircle, Filter, Bell } from "lucide-react";
+import { Heart, MessageCircle, User as UserIcon, Settings, LogOut, RefreshCw, Eye, HelpCircle, Filter, Bell, Crown, Zap } from "lucide-react";
 import logo from "@/assets/spaark-logo.png";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useSubscription } from "@/hooks/useSubscription";
 import { SwipeCard } from "@/components/swipe/SwipeCard";
 import ReportProfileDialog from "@/components/profile/ReportProfileDialog";
 import { SwipeActions } from "@/components/swipe/SwipeActions";
@@ -54,6 +55,7 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   useNotifications();
+  const { checkSwipeLimit, incrementSwipeCount, checkActiveMatchesLimit, limits } = useSubscription();
 
   const handleRefresh = async () => {
     await fetchProfiles(user.id);
@@ -300,6 +302,42 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
     const isLike = direction === "right" || direction === "super";
     const currentProfileIndex = currentIndex;
 
+    // Check swipe limit before proceeding
+    const canSwipe = await checkSwipeLimit();
+    if (!canSwipe) {
+      toast({
+        title: "Daily swipe limit reached",
+        description: "Upgrade your plan for more swipes!",
+        variant: "destructive",
+        action: (
+          <Button variant="outline" size="sm" onClick={() => navigate('/pricing')}>
+            <Zap className="h-4 w-4 mr-1" />
+            Upgrade
+          </Button>
+        ),
+      });
+      return;
+    }
+
+    // Check active matches limit if this is a like
+    if (isLike) {
+      const canMatch = await checkActiveMatchesLimit();
+      if (!canMatch) {
+        toast({
+          title: "Match limit reached",
+          description: "You've reached your maximum active matches. Upgrade to match with more people!",
+          variant: "destructive",
+          action: (
+            <Button variant="outline" size="sm" onClick={() => navigate('/pricing')}>
+              <Crown className="h-4 w-4 mr-1" />
+              Upgrade
+            </Button>
+          ),
+        });
+        return;
+      }
+    }
+
     setLastSwipe(null);
     setCanRewind(false);
 
@@ -311,6 +349,9 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
       });
 
       if (error) throw error;
+
+      // Increment swipe count
+      await incrementSwipeCount();
 
       setLastSwipe({ matchId: likedProfile.id, profileIndex: currentProfileIndex });
       setCanRewind(true);

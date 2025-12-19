@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, MessageCircle, Sparkles, Image, Video, Mic, X, ArrowLeft, Check, CheckCheck, Smile, Trash2, MoreVertical } from "lucide-react";
+import { Send, MessageCircle, Sparkles, Image, Video, Mic, X, ArrowLeft, Check, CheckCheck, Smile, Trash2, MoreVertical, Crown, Zap } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useSubscription } from "@/hooks/useSubscription";
 import { formatDistanceToNow, format } from "date-fns";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { getRandomIcebreakers } from "@/data/icebreakers";
@@ -73,6 +74,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
   const initialScrollDone = useRef(false);
   const { toast } = useToast();
   const { showNotification } = useNotifications();
+  const { limits, checkMessageLimit, checkImageLimit, checkVideoLimit, checkAudioLimit } = useSubscription();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -308,6 +310,24 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
   };
 
   const sendVoiceMessage = async () => {
+    // Check audio limit first
+    const canSend = await checkAudioLimit();
+    if (!canSend) {
+      toast({
+        title: "Voice message limit reached",
+        description: limits?.can_send_voice ? "You've reached your daily voice message limit." : "Voice messages are not available on your plan.",
+        variant: "destructive",
+        action: (
+          <Button variant="outline" size="sm" onClick={() => navigate('/pricing')}>
+            <Crown className="h-4 w-4 mr-1" />
+            Upgrade
+          </Button>
+        ),
+      });
+      stopRecording();
+      return;
+    }
+    
     if (!mediaRecorderRef.current) return;
 
     mediaRecorderRef.current.onstop = async () => {
@@ -398,6 +418,57 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
   };
 
   const handleMediaUpload = async (type: 'image' | 'video' | 'audio') => {
+    // Check limits based on media type
+    if (type === 'image') {
+      const canSend = await checkImageLimit(match.liked_user_id);
+      if (!canSend) {
+        toast({
+          title: "Image limit reached",
+          description: limits?.can_send_images ? "You've reached your daily image limit for this chat." : "Image sharing is not available on your plan.",
+          variant: "destructive",
+          action: (
+            <Button variant="outline" size="sm" onClick={() => navigate('/pricing')}>
+              <Crown className="h-4 w-4 mr-1" />
+              Upgrade
+            </Button>
+          ),
+        });
+        return;
+      }
+    } else if (type === 'video') {
+      const canSend = await checkVideoLimit(match.liked_user_id);
+      if (!canSend) {
+        toast({
+          title: "Video limit reached",
+          description: limits?.can_send_video ? "You've reached your daily video limit for this chat." : "Video sharing is not available on your plan.",
+          variant: "destructive",
+          action: (
+            <Button variant="outline" size="sm" onClick={() => navigate('/pricing')}>
+              <Crown className="h-4 w-4 mr-1" />
+              Upgrade
+            </Button>
+          ),
+        });
+        return;
+      }
+    } else if (type === 'audio') {
+      const canSend = await checkAudioLimit();
+      if (!canSend) {
+        toast({
+          title: "Audio limit reached",
+          description: limits?.can_send_voice ? "You've reached your daily audio message limit." : "Voice messages are not available on your plan.",
+          variant: "destructive",
+          action: (
+            <Button variant="outline" size="sm" onClick={() => navigate('/pricing')}>
+              <Crown className="h-4 w-4 mr-1" />
+              Upgrade
+            </Button>
+          ),
+        });
+        return;
+      }
+    }
+
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = type === 'image' ? 'image/*' : type === 'video' ? 'video/*' : 'audio/*';
@@ -609,6 +680,23 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !match || isSending) return;
+
+    // Check message limit
+    const canSendMessage = await checkMessageLimit(match.id);
+    if (!canSendMessage) {
+      toast({
+        title: "Message limit reached",
+        description: "You've reached your message limit for this match. Upgrade for unlimited messaging!",
+        variant: "destructive",
+        action: (
+          <Button variant="outline" size="sm" onClick={() => navigate('/pricing')}>
+            <Zap className="h-4 w-4 mr-1" />
+            Upgrade
+          </Button>
+        ),
+      });
+      return;
+    }
 
     setIsSending(true);
 

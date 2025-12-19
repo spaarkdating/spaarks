@@ -9,9 +9,10 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Mail, User, LogOut, MessageSquare, Heart, Filter, Palette } from "lucide-react";
+import { ArrowLeft, Mail, User, LogOut, MessageSquare, Heart, Filter, Palette, CreditCard } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ThemeToggle } from "@/components/landing/ThemeToggle";
+import { SubscriptionManagement } from "@/components/settings/SubscriptionManagement";
 
 const Settings = () => {
   const [user, setUser] = useState<any>(null);
@@ -193,6 +194,9 @@ const Settings = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Subscription Management */}
+          <SubscriptionManagement />
 
           <Card className="shadow-xl border-2">
             <CardHeader>

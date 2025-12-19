@@ -1,7 +1,10 @@
+import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Calendar, Heart, CheckCircle, Instagram, Twitter, Linkedin } from "lucide-react";
 import { format } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import { FoundingMemberBadge } from "./FoundingMemberBadge";
 
 interface ProfileViewProps {
   profile: any;
@@ -13,6 +16,21 @@ interface ProfileViewProps {
 }
 
 export const ProfileView = ({ profile, photos, interests, emailVerified = false, showPhotos = true, onPhotoClick }: ProfileViewProps) => {
+  const [foundingMember, setFoundingMember] = useState<{ order_number: number } | null>(null);
+
+  useEffect(() => {
+    const checkFoundingMember = async () => {
+      if (!profile?.id) return;
+      const { data } = await supabase
+        .from('founding_members')
+        .select('order_number')
+        .eq('user_id', profile.id)
+        .single();
+      if (data) setFoundingMember(data);
+    };
+    checkFoundingMember();
+  }, [profile?.id]);
+
   const calculateAge = (dateOfBirth: string) => {
     const today = new Date();
     const birthDate = new Date(dateOfBirth);
@@ -62,15 +80,20 @@ export const ProfileView = ({ profile, photos, interests, emailVerified = false,
         <CardContent className="p-6">
           <div className="space-y-4">
             <div>
-              <h2 className="text-3xl font-bold mb-1 flex items-center gap-2">
-                <span>
-                  {profile.display_name}
-                  {age && <span className="text-muted-foreground">, {age}</span>}
-                </span>
-                {emailVerified && (
-                  <CheckCircle className="h-6 w-6 text-primary fill-primary" />
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-3xl font-bold flex items-center gap-2">
+                  <span>
+                    {profile.display_name}
+                    {age && <span className="text-muted-foreground">, {age}</span>}
+                  </span>
+                  {emailVerified && (
+                    <CheckCircle className="h-6 w-6 text-primary fill-primary" />
+                  )}
+                </h2>
+                {foundingMember && (
+                  <FoundingMemberBadge orderNumber={foundingMember.order_number} />
                 )}
-              </h2>
+              </div>
               <p className="text-muted-foreground capitalize">{profile.gender}</p>
             </div>
 
