@@ -42,10 +42,16 @@ interface Profile {
   email: string | null;
 }
 
+interface Photo {
+  id: string;
+  photo_url: string;
+  display_order: number;
+}
+
 export const IdCardVerification = () => {
-  const [verifications, setVerifications] = useState<(IdCardVerification & { profile?: Profile })[]>([]);
+  const [verifications, setVerifications] = useState<(IdCardVerification & { profile?: Profile; photos?: Photo[] })[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedVerification, setSelectedVerification] = useState<IdCardVerification | null>(null);
+  const [selectedVerification, setSelectedVerification] = useState<(IdCardVerification & { profile?: Profile; photos?: Photo[] }) | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
@@ -62,15 +68,22 @@ export const IdCardVerification = () => {
 
       if (error) throw error;
 
-      // Fetch profiles for each verification
+      // Fetch profiles and photos for each verification
       const verificationsWithProfiles = await Promise.all(
         (data || []).map(async (v) => {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("id, display_name, email")
-            .eq("id", v.user_id)
-            .maybeSingle();
-          return { ...v, profile };
+          const [profileRes, photosRes] = await Promise.all([
+            supabase
+              .from("profiles")
+              .select("id, display_name, email")
+              .eq("id", v.user_id)
+              .maybeSingle(),
+            supabase
+              .from("photos")
+              .select("id, photo_url, display_order")
+              .eq("user_id", v.user_id)
+              .order("display_order", { ascending: true })
+          ]);
+          return { ...v, profile: profileRes.data, photos: photosRes.data || [] };
         })
       );
 
@@ -105,7 +118,7 @@ export const IdCardVerification = () => {
     }
   };
 
-  const handleViewCard = async (verification: IdCardVerification) => {
+  const handleViewCard = async (verification: IdCardVerification & { profile?: Profile; photos?: Photo[] }) => {
     setSelectedVerification(verification);
     await loadIdCardImage(verification.card_url);
     setViewDialogOpen(true);
@@ -396,20 +409,51 @@ export const IdCardVerification = () => {
                 )}
               </div>
 
-              <div className="border rounded-lg p-4">
-                <p className="text-sm text-muted-foreground mb-2">ID Card Image:</p>
-                {imageUrl ? (
-                  <img
-                    src={imageUrl}
-                    alt="Student ID Card"
-                    className="max-h-96 w-full object-contain rounded"
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-48 bg-muted rounded">
-                    <Loader2 className="h-8 w-8 animate-spin" />
-                  </div>
-                )}
+              {/* Side by side comparison: Profile Photos and ID Card */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Profile Photos */}
+                <div className="border rounded-lg p-4">
+                  <p className="text-sm text-muted-foreground mb-2 font-medium">Profile Photos:</p>
+                  {selectedVerification.photos && selectedVerification.photos.length > 0 ? (
+                    <div className="grid grid-cols-2 gap-2">
+                      {selectedVerification.photos.slice(0, 4).map((photo, index) => (
+                        <img
+                          key={photo.id}
+                          src={photo.photo_url}
+                          alt={`Profile photo ${index + 1}`}
+                          className="w-full h-32 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
+                          onClick={() => window.open(photo.photo_url, '_blank')}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center h-32 bg-muted rounded text-muted-foreground text-sm">
+                      No profile photos
+                    </div>
+                  )}
+                </div>
+
+                {/* ID Card Image */}
+                <div className="border rounded-lg p-4">
+                  <p className="text-sm text-muted-foreground mb-2 font-medium">ID Card Image:</p>
+                  {imageUrl ? (
+                    <img
+                      src={imageUrl}
+                      alt="Student ID Card"
+                      className="max-h-64 w-full object-contain rounded cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => window.open(imageUrl, '_blank')}
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-32 bg-muted rounded">
+                      <Loader2 className="h-8 w-8 animate-spin" />
+                    </div>
+                  )}
+                </div>
               </div>
+
+              <p className="text-xs text-muted-foreground text-center">
+                Compare the face in profile photos with the ID card to verify identity. Click images to view full size.
+              </p>
 
               <DialogFooter className="gap-2">
                 {selectedVerification.status !== "rejected" && (
