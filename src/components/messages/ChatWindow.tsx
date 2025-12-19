@@ -236,9 +236,13 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4'
-      });
+      // Use audio/mp4 as primary format (widely supported), fallback to ogg, then webm
+      const mimeType = MediaRecorder.isTypeSupported('audio/mp4') 
+        ? 'audio/mp4' 
+        : MediaRecorder.isTypeSupported('audio/ogg') 
+          ? 'audio/ogg' 
+          : 'audio/webm';
+      const mediaRecorder = new MediaRecorder(stream, { mimeType });
       
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
@@ -286,9 +290,14 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
     if (!mediaRecorderRef.current) return;
 
     mediaRecorderRef.current.onstop = async () => {
-      const audioBlob = new Blob(audioChunksRef.current, { 
-        type: MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4' 
-      });
+      // Use the same mime type detection as startRecording
+      const mimeType = MediaRecorder.isTypeSupported('audio/mp4') 
+        ? 'audio/mp4' 
+        : MediaRecorder.isTypeSupported('audio/ogg') 
+          ? 'audio/ogg' 
+          : 'audio/webm';
+      const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+      const fileExt = mimeType.includes('mp4') ? 'mp4' : mimeType.includes('ogg') ? 'ogg' : 'webm';
 
       if (audioBlob.size > 10 * 1024 * 1024) {
         toast({
@@ -301,7 +310,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
 
       setIsSending(true);
       try {
-        const fileName = `${currentUserId}/${Date.now()}.webm`;
+        const fileName = `${currentUserId}/${Date.now()}.${fileExt}`;
         
         const { error: uploadError } = await supabase.storage
           .from('chat-media')
@@ -633,7 +642,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
   const photo = profile?.photos?.[0]?.photo_url || "/placeholder.svg";
 
   return (
-    <div className="bg-card rounded-2xl border border-border flex flex-col h-full relative overflow-hidden">
+    <div className="bg-card rounded-2xl border border-border flex flex-col h-full relative overflow-hidden pb-16 md:pb-0">
       {/* Chat Header */}
       <div className="p-4 border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-3">
