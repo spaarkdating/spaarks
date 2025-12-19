@@ -164,15 +164,7 @@ export const Footer = () => {
             ))}
           </div>
           <p className="text-[10px] sm:text-sm text-muted-foreground px-2 text-center">
-            © 2025 Spaark. All rights reserved. Made with{" "}
-            <motion.span
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ repeat: Infinity, duration: 1.5 }}
-              className="inline-block"
-            >
-              <Heart className="h-3 w-3 inline text-primary fill-primary" />
-            </motion.span>{" "}
-            by Saurabh Sharma, Aakanksha Singh & Mandhata Singh
+            © 2025 Spaark. All rights reserved.
           </p>
         </motion.div>
       </div>
