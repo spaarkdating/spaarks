@@ -17,12 +17,14 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["logo.png", "logo.jpeg"],
       manifest: {
+        id: "/",
         name: "Spaark - Find Your Perfect Match",
         short_name: "Spaark",
         description: "Discover meaningful connections on Spaark. Swipe, match, and chat with compatible singles.",
         theme_color: "#e11d48",
         background_color: "#0c0a09",
         display: "standalone",
+        display_override: ["standalone", "minimal-ui", "browser"],
         orientation: "portrait",
         scope: "/",
         start_url: "/",
@@ -31,21 +33,27 @@ export default defineConfig(({ mode }) => ({
             src: "/logo.png",
             sizes: "192x192",
             type: "image/png",
-            purpose: "any"
+            purpose: "any",
           },
           {
             src: "/logo.png",
             sizes: "512x512",
             type: "image/png",
-            purpose: "any"
+            purpose: "any",
           },
           {
             src: "/logo.png",
             sizes: "192x192",
             type: "image/png",
-            purpose: "maskable"
-          }
-        ]
+            purpose: "maskable",
+          },
+          {
+            src: "/logo.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
+          },
+        ],
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,jpg,jpeg,webp}"],
