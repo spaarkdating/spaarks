@@ -462,7 +462,7 @@ const Auth = () => {
                   </div>
 
                   {/* Terms and Conditions Checkbox */}
-                  <div className="flex items-start space-x-2">
+                  <div className="flex items-start space-x-3">
                     <input
                       type="checkbox"
                       id="terms"
@@ -472,11 +472,11 @@ const Auth = () => {
                     />
                     <label htmlFor="terms" className="text-sm text-muted-foreground leading-tight">
                       I agree to the{" "}
-                      <Link to="/terms" className="text-primary hover:underline" target="_blank">
+                      <Link to="/terms-of-service" className="text-primary hover:underline font-medium">
                         Terms of Service
                       </Link>{" "}
                       and{" "}
-                      <Link to="/privacy" className="text-primary hover:underline" target="_blank">
+                      <Link to="/privacy-policy" className="text-primary hover:underline font-medium">
                         Privacy Policy
                       </Link>
                     </label>
