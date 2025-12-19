@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ThemeToggle } from "@/components/landing/ThemeToggle";
 import { ChatbotWidget } from "@/components/landing/ChatbotWidget";
 import { NewsletterSignup } from "@/components/landing/NewsletterSignup";
+import { InstallAppBanner } from "@/components/landing/InstallAppBanner";
 import { SEO, JsonLd, getOrganizationSchema, getDatingServiceSchema } from "@/components/SEO";
 
 // Import profile images for phone mockups
@@ -502,6 +503,20 @@ const Landing = () => {
             viewport={{ once: true }}
           >
             <NewsletterSignup />
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Install App Section */}
+      <section className="py-12 bg-background">
+        <div className="container mx-auto px-4">
+          <motion.div 
+            className="max-w-md mx-auto"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <InstallAppBanner />
           </motion.div>
         </div>
       </section>
