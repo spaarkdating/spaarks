@@ -30,6 +30,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Progress } from "@/components/ui/progress";
+import { VoiceMessagePlayer } from "./VoiceMessagePlayer";
 
 interface ChatWindowProps {
   match: any;
@@ -59,6 +61,8 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
   const [messageToDelete, setMessageToDelete] = useState<any>(null);
   const [deleteForEveryone, setDeleteForEveryone] = useState(false);
   const [pendingMedia, setPendingMedia] = useState<{ file: File; type: 'image' | 'video' | 'audio'; preview: string } | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -325,12 +329,23 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
       }
 
       setIsSending(true);
+      setIsUploading(true);
+      setUploadProgress(0);
+      
       try {
         const fileName = `${currentUserId}/${Date.now()}.${fileExt}`;
+        
+        // Simulate progress for voice upload (Supabase doesn't give real progress)
+        const progressInterval = setInterval(() => {
+          setUploadProgress(prev => Math.min(prev + 15, 90));
+        }, 100);
         
         const { error: uploadError } = await supabase.storage
           .from('chat-media')
           .upload(fileName, audioBlob, { contentType: mimeType });
+        
+        clearInterval(progressInterval);
+        setUploadProgress(100);
         
         if (uploadError) throw uploadError;
         
@@ -368,6 +383,8 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
         });
       } finally {
         setIsSending(false);
+        setIsUploading(false);
+        setUploadProgress(0);
       }
     };
 
@@ -763,14 +780,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
                       className="max-w-[250px] rounded-lg"
                     />
                   ) : (isAudio || isVoice) && mediaUrl ? (
-                    <div className="flex items-center gap-2">
-                      <Mic className="h-4 w-4 flex-shrink-0" />
-                      <audio 
-                        src={mediaUrl} 
-                        controls 
-                        className="max-w-[200px] h-8"
-                      />
-                    </div>
+                    <VoiceMessagePlayer src={mediaUrl} isSender={isSender} />
                   ) : (
                     <p className="text-sm">{content}</p>
                   )}
@@ -909,8 +919,20 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
           </div>
         )}
 
+        {/* Upload Progress UI */}
+        {isUploading && (
+          <div className="flex items-center gap-3 bg-primary/10 rounded-lg px-4 py-3">
+            <Mic className="h-4 w-4 text-primary animate-pulse" />
+            <div className="flex-1">
+              <p className="text-sm font-medium mb-1">Uploading...</p>
+              <Progress value={uploadProgress} className="h-1.5" />
+            </div>
+            <span className="text-xs text-muted-foreground">{uploadProgress}%</span>
+          </div>
+        )}
+
         {/* Recording UI */}
-        {isRecording && (
+        {isRecording && !isUploading && (
           <div className="flex items-center justify-between bg-destructive/10 rounded-lg px-4 py-3 animate-pulse">
             <div className="flex items-center gap-3">
               <div className="w-3 h-3 bg-destructive rounded-full animate-pulse" />
