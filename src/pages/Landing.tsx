@@ -12,6 +12,7 @@ import { ThemeToggle } from "@/components/landing/ThemeToggle";
 import { ChatbotWidget } from "@/components/landing/ChatbotWidget";
 import { NewsletterSignup } from "@/components/landing/NewsletterSignup";
 import { InstallAppBanner } from "@/components/landing/InstallAppBanner";
+import { PricingSection } from "@/components/landing/PricingSection";
 import { SEO, JsonLd, getOrganizationSchema, getDatingServiceSchema } from "@/components/SEO";
 
 // Import profile images for phone mockups
@@ -493,6 +494,9 @@ const Landing = () => {
           </div>
         </section>
       )}
+
+      {/* Pricing Section */}
+      <PricingSection />
 
       {/* Newsletter Section */}
       <section className="py-16 bg-muted/30">

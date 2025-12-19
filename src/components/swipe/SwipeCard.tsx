@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, useMotionValue, useTransform, PanInfo } from "framer-motion";
-import { Heart, X, Star, MapPin, Briefcase, CheckCircle } from "lucide-react";
+import { Heart, X, Star, MapPin, Briefcase, CheckCircle, Crown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { OnlineStatus } from "@/components/profile/OnlineStatus";
 import { CompatibilityBadge } from "@/components/swipe/CompatibilityBadge";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Profile {
   id: string;
@@ -29,9 +30,23 @@ interface SwipeCardProps {
 export const SwipeCard = ({ profile, onSwipe, style, compatibilityScore, onProfileClick }: SwipeCardProps) => {
   const [exitX, setExitX] = useState(0);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const [isFoundingMember, setIsFoundingMember] = useState(false);
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-25, 25]);
   const opacity = useTransform(x, [-200, -150, 0, 150, 200], [0, 1, 1, 1, 0]);
+
+  useEffect(() => {
+    const checkFoundingMember = async () => {
+      if (!profile?.id) return;
+      const { data } = await supabase
+        .from('founding_members')
+        .select('id')
+        .eq('user_id', profile.id)
+        .single();
+      setIsFoundingMember(!!data);
+    };
+    checkFoundingMember();
+  }, [profile?.id]);
 
   const calculateAge = (dateOfBirth: string) => {
     const today = new Date();
@@ -140,7 +155,7 @@ export const SwipeCard = ({ profile, onSwipe, style, compatibilityScore, onProfi
             if (onProfileClick) onProfileClick();
           }}
         >
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 mb-2 flex-wrap">
             <h2 className="text-2xl font-bold flex items-center gap-2 gradient-text">
               <span>
                 {profile.display_name}
@@ -150,6 +165,12 @@ export const SwipeCard = ({ profile, onSwipe, style, compatibilityScore, onProfi
                 <CheckCircle className="h-5 w-5 text-primary fill-primary animate-pulse" />
               )}
             </h2>
+            {isFoundingMember && (
+              <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 text-xs">
+                <Crown className="h-3 w-3 mr-1" />
+                Founder
+              </Badge>
+            )}
           </div>
 
           {profile.location && (
