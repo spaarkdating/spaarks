@@ -342,10 +342,13 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
     setCanRewind(false);
 
     try {
-      const { error } = await supabase.from("matches").insert({
+      const action = isLike ? (direction === "super" ? "super" : "like") : "pass";
+
+      const { error } = await (supabase as any).from("matches").insert({
         user_id: user.id,
         liked_user_id: likedProfile.id,
         is_match: false,
+        action,
       });
 
       if (error) throw error;
@@ -357,21 +360,22 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
       setCanRewind(true);
 
       if (isLike) {
-        const { data: reverseMatch } = await supabase
+        const { data: reverseMatch } = await (supabase as any)
           .from("matches")
           .select("*")
           .eq("user_id", likedProfile.id)
           .eq("liked_user_id", user.id)
+          .in("action", ["like", "super"])
           .maybeSingle();
 
         if (reverseMatch) {
-          await supabase
+          await (supabase as any)
             .from("matches")
             .update({ is_match: true })
             .eq("user_id", user.id)
             .eq("liked_user_id", likedProfile.id);
 
-          await supabase
+          await (supabase as any)
             .from("matches")
             .update({ is_match: true })
             .eq("user_id", likedProfile.id)

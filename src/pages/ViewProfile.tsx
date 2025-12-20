@@ -123,11 +123,27 @@ const ViewProfile = () => {
     if (!currentUserId || !id) return;
 
     try {
-      const { error } = await supabase.from("matches").insert({
+      const { error } = await (supabase as any).from("matches").insert({
         user_id: currentUserId,
         liked_user_id: id,
+        is_match: false,
+        action: "like",
       });
 
+      if (error) {
+        if (error.code === "23505") {
+          toast.info("You've already liked this profile");
+        } else {
+          throw error;
+        }
+      } else {
+        toast.success("Profile liked!");
+      }
+    } catch (error) {
+      console.error("Error liking profile:", error);
+      toast.error("Failed to like profile");
+    }
+  };
       if (error) {
         if (error.code === "23505") {
           toast.info("You've already liked this profile");

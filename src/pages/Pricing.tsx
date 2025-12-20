@@ -132,94 +132,22 @@ export default function Pricing() {
   };
 
   const handleSubscribe = async (plan: Plan) => {
-    if (plan.name === 'free') return;
+    if (plan.name === "free") return;
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) {
       toast({
-        title: 'Please log in',
-        description: 'You need to be logged in to subscribe.',
-        variant: 'destructive',
+        title: "Please log in",
+        description: "You need to be logged in to subscribe.",
+        variant: "destructive",
       });
-      navigate('/auth');
+      navigate("/auth");
       return;
     }
 
-    setProcessingPlan(plan.name);
-
-    try {
-      const { data, error } = await supabase.functions.invoke('razorpay-checkout', {
-        body: { plan: plan.name, action: 'create_order' },
-      });
-
-      if (error) throw error;
-
-      if (!data.key_id) {
-        toast({
-          title: 'Payment not configured',
-          description: 'Payment gateway is not yet configured. Please try again later.',
-          variant: 'destructive',
-        });
-        setProcessingPlan(null);
-        return;
-      }
-
-      const options = {
-        key: data.key_id,
-        amount: data.amount * 100,
-        currency: data.currency,
-        name: 'Spaark',
-        description: `${plan.display_name} Subscription`,
-        order_id: data.order_id,
-        handler: async (response: any) => {
-          try {
-            const { data: verifyData, error: verifyError } = await supabase.functions.invoke('razorpay-checkout', {
-              body: {
-                action: 'verify_payment',
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-              },
-            });
-
-            if (verifyError) throw verifyError;
-
-            toast({
-              title: 'Subscription activated!',
-              description: `You are now on the ${plan.display_name} plan.`,
-            });
-
-            // Refresh subscription data
-            window.location.reload();
-          } catch (err) {
-            console.error('Payment verification failed:', err);
-            toast({
-              title: 'Payment verification failed',
-              description: 'Please contact support if you were charged.',
-              variant: 'destructive',
-            });
-          }
-        },
-        prefill: {
-          email: user.email,
-        },
-        theme: {
-          color: '#E11D48',
-        },
-      };
-
-      const razorpay = new window.Razorpay(options);
-      razorpay.open();
-    } catch (err) {
-      console.error('Subscription error:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to initiate payment. Please try again.',
-        variant: 'destructive',
-      });
-    } finally {
-      setProcessingPlan(null);
-    }
+    navigate(`/checkout?plan=${plan.name}`);
   };
 
   const getDisplayPrice = (plan: Plan) => {
@@ -293,8 +221,8 @@ export default function Pricing() {
                     </CardDescription>
                   </CardHeader>
                   
-                  <CardContent>
-                    <ul className="space-y-3 mb-6">
+                  <CardContent className="flex flex-col h-full">
+                    <ul className="space-y-3 mb-6 flex-1">
                       {plan.features.map((feature, index) => (
                         <li key={index} className="flex items-start gap-2 text-sm">
                           <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
@@ -302,20 +230,18 @@ export default function Pricing() {
                         </li>
                       ))}
                     </ul>
-                    
+
                     <Button
-                      className="w-full"
-                      variant={plan.popular ? 'default' : 'outline'}
-                      disabled={isCurrentPlan || loading || processingPlan === plan.name}
+                      className="w-full mt-auto"
+                      variant={plan.popular ? "default" : "outline"}
+                      disabled={isCurrentPlan || loading}
                       onClick={() => handleSubscribe(plan)}
                     >
                       {isCurrentPlan
-                        ? 'Current Plan'
-                        : processingPlan === plan.name
-                        ? 'Processing...'
+                        ? "Current Plan"
                         : plan.price_inr === 0
-                        ? 'Get Started'
-                        : 'Subscribe'}
+                        ? "Get Started"
+                        : "Subscribe"}
                     </Button>
                   </CardContent>
                 </Card>

@@ -1,11 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Eye, User } from "lucide-react";
+import { useSubscription } from "@/hooks/useSubscription";
+import { ArrowLeft, Eye, User, Zap } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 const ProfileViews = () => {
@@ -13,6 +14,9 @@ const ProfileViews = () => {
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { canViewProfileViews } = useSubscription();
+
+  const profileViewsAccess = useMemo(() => canViewProfileViews(), [canViewProfileViews]);
 
   useEffect(() => {
     const init = async () => {
@@ -57,9 +61,17 @@ const ProfileViews = () => {
   const fetchProfileViews = async (currentUserId: string) => {
     setLoading(true);
     try {
+      if (!profileViewsAccess.canView) {
+        setViews([]);
+        return;
+      }
+
+      const fetchLimit = profileViewsAccess.limit ?? 50;
+
       const { data, error } = await supabase
         .from("profile_views")
-        .select(`
+        .select(
+          `
           *,
           viewer:profiles!profile_views_viewer_id_fkey(
             id,
@@ -67,10 +79,11 @@ const ProfileViews = () => {
             bio,
             photos(photo_url, display_order)
           )
-        `)
+        `
+        )
         .eq("viewed_profile_id", currentUserId)
         .order("viewed_at", { ascending: false })
-        .limit(50);
+        .limit(fetchLimit);
 
       if (error) throw error;
 
@@ -104,32 +117,44 @@ const ProfileViews = () => {
           Back to Dashboard
         </Link>
 
-        <div className="space-y-6">
-          <Card className="shadow-xl border-2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Eye className="h-6 w-6 text-primary" />
-                Who Viewed My Profile
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                {views.length} {views.length === 1 ? 'person has' : 'people have'} viewed your profile
-              </p>
-            </CardHeader>
-            <CardContent>
-              {views.length === 0 ? (
-                <div className="text-center py-12">
-                  <Eye className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold mb-2">No profile views yet</h3>
-                  <p className="text-muted-foreground mb-6">
-                    Keep swiping and engaging - your profile views will appear here!
-                  </p>
-                  <Link to="/dashboard">
-                    <Button className="bg-gradient-to-r from-primary to-secondary">
-                      Start Swiping
+          <div className="space-y-6">
+            <Card className="shadow-xl border-2">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Eye className="h-6 w-6 text-primary" />
+                  Who Viewed My Profile
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  {profileViewsAccess.canView
+                    ? `${views.length} ${views.length === 1 ? "person has" : "people have"} viewed your profile`
+                    : "Upgrade to see who viewed your profile"}
+                </p>
+              </CardHeader>
+              <CardContent>
+                {!profileViewsAccess.canView ? (
+                  <div className="text-center py-12">
+                    <Eye className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold mb-2">Available on Plus & above</h3>
+                    <p className="text-muted-foreground mb-6">
+                      Upgrade your plan to see who viewed your profile.
+                    </p>
+                    <Button onClick={() => navigate("/pricing")} className="bg-gradient-to-r from-primary to-secondary">
+                      <Zap className="h-4 w-4 mr-2" />
+                      Upgrade
                     </Button>
-                  </Link>
-                </div>
-              ) : (
+                  </div>
+                ) : views.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Eye className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold mb-2">No profile views yet</h3>
+                    <p className="text-muted-foreground mb-6">
+                      Keep swiping and engaging - your profile views will appear here!
+                    </p>
+                    <Link to="/dashboard">
+                      <Button className="bg-gradient-to-r from-primary to-secondary">Start Swiping</Button>
+                    </Link>
+                  </div>
+                ) : (
                 <div className="space-y-4">
                   {views.map((view) => {
                     const photo = getFirstPhoto(view.viewer?.photos || []);
