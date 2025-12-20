@@ -198,7 +198,7 @@ export default function Pricing() {
               return (
                 <Card
                   key={plan.id}
-                  className={`relative overflow-hidden transition-all hover:shadow-lg ${
+                  className={`relative overflow-hidden transition-all hover:shadow-lg flex flex-col ${
                     plan.popular ? 'border-primary shadow-lg scale-105' : ''
                   } ${isCurrentPlan ? 'ring-2 ring-primary' : ''}`}
                 >
@@ -221,7 +221,7 @@ export default function Pricing() {
                     </CardDescription>
                   </CardHeader>
                   
-                  <CardContent className="flex flex-col h-full">
+                  <CardContent className="flex flex-col flex-1">
                     <ul className="space-y-3 mb-6 flex-1">
                       {plan.features.map((feature, index) => (
                         <li key={index} className="flex items-start gap-2 text-sm">
@@ -232,12 +232,14 @@ export default function Pricing() {
                     </ul>
 
                     <Button
-                      className="w-full mt-auto"
+                      className="w-full"
                       variant={plan.popular ? "default" : "outline"}
-                      disabled={isCurrentPlan || loading}
+                      disabled={isCurrentPlan || loading || processingPlan === plan.name}
                       onClick={() => handleSubscribe(plan)}
                     >
-                      {isCurrentPlan
+                      {processingPlan === plan.name
+                        ? "Processing..."
+                        : isCurrentPlan
                         ? "Current Plan"
                         : plan.price_inr === 0
                         ? "Get Started"
