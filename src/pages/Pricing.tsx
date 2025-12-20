@@ -112,23 +112,25 @@ export default function Pricing() {
   };
 
   const checkFoundingMemberStatus = async () => {
+    // Get current founding member count first (always runs)
+    const { count } = await supabase
+      .from('founding_members')
+      .select('*', { count: 'exact', head: true });
+    
+    console.log('Founding member count:', count);
+    setFoundingMemberCount(count || 0);
+
+    // Check if current user is a founding member
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const { data } = await supabase
         .from('founding_members')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       
       setIsFoundingMember(!!data);
     }
-
-    // Get current founding member count
-    const { count } = await supabase
-      .from('founding_members')
-      .select('*', { count: 'exact', head: true });
-    
-    setFoundingMemberCount(count || 0);
   };
 
   const handleSubscribe = async (plan: Plan) => {
