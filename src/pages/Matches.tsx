@@ -104,23 +104,25 @@ const Matches = () => {
   const fetchMatches = async (userId: string) => {
     setIsLoading(true);
     try {
-      // Get all likes initiated by current user
+      // Get all likes initiated by current user (only likes, not passes)
       const { data: userLikes, error: userLikesError } = await supabase
         .from("matches")
-        .select("liked_user_id, id, created_at")
-        .eq("user_id", userId);
+        .select("liked_user_id, id, created_at, action")
+        .eq("user_id", userId)
+        .in("action", ["like", "super"]);
 
       if (userLikesError) throw userLikesError;
 
-      // Get all likes received by current user
+      // Get all likes received by current user (only likes, not passes)
       const { data: receivedLikes, error: receivedLikesError } = await supabase
         .from("matches")
-        .select("user_id, id, created_at")
-        .eq("liked_user_id", userId);
+        .select("user_id, id, created_at, action")
+        .eq("liked_user_id", userId)
+        .in("action", ["like", "super"]);
 
       if (receivedLikesError) throw receivedLikesError;
 
-      // Find mutual matches (users who appear in both lists)
+      // Find mutual matches: both users must have liked each other
       const userLikedIds = new Set((userLikes || []).map(m => m.liked_user_id));
       const mutualMatchIds = (receivedLikes || [])
         .map(m => m.user_id)
