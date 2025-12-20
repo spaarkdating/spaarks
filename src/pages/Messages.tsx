@@ -59,6 +59,7 @@ const Messages = () => {
   useEffect(() => {
     if (!user) return;
 
+    // Channel for matches
     const matchesChannel = supabase
       .channel('matches-realtime')
       .on(
@@ -85,14 +86,21 @@ const Messages = () => {
           fetchMatches(user.id);
         }
       )
+      .subscribe();
+
+    // Separate channel for messages - listen for messages where user is sender or receiver
+    const messagesReceiverChannel = supabase
+      .channel('messages-receiver-realtime')
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'messages'
+          table: 'messages',
+          filter: `receiver_id=eq.${user.id}`
         },
         () => {
+          console.log('New message received - updating conversation list');
           fetchMatches(user.id);
         }
       )
@@ -101,10 +109,27 @@ const Messages = () => {
         {
           event: 'UPDATE',
           schema: 'public',
-          table: 'messages'
+          table: 'messages',
+          filter: `receiver_id=eq.${user.id}`
         },
         () => {
-          // Re-fetch to update read status in conversation list
+          fetchMatches(user.id);
+        }
+      )
+      .subscribe();
+
+    const messagesSenderChannel = supabase
+      .channel('messages-sender-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `sender_id=eq.${user.id}`
+        },
+        () => {
+          console.log('Message sent - updating conversation list');
           fetchMatches(user.id);
         }
       )
@@ -112,6 +137,8 @@ const Messages = () => {
 
     return () => {
       supabase.removeChannel(matchesChannel);
+      supabase.removeChannel(messagesReceiverChannel);
+      supabase.removeChannel(messagesSenderChannel);
     };
   }, [user]);
 
