@@ -10,7 +10,6 @@ import SupportTickets from "@/components/admin/SupportTickets";
 import PhotoReports from "@/components/admin/PhotoReports";
 import ProfileReports from "@/components/admin/ProfileReports";
 import Analytics from "@/components/admin/Analytics";
-import Revenue from "@/components/admin/Revenue";
 import AuditLogs from "@/components/admin/AuditLogs";
 import AdminRoleManagement from "@/components/admin/AdminRoleManagement";
 import { TestimonialManagement } from "@/components/admin/TestimonialManagement";
@@ -25,7 +24,7 @@ import { useAdminRole } from "@/hooks/useAdminRole";
 const Admin = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { role, loading, isSuperAdmin, isModerator, isSupport, canManageUsers, canViewRevenue, canManageReports, canManageTickets } = useAdminRole();
+  const { role, loading, isSuperAdmin, isModerator, isSupport, canManageUsers, canManageCoupons, canManageReports, canManageTickets, canViewAnalytics } = useAdminRole();
   const [adminEmail, setAdminEmail] = useState("");
 
   useEffect(() => {
@@ -110,25 +109,21 @@ const Admin = () => {
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue={canManageTickets ? "tickets" : undefined} className="space-y-6">
           <TabsList className="flex flex-wrap gap-1 h-auto p-1">
-            {canViewRevenue && <TabsTrigger value="analytics">Analytics</TabsTrigger>}
-            {canViewRevenue && <TabsTrigger value="revenue">Revenue</TabsTrigger>}
+            {canViewAnalytics && <TabsTrigger value="analytics">Analytics</TabsTrigger>}
             {canManageUsers && <TabsTrigger value="users">Users</TabsTrigger>}
             {isModerator && <TabsTrigger value="idcards">ID Cards</TabsTrigger>}
             {canManageTickets && <TabsTrigger value="tickets">Support</TabsTrigger>}
             {canManageReports && <TabsTrigger value="reports">Reports</TabsTrigger>}
-            {isSuperAdmin && <TabsTrigger value="testimonials">Testimonials</TabsTrigger>}
-            {isSuperAdmin && <TabsTrigger value="coupons">Coupons</TabsTrigger>}
-            {isSuperAdmin && <TabsTrigger value="newsletter">Newsletter</TabsTrigger>}
+            {isModerator && <TabsTrigger value="testimonials">Testimonials</TabsTrigger>}
+            {canManageCoupons && <TabsTrigger value="coupons">Coupons</TabsTrigger>}
+            {isModerator && <TabsTrigger value="newsletter">Newsletter</TabsTrigger>}
             {isSuperAdmin && <TabsTrigger value="roles">Admin Roles</TabsTrigger>}
             {isSuperAdmin && <TabsTrigger value="audit">Audit Logs</TabsTrigger>}
             {isSuperAdmin && <TabsTrigger value="danger" className="text-destructive">Danger Zone</TabsTrigger>}
           </TabsList>
 
-          {canViewRevenue && (
-            <>
-              <TabsContent value="analytics"><Analytics /></TabsContent>
-              <TabsContent value="revenue"><Revenue /></TabsContent>
-            </>
+          {canViewAnalytics && (
+            <TabsContent value="analytics"><Analytics /></TabsContent>
           )}
 
           {canManageUsers && (
@@ -152,16 +147,24 @@ const Admin = () => {
             </TabsContent>
           )}
 
-          {isSuperAdmin && (
+          {isModerator && (
             <>
               <TabsContent value="testimonials"><TestimonialManagement /></TabsContent>
-              <TabsContent value="coupons"><CouponManagement /></TabsContent>
               <TabsContent value="newsletter">
                 <div className="space-y-6">
                   <NewsletterManagement />
                   <NewsletterHistory />
                 </div>
               </TabsContent>
+            </>
+          )}
+
+          {canManageCoupons && (
+            <TabsContent value="coupons"><CouponManagement /></TabsContent>
+          )}
+
+          {isSuperAdmin && (
+            <>
               <TabsContent value="roles"><AdminRoleManagement /></TabsContent>
               <TabsContent value="audit"><AuditLogs /></TabsContent>
               <TabsContent value="danger"><DangerZone /></TabsContent>
