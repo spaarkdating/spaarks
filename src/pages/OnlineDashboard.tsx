@@ -146,11 +146,11 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
         .eq("dating_mode", "online");
 
       // Filter by gender preference (looking_for)
-      // Map filter values to database gender values: male->man, female->woman
+      // Map looking_for values to database gender values: men->man, women->woman
       if (currentUserProfile?.looking_for && currentUserProfile.looking_for !== 'everyone') {
         let genderFilter = currentUserProfile.looking_for;
-        if (genderFilter === 'male') genderFilter = 'man';
-        else if (genderFilter === 'female') genderFilter = 'woman';
+        if (genderFilter === 'men') genderFilter = 'man';
+        else if (genderFilter === 'women') genderFilter = 'woman';
         query = query.eq("gender", genderFilter);
       }
 
