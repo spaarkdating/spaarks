@@ -595,6 +595,8 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
   const setupRealtimeSubscription = () => {
     if (!match) return;
 
+    const otherUserId = match.liked_user_id;
+
     const channel = supabase
       .channel(`messages:${match.id}`)
       .on(
@@ -603,11 +605,25 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
           event: "INSERT",
           schema: "public",
           table: "messages",
-          filter: `receiver_id=eq.${currentUserId}`,
         },
         (payload) => {
-          setMessages((current) => [...current, payload.new]);
-          markMessagesAsRead();
+          const msg = payload.new as any;
+
+          const isThisChat =
+            (msg.sender_id === currentUserId && msg.receiver_id === otherUserId) ||
+            (msg.sender_id === otherUserId && msg.receiver_id === currentUserId);
+
+          if (!isThisChat) return;
+
+          setMessages((current) => {
+            // de-dupe just in case
+            if (current.some((m) => m.id === msg.id)) return current;
+            return [...current, msg];
+          });
+
+          if (msg.receiver_id === currentUserId) {
+            markMessagesAsRead();
+          }
         }
       )
       .on(

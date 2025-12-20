@@ -331,6 +331,7 @@ export type Database = {
       }
       matches: {
         Row: {
+          action: string
           created_at: string | null
           id: string
           is_match: boolean | null
@@ -338,6 +339,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          action: string
           created_at?: string | null
           id?: string
           is_match?: boolean | null
@@ -345,6 +347,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          action?: string
           created_at?: string | null
           id?: string
           is_match?: boolean | null

@@ -116,38 +116,40 @@ export const OfflineDashboard = ({ user, onLogout }: OfflineDashboardProps) => {
 
   const handleLike = async (profileId: string) => {
     try {
-      const { error } = await supabase.from("matches").insert({
+      const { error } = await (supabase as any).from("matches").insert({
         user_id: user.id,
         liked_user_id: profileId,
         is_match: false,
+        action: "like",
       });
 
       if (error) throw error;
 
       setLikedProfiles(new Set([...likedProfiles, profileId]));
 
-      // Check for mutual match
-      const { data: reverseMatch } = await supabase
+      // Check for mutual match (only if they also liked)
+      const { data: reverseMatch } = await (supabase as any)
         .from("matches")
         .select("*")
         .eq("user_id", profileId)
         .eq("liked_user_id", user.id)
+        .in("action", ["like", "super"])
         .maybeSingle();
 
       if (reverseMatch) {
-        await supabase
+        await (supabase as any)
           .from("matches")
           .update({ is_match: true })
           .eq("user_id", user.id)
           .eq("liked_user_id", profileId);
 
-        await supabase
+        await (supabase as any)
           .from("matches")
           .update({ is_match: true })
           .eq("user_id", profileId)
           .eq("liked_user_id", user.id);
 
-        const profile = profiles.find(p => p.id === profileId);
+        const profile = profiles.find((p) => p.id === profileId);
         await (supabase as any).from("notifications").insert([
           {
             user_id: user.id,
