@@ -10,7 +10,8 @@ interface AdminRoleHook {
   isModerator: boolean;
   isSupport: boolean;
   canManageUsers: boolean;
-  canViewRevenue: boolean;
+  canViewAnalytics: boolean;
+  canManageCoupons: boolean;
   canManageReports: boolean;
   canManageTickets: boolean;
 }
@@ -42,8 +43,9 @@ export function useAdminRole(): AdminRoleHook {
     isSuperAdmin: role === "super_admin",
     isModerator: role === "super_admin" || role === "moderator",
     isSupport: role === "super_admin" || role === "moderator" || role === "support",
-    canManageUsers: role === "super_admin",
-    canViewRevenue: role === "super_admin",
+    canManageUsers: role === "super_admin" || role === "moderator",
+    canViewAnalytics: role === "super_admin" || role === "moderator",
+    canManageCoupons: role === "super_admin" || role === "moderator" || role === "support",
     canManageReports: role === "super_admin" || role === "moderator",
     canManageTickets: role === "super_admin" || role === "moderator" || role === "support",
   };

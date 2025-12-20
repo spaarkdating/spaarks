@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Send, Eye, Users, FileText, Megaphone, Sparkles, Heart, Calendar, Lightbulb, Trophy, Gift } from "lucide-react";
+import { Mail, Send, Eye, Users, FileText, Megaphone, Sparkles, Heart, Calendar, Lightbulb, Trophy, Gift, Ticket } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -72,6 +72,39 @@ Don't miss out on this opportunity to enhance your Spaark experience!
 
 With love,
 The Spaark Team ❤️`,
+  },
+  coupon: {
+    name: "Coupon Code",
+    icon: Ticket,
+    subject: "Exclusive Coupon Code Inside! 🎟️",
+    message: `Hey Spaark Family!
+
+We've got an exclusive treat just for you!
+
+🎟️ YOUR EXCLUSIVE COUPON CODE:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     [COUPON_CODE]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💰 Discount: [X% OFF / ₹X OFF]
+📅 Valid Until: [Expiry Date]
+✅ Applicable On: [Plus/Pro/Elite Plans]
+
+How to use:
+1. Go to your Spaark app
+2. Navigate to Pricing
+3. Choose your plan
+4. Enter the coupon code at checkout
+
+Terms & Conditions:
+• One-time use only
+• Cannot be combined with other offers
+• Valid for new subscriptions only
+
+Don't wait! Upgrade your dating experience today!
+
+With love,
+The Spaark Team 💕`,
   },
   feature: {
     name: "Feature Update",
