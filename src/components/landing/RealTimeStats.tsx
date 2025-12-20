@@ -36,8 +36,6 @@ export const RealTimeStats = () => {
         throw error;
       }
 
-      console.log("Stats from database:", data);
-
       // Type assertion for the returned data
       const statsData = data as { 
         activeUsers: number; 
