@@ -109,7 +109,7 @@ const Admin = () => {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue={canManageTickets ? "tickets" : undefined} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-11">
+          <TabsList className="flex flex-wrap gap-1 h-auto p-1">
             {canViewRevenue && <TabsTrigger value="analytics">Analytics</TabsTrigger>}
             {canViewRevenue && <TabsTrigger value="revenue">Revenue</TabsTrigger>}
             {canManageUsers && <TabsTrigger value="users">Users</TabsTrigger>}
@@ -117,6 +117,7 @@ const Admin = () => {
             {canManageTickets && <TabsTrigger value="tickets">Support</TabsTrigger>}
             {canManageReports && <TabsTrigger value="reports">Reports</TabsTrigger>}
             {isSuperAdmin && <TabsTrigger value="testimonials">Testimonials</TabsTrigger>}
+            {isSuperAdmin && <TabsTrigger value="coupons">Coupons</TabsTrigger>}
             {isSuperAdmin && <TabsTrigger value="newsletter">Newsletter</TabsTrigger>}
             {isSuperAdmin && <TabsTrigger value="roles">Admin Roles</TabsTrigger>}
             {isSuperAdmin && <TabsTrigger value="audit">Audit Logs</TabsTrigger>}
@@ -154,9 +155,9 @@ const Admin = () => {
           {isSuperAdmin && (
             <>
               <TabsContent value="testimonials"><TestimonialManagement /></TabsContent>
+              <TabsContent value="coupons"><CouponManagement /></TabsContent>
               <TabsContent value="newsletter">
                 <div className="space-y-6">
-                  <CouponManagement />
                   <NewsletterManagement />
                   <NewsletterHistory />
                 </div>

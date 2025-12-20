@@ -69,36 +69,42 @@ const Analytics = () => {
       value: stats.totalUsers,
       icon: Users,
       color: "text-blue-500",
+      description: "All registered users",
     },
     {
       title: "Active Users",
       value: stats.activeUsers,
       icon: UserCheck,
       color: "text-green-500",
+      description: "Users with active status",
     },
     {
       title: "Banned Users",
       value: stats.bannedUsers,
       icon: Ban,
       color: "text-red-500",
+      description: "Users who are banned",
     },
     {
       title: "Total Matches",
       value: stats.totalMatches,
       icon: Heart,
       color: "text-pink-500",
+      description: "Mutual matches made",
     },
     {
       title: "Total Messages",
       value: stats.totalMessages,
       icon: MessageCircle,
       color: "text-purple-500",
+      description: "Messages sent",
     },
     {
       title: "Pending Reports",
       value: stats.pendingReports,
       icon: AlertTriangle,
       color: "text-orange-500",
+      description: "Reports awaiting review",
     },
   ];
 
@@ -112,6 +118,7 @@ const Analytics = () => {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{stat.value}</div>
+            <p className="text-xs text-muted-foreground mt-1">{stat.description}</p>
           </CardContent>
         </Card>
       ))}
