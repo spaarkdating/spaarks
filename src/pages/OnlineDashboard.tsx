@@ -368,7 +368,8 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
           .in("action", ["like", "super"])
           .maybeSingle();
 
-        if (reverseMatch) {
+        if (reverseMatch && (reverseMatch.action === "like" || reverseMatch.action === "super")) {
+          // Only create a match if the other person also liked (not passed)
           await (supabase as any)
             .from("matches")
             .update({ is_match: true })
@@ -379,7 +380,8 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
             .from("matches")
             .update({ is_match: true })
             .eq("user_id", likedProfile.id)
-            .eq("liked_user_id", user.id);
+            .eq("liked_user_id", user.id)
+            .in("action", ["like", "super"]);
 
           await (supabase as any).from("notifications").insert([
             {
