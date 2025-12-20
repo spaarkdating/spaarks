@@ -41,6 +41,9 @@ const Landing = () => {
   useEffect(() => {
     fetchStats();
     fetchTestimonials();
+
+    const interval = setInterval(fetchStats, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {

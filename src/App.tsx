@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { BottomNav } from "@/components/navigation/BottomNav";
 import { ScrollToTop } from "@/components/navigation/ScrollToTop";
+import { AuthHeartbeat } from "@/components/auth/AuthHeartbeat";
 import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -40,6 +41,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <AuthHeartbeat />
         <ScrollToTop />
         <Routes>
           <Route path="/" element={<Landing />} />

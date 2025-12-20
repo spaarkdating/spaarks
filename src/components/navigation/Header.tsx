@@ -1,32 +1,50 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
 import logo from "@/assets/spaark-logo.png";
+import { supabase } from "@/integrations/supabase/client";
 
 interface HeaderProps {
   showAuthButtons?: boolean;
 }
 
 export function Header({ showAuthButtons = true }: HeaderProps) {
+  const [hasSession, setHasSession] = useState(false);
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setHasSession(!!session);
+    });
+
+    supabase.auth.getSession().then(({ data }) => {
+      setHasSession(!!data.session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const backTo = hasSession ? "/dashboard" : "/";
+  const backLabel = hasSession ? "Back to Dashboard" : "Back to Home";
+
   return (
     <header className="container mx-auto px-4 py-4 flex justify-between items-center relative z-20 border-b border-border/30">
-      <Link to="/" className="flex items-center gap-2 group">
+      <Link to={backTo} className="flex items-center gap-2 group">
         <div className="bg-white/90 p-2 rounded-xl shadow-md">
-          <img 
-            src={logo} 
-            alt="Spaark Logo" 
-            className="h-10 w-10 md:h-12 md:w-12 object-contain" 
+          <img
+            src={logo}
+            alt="Spaark Logo"
+            className="h-10 w-10 md:h-12 md:w-12 object-contain"
           />
         </div>
         <span className="text-xl md:text-2xl font-bold text-white group-hover:opacity-90 transition-opacity">
           Spaark
         </span>
       </Link>
-      
+
       {showAuthButtons && (
         <div className="flex gap-3">
-          <Link to="/">
-            <Button variant="secondary">Back to Home</Button>
+          <Link to={backTo}>
+            <Button variant="secondary">{backLabel}</Button>
           </Link>
         </div>
       )}
