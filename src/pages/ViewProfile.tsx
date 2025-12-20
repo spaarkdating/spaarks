@@ -144,20 +144,6 @@ const ViewProfile = () => {
       toast.error("Failed to like profile");
     }
   };
-      if (error) {
-        if (error.code === "23505") {
-          toast.info("You've already liked this profile");
-        } else {
-          throw error;
-        }
-      } else {
-        toast.success("Profile liked!");
-      }
-    } catch (error) {
-      console.error("Error liking profile:", error);
-      toast.error("Failed to like profile");
-    }
-  };
 
   if (loading) {
     return (
