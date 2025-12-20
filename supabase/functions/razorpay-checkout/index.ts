@@ -116,7 +116,7 @@ serve(async (req) => {
         body: JSON.stringify({
           amount: finalPrice * 100,
           currency: "INR",
-          receipt: `sub_${user.id}_${Date.now()}`,
+          receipt: `${user.id.substring(0, 8)}_${Date.now()}`,
           notes: {
             user_id: user.id,
             plan: plan,
