@@ -109,21 +109,42 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
   }, [match?.id]);
 
   useEffect(() => {
-    if (messages.length > 0 && !initialScrollDone.current) {
-      // Only auto-scroll on initial load
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
-        initialScrollDone.current = true;
-      }, 100);
+    if (messages.length > 0) {
+      if (!initialScrollDone.current) {
+        // Only auto-scroll on initial load
+        setTimeout(() => {
+          scrollToBottom();
+          initialScrollDone.current = true;
+        }, 100);
+      } else {
+        // Auto-scroll to bottom when new messages are added
+        setTimeout(() => {
+          scrollToBottom();
+        }, 100);
+      }
     }
-  }, [messages.length > 0]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages.length]);
 
   useEffect(() => {
     initialScrollDone.current = false;
   }, [match?.id]);
 
   const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    try {
+      if (messagesContainerRef.current) {
+        // Scroll the container to show the bottom
+        messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+      }
+      // Also use scrollIntoView as fallback
+      if (messagesEndRef.current) {
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+        }, 50);
+      }
+    } catch (error) {
+      console.error("Error scrolling to bottom:", error);
+    }
   }, []);
 
   const fetchReactions = async () => {
@@ -399,6 +420,10 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
         });
 
         onMessagesUpdate();
+        // Scroll to bottom after sending
+        setTimeout(() => {
+          scrollToBottom();
+        }, 300);
         toast({
           title: "Sent!",
           description: "Your voice message has been sent.",
@@ -548,7 +573,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
 
       // Scroll to bottom after sending
       setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        scrollToBottom();
       }, 300);
 
       onMessagesUpdate();
@@ -805,6 +830,10 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
         channelRef.current.track({ user_id: currentUserId, typing: false });
       }
       onMessagesUpdate();
+      // Scroll to bottom after sending
+      setTimeout(() => {
+        scrollToBottom();
+      }, 200);
     } catch (error: any) {
       toast({
         title: "Failed to send message",
@@ -860,8 +889,8 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
 
   return (
     <div className="bg-card rounded-2xl border border-border flex flex-col h-full min-h-0 relative overflow-hidden">
-      {/* Chat Header */}
-      <div className="p-4 border-b border-border flex items-center justify-between shrink-0">
+      {/* Chat Header - Fixed at top */}
+      <div className="p-4 border-b border-border flex items-center justify-between shrink-0 z-10 bg-card">
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
@@ -885,8 +914,15 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
         </div>
       </div>
 
-      {/* Messages (scrolls) */}
-      <div ref={messagesContainerRef} className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
+      {/* Messages (scrollable middle section - shows only few messages at once) */}
+      <div 
+        ref={messagesContainerRef} 
+        className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 py-2 space-y-1.5 scrollbar-thin" 
+        style={{ 
+          maxHeight: '60vh', 
+          minHeight: '200px'
+        }}
+      >
         {messages.map((message) => {
           const isSender = message.sender_id === currentUserId;
           const content = message.content;
@@ -942,11 +978,11 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
           return (
             <div
               key={message.id}
-              className={`flex w-full ${isSender ? "justify-end" : "justify-start"} group`}
+              className={`flex w-full ${isSender ? "justify-end" : "justify-start"} group mb-0.5`}
             >
               <div className={`relative max-w-[75%] md:max-w-[70%] ${isSender ? 'ml-auto' : 'mr-auto'}`}>
                 <div
-                  className={`rounded-2xl px-4 py-2 ${
+                  className={`rounded-lg px-3 py-1.5 ${
                     isSender
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted text-foreground"
@@ -1070,35 +1106,79 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input (fixed area; messages scroll above) */}
-      <div className="shrink-0 p-4 border-t border-border space-y-3 bg-card">
+      {/* Input (fixed at bottom; above bottom nav on mobile) */}
+      <div className="shrink-0 p-3 border-t border-border space-y-2 bg-card z-10 md:pb-3 pb-20 relative">
+        {/* Icebreakers - shown above input area (overlay style when toggled) */}
+        {showIcebreakers && messages.length > 0 && (
+          <div className="absolute bottom-full left-3 right-3 mb-2 bg-card border border-border rounded-lg shadow-lg p-2 z-20 max-h-[200px] overflow-y-auto">
+            <div className="flex items-center justify-between mb-2 sticky top-0 bg-card pb-1">
+              <p className="text-xs font-medium text-muted-foreground">Conversation Starters</p>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIcebreakers(getRandomIcebreakers(3))}
+                  className="h-5 w-5 p-0 hover:bg-primary/10"
+                >
+                  <Sparkles className="h-3 w-3 text-primary" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowIcebreakers(false)}
+                  className="h-5 w-5 p-0 hover:bg-primary/10"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
+            <div className="flex flex-col gap-1">
+              {icebreakers.map((icebreaker, idx) => (
+                <Button
+                  key={idx}
+                  variant="ghost"
+                  className="justify-start text-left h-auto py-1.5 px-2 text-xs hover:bg-primary/10 whitespace-normal break-words"
+                  onClick={() => {
+                    setNewMessage(icebreaker);
+                    setShowIcebreakers(false);
+                  }}
+                >
+                  <Sparkles className="h-3 w-3 mr-2 flex-shrink-0 text-primary" />
+                  <span className="text-xs">{icebreaker}</span>
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Icebreakers - shown when no messages */}
         {messages.length === 0 && (
-          <div className="mb-2">
+          <div className="mb-2 px-1">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-medium text-muted-foreground">Quick Icebreakers</p>
+              <p className="text-xs font-medium text-muted-foreground">Conversation Starters</p>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setIcebreakers(getRandomIcebreakers(3))}
-                className="h-7 text-xs hover:bg-primary/10"
+                className="h-6 text-xs hover:bg-primary/10"
               >
                 <Sparkles className="h-3 w-3 mr-1" />
                 Refresh
               </Button>
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1.5 max-h-[150px] overflow-y-auto">
               {icebreakers.map((icebreaker, idx) => (
                 <Button
                   key={idx}
                   variant="outline"
-                  className="justify-start text-left h-auto py-2 px-3 hover:bg-primary/10 hover:border-primary/50 transition-all animate-fade-in"
+                  className="justify-start text-left h-auto py-1.5 px-2 text-xs hover:bg-primary/10 hover:border-primary/50 transition-all animate-fade-in whitespace-normal break-words"
                   style={{ animationDelay: `${idx * 100}ms` }}
                   onClick={() => {
                     setNewMessage(icebreaker);
                   }}
                 >
                   <Sparkles className="h-3 w-3 mr-2 flex-shrink-0 text-primary" />
-                  <span className="text-sm">{icebreaker}</span>
+                  <span className="text-xs">{icebreaker}</span>
                 </Button>
               ))}
             </div>
@@ -1107,11 +1187,11 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
 
         {/* Upload Progress UI */}
         {isUploading && (
-          <div className="flex items-center gap-3 bg-primary/10 rounded-lg px-4 py-3">
+          <div className="flex items-center gap-2 bg-primary/10 rounded-lg px-3 py-2 mx-1">
             <Mic className="h-4 w-4 text-primary animate-pulse" />
             <div className="flex-1">
-              <p className="text-sm font-medium mb-1">Uploading...</p>
-              <Progress value={uploadProgress} className="h-1.5" />
+              <p className="text-xs font-medium mb-0.5">Uploading...</p>
+              <Progress value={uploadProgress} className="h-1" />
             </div>
             <span className="text-xs text-muted-foreground">{uploadProgress}%</span>
           </div>
@@ -1119,27 +1199,27 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
 
         {/* Recording UI */}
         {isRecording && !isUploading && (
-          <div className="flex items-center justify-between bg-destructive/10 rounded-lg px-4 py-3 animate-pulse">
-            <div className="flex items-center gap-3">
-              <div className="w-3 h-3 bg-destructive rounded-full animate-pulse" />
-              <span className="text-sm font-medium">Recording... {formatRecordingTime(recordingTime)}</span>
+          <div className="flex items-center justify-between bg-destructive/10 rounded-lg px-3 py-2 mx-1 animate-pulse">
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 bg-destructive rounded-full animate-pulse" />
+              <span className="text-xs font-medium">Recording... {formatRecordingTime(recordingTime)}</span>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-1.5">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={stopRecording}
-                className="text-destructive"
+                className="text-destructive h-7 text-xs"
               >
-                <X className="h-4 w-4 mr-1" />
+                <X className="h-3 w-3 mr-1" />
                 Cancel
               </Button>
               <Button
                 size="sm"
                 onClick={sendVoiceMessage}
-                className="bg-primary"
+                className="bg-primary h-7 text-xs"
               >
-                <Send className="h-4 w-4 mr-1" />
+                <Send className="h-3 w-3 mr-1" />
                 Send
               </Button>
             </div>
@@ -1147,8 +1227,8 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
         )}
 
         {!isRecording && (
-          <form onSubmit={handleSendMessage}>
-            <div className="flex gap-2 items-center">
+          <form onSubmit={handleSendMessage} className="px-1">
+            <div className="flex gap-1.5 items-center">
               {/* Media options toggle */}
               <div className="relative">
                 <Button
@@ -1210,7 +1290,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
                   }}
                   placeholder="Type a message..."
                   disabled={isSending}
-                  className="pr-10"
+                  className="pr-10 h-9 text-sm"
                 />
                 {messages.length > 0 && (
                   <Button
@@ -1230,7 +1310,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
                 type="button"
                 variant="ghost"
                 size="icon"
-                className={`h-10 w-10 hover:bg-primary/10 ${isRecording ? 'bg-destructive/10 text-destructive' : ''}`}
+                className={`h-9 w-9 hover:bg-primary/10 ${isRecording ? 'bg-destructive/10 text-destructive' : ''}`}
                 onClick={async (e) => {
                   e.preventDefault();
                   if (isSending) return;
@@ -1241,13 +1321,14 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
                 disabled={isSending}
                 title={isRecording ? "Recording…" : "Record voice message"}
               >
-                <Mic className="h-5 w-5" />
+                <Mic className="h-4 w-4" />
               </Button>
 
               <Button 
                 type="submit" 
                 disabled={!newMessage.trim() || isSending} 
-                className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 shadow-lg hover:shadow-primary/50 transition-all"
+                size="icon"
+                className="h-9 w-9 bg-gradient-to-r from-primary to-secondary hover:opacity-90 shadow-md transition-all"
               >
                 <Send className="h-4 w-4" />
               </Button>
@@ -1255,37 +1336,6 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
           </form>
         )}
 
-        {showIcebreakers && messages.length > 0 && (
-          <div className="p-3 bg-muted/50 rounded-lg border animate-slide-up">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-medium text-muted-foreground">Conversation Starters</p>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIcebreakers(getRandomIcebreakers(3))}
-                className="h-6 text-xs hover:bg-primary/10"
-              >
-                <Sparkles className="h-3 w-3 mr-1" />
-                Refresh
-              </Button>
-            </div>
-            <div className="flex flex-col gap-1">
-              {icebreakers.map((icebreaker, idx) => (
-                <Button
-                  key={idx}
-                  variant="ghost"
-                  className="justify-start text-left h-auto py-1.5 px-2 text-xs hover:bg-primary/10"
-                  onClick={() => {
-                    setNewMessage(icebreaker);
-                    setShowIcebreakers(false);
-                  }}
-                >
-                  {icebreaker}
-                </Button>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Media Preview Confirmation Dialog */}
