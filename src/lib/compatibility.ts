@@ -26,9 +26,19 @@ export const calculateCompatibilityScore = (
 
   // Gender preference compatibility (30% weight)
   if (userProfile.looking_for && otherProfile.gender) {
+    // Normalize gender values for comparison
+    let lookingFor = userProfile.looking_for.toLowerCase();
+    let otherGender = otherProfile.gender.toLowerCase();
+    
+    // Map variations to standard values
+    if (lookingFor === 'men' || lookingFor === 'male') lookingFor = 'man';
+    if (lookingFor === 'women' || lookingFor === 'female') lookingFor = 'woman';
+    if (otherGender === 'men' || otherGender === 'male') otherGender = 'man';
+    if (otherGender === 'women' || otherGender === 'female') otherGender = 'woman';
+    
     if (
-      userProfile.looking_for.toLowerCase() === "everyone" ||
-      userProfile.looking_for.toLowerCase() === otherProfile.gender.toLowerCase()
+      lookingFor === "everyone" ||
+      lookingFor === otherGender
     ) {
       score += 30;
     }

@@ -193,8 +193,8 @@ export const ProfileEdit = ({ profile, photos, interests, userId, onSave, onCanc
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="men">Men</SelectItem>
-                    <SelectItem value="women">Women</SelectItem>
+                    <SelectItem value="man">Man</SelectItem>
+                    <SelectItem value="woman">Woman</SelectItem>
                     <SelectItem value="everyone">Everyone</SelectItem>
                   </SelectContent>
                 </Select>

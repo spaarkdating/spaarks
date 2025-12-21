@@ -41,8 +41,8 @@ export const PreferencesStep = ({ data, updateData }: PreferencesStepProps) => {
             <SelectValue placeholder="What are you looking for?" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="men">Men</SelectItem>
-            <SelectItem value="women">Women</SelectItem>
+            <SelectItem value="man">Man</SelectItem>
+            <SelectItem value="woman">Woman</SelectItem>
             <SelectItem value="everyone">Everyone</SelectItem>
           </SelectContent>
         </Select>

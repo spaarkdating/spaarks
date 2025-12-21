@@ -14,7 +14,6 @@ import ReportProfileDialog from "@/components/profile/ReportProfileDialog";
 import { SwipeActions } from "@/components/swipe/SwipeActions";
 import { MatchNotification } from "@/components/swipe/MatchNotification";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
-import { ActivityFeed } from "@/components/activity/ActivityFeed";
 import { AnimatePresence } from "framer-motion";
 import { calculateCompatibilityScore } from "@/lib/compatibility";
 import { MobileNav } from "@/components/navigation/MobileNav";
@@ -94,24 +93,37 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
   };
 
   const applyQuickFilters = async () => {
-    // Save preferences to profile (except location filter which is temporary)
-    await supabase
-      .from("profiles")
-      .update({
-        looking_for: tempFilters.looking_for,
-        min_age: tempFilters.min_age,
-        max_age: tempFilters.max_age,
-      })
-      .eq("id", user.id);
+    try {
+      // Save preferences to profile (except location filter which is temporary)
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({
+          looking_for: tempFilters.looking_for || "everyone",
+          min_age: tempFilters.min_age,
+          max_age: tempFilters.max_age,
+        })
+        .eq("id", user.id);
 
-    setShowFilterDialog(false);
-    await fetchProfiles(user.id, tempFilters.location);
-    toast({
-      title: "Filters applied!",
-      description: tempFilters.location 
-        ? `Showing matches in ${tempFilters.location}` 
-        : "Showing new matches based on your preferences.",
-    });
+      if (updateError) {
+        throw updateError;
+      }
+
+      setShowFilterDialog(false);
+      setCurrentIndex(0); // Reset to first profile
+      await fetchProfiles(user.id, tempFilters.location);
+      toast({
+        title: "Filters applied!",
+        description: tempFilters.location 
+          ? `Showing matches in ${tempFilters.location}` 
+          : "Showing new matches based on your preferences.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error applying filters",
+        description: error.message || "Failed to apply filters. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const fetchProfiles = async (userId: string, locationFilter?: string) => {
@@ -146,11 +158,12 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
         .eq("dating_mode", "online");
 
       // Filter by gender preference (looking_for)
-      // Map looking_for values to database gender values: men->man, women->woman
+      // Map looking_for values to database gender values: men->man, women->woman, male->man, female->woman
       if (currentUserProfile?.looking_for && currentUserProfile.looking_for !== 'everyone') {
         let genderFilter = currentUserProfile.looking_for;
-        if (genderFilter === 'men') genderFilter = 'man';
-        else if (genderFilter === 'women') genderFilter = 'woman';
+        // Handle all possible variations
+        if (genderFilter === 'men' || genderFilter === 'male') genderFilter = 'man';
+        else if (genderFilter === 'women' || genderFilter === 'female') genderFilter = 'woman';
         query = query.eq("gender", genderFilter);
       }
 
@@ -159,17 +172,15 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
         query = query.ilike("location", `%${locationFilter.trim()}%`);
       }
 
-      // Exclude already swiped profiles
-      if (swipedIds.length > 0) {
-        query = query.not("id", "in", `(${swipedIds.join(",")})`);
-      }
+      // Exclude already swiped profiles - filter client-side for better performance
+      // (Supabase .not() with "in" has syntax issues, so we filter after query)
 
       const { data: potentialMatches } = await query
         .order("created_at", { ascending: false })
         .limit(50);
 
-      // Filter by age preferences client-side to handle NULL date_of_birth
-      let filteredMatches = potentialMatches || [];
+      // Filter by age preferences and exclude swiped profiles client-side
+      let filteredMatches = (potentialMatches || []).filter(profile => !swipedIds.includes(profile.id));
       if (currentUserProfile?.min_age || currentUserProfile?.max_age) {
         const today = new Date();
         filteredMatches = filteredMatches.filter((profile) => {
@@ -374,11 +385,13 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
 
         if (reverseMatch && (reverseMatch.action === "like" || reverseMatch.action === "super")) {
           // Only create a match if the other person also liked (not passed)
+          // Ensure we only update records with like/super actions, never pass actions
           await (supabase as any)
             .from("matches")
             .update({ is_match: true })
             .eq("user_id", user.id)
-            .eq("liked_user_id", likedProfile.id);
+            .eq("liked_user_id", likedProfile.id)
+            .in("action", ["like", "super"]);
 
           await (supabase as any)
             .from("matches")
@@ -565,11 +578,6 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
             </div>
           </div>
 
-          <div className="hidden lg:block">
-            <div className="sticky top-24 animate-slide-in">
-              <ActivityFeed />
-            </div>
-          </div>
         </div>
       </div>
 
@@ -719,7 +727,12 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
       </Dialog>
 
       {/* Quick Filter Dialog */}
-      <Dialog open={showFilterDialog} onOpenChange={setShowFilterDialog}>
+      <Dialog open={showFilterDialog} onOpenChange={(open) => {
+        setShowFilterDialog(open);
+        if (open) {
+          loadUserFilters();
+        }
+      }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -753,8 +766,8 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="everyone">Everyone</SelectItem>
-                  <SelectItem value="male">Men</SelectItem>
-                  <SelectItem value="female">Women</SelectItem>
+                  <SelectItem value="man">Man</SelectItem>
+                  <SelectItem value="woman">Woman</SelectItem>
                   <SelectItem value="non-binary">Non-binary</SelectItem>
                 </SelectContent>
               </Select>

@@ -137,17 +137,20 @@ export const OfflineDashboard = ({ user, onLogout }: OfflineDashboardProps) => {
         .maybeSingle();
 
       if (reverseMatch) {
+        // Only update records with like/super actions, never pass actions
         await (supabase as any)
           .from("matches")
           .update({ is_match: true })
           .eq("user_id", user.id)
-          .eq("liked_user_id", profileId);
+          .eq("liked_user_id", profileId)
+          .in("action", ["like", "super"]);
 
         await (supabase as any)
           .from("matches")
           .update({ is_match: true })
           .eq("user_id", profileId)
-          .eq("liked_user_id", user.id);
+          .eq("liked_user_id", user.id)
+          .in("action", ["like", "super"]);
 
         const profile = profiles.find((p) => p.id === profileId);
         await (supabase as any).from("notifications").insert([
