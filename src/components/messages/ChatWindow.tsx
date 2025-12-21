@@ -70,7 +70,10 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  // Channel used for in-chat broadcasts (typing indicator)
   const channelRef = useRef<RealtimeChannel | null>(null);
+  // Channels used for DB changes (messages + reactions)
+  const dbChannelsRef = useRef<RealtimeChannel[]>([]);
   const initialScrollDone = useRef(false);
   const { toast } = useToast();
   const { showNotification } = useNotifications();
@@ -89,9 +92,15 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
 
     return () => {
       clearTimeout(icebreakerTimeout);
+
+      // Cleanup realtime channels
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
       }
+      dbChannelsRef.current.forEach((ch) => supabase.removeChannel(ch));
+      dbChannelsRef.current = [];
+
       // Only stop if we are currently recording (prevents "tap -> instantly stops" if match object identity changes)
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
         stopRecording();
@@ -597,33 +606,52 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
 
     const otherUserId = match.liked_user_id;
 
-    const channel = supabase
-      .channel(`messages:${match.id}`)
+    // Clear any existing channels before creating new ones
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+    dbChannelsRef.current.forEach((ch) => supabase.removeChannel(ch));
+    dbChannelsRef.current = [];
+
+    // Broadcast channel (typing indicator)
+    const typingChannel = supabase
+      .channel(`chat:${match.id}`)
+      .on("broadcast", { event: "typing" }, (payload) => {
+        if (payload.payload?.user_id !== currentUserId) {
+          setIsTyping(payload.payload?.isTyping ?? false);
+
+          // Auto-hide typing indicator after 3 seconds
+          if (payload.payload?.isTyping) {
+            setTimeout(() => setIsTyping(false), 3000);
+          }
+        }
+      })
+      .subscribe();
+
+    channelRef.current = typingChannel;
+
+    // Incoming messages (I'm the receiver)
+    const incomingChannel = supabase
+      .channel(`messages:in:${match.id}`)
       .on(
         "postgres_changes",
         {
           event: "INSERT",
           schema: "public",
           table: "messages",
+          filter: `receiver_id=eq.${currentUserId}`,
         },
         (payload) => {
           const msg = payload.new as any;
-
-          const isThisChat =
-            (msg.sender_id === currentUserId && msg.receiver_id === otherUserId) ||
-            (msg.sender_id === otherUserId && msg.receiver_id === currentUserId);
-
-          if (!isThisChat) return;
+          if (msg.sender_id !== otherUserId) return;
 
           setMessages((current) => {
-            // de-dupe just in case
             if (current.some((m) => m.id === msg.id)) return current;
             return [...current, msg];
           });
-
-          if (msg.receiver_id === currentUserId) {
-            markMessagesAsRead();
-          }
+          scrollToBottom();
+          markMessagesAsRead();
         }
       )
       .on(
@@ -632,15 +660,65 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
           event: "UPDATE",
           schema: "public",
           table: "messages",
+          filter: `receiver_id=eq.${currentUserId}`,
         },
         (payload) => {
-          setMessages((current) =>
-            current.map((msg) =>
-              msg.id === payload.new.id ? payload.new : msg
-            )
-          );
+          const next = payload.new as any;
+          const isThisChat =
+            (next.sender_id === currentUserId && next.receiver_id === otherUserId) ||
+            (next.sender_id === otherUserId && next.receiver_id === currentUserId);
+          if (!isThisChat) return;
+
+          setMessages((current) => current.map((m) => (m.id === next.id ? next : m)));
         }
       )
+      .subscribe();
+
+    // Outgoing messages (I'm the sender)
+    const outgoingChannel = supabase
+      .channel(`messages:out:${match.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `sender_id=eq.${currentUserId}`,
+        },
+        (payload) => {
+          const msg = payload.new as any;
+          if (msg.receiver_id !== otherUserId) return;
+
+          setMessages((current) => {
+            if (current.some((m) => m.id === msg.id)) return current;
+            return [...current, msg];
+          });
+          scrollToBottom();
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "messages",
+          filter: `sender_id=eq.${currentUserId}`,
+        },
+        (payload) => {
+          const next = payload.new as any;
+          const isThisChat =
+            (next.sender_id === currentUserId && next.receiver_id === otherUserId) ||
+            (next.sender_id === otherUserId && next.receiver_id === currentUserId);
+          if (!isThisChat) return;
+
+          setMessages((current) => current.map((m) => (m.id === next.id ? next : m)));
+        }
+      )
+      .subscribe();
+
+    // Reactions (no easy filter, keep light)
+    const reactionsChannel = supabase
+      .channel(`reactions:${match.id}`)
       .on(
         "postgres_changes",
         {
@@ -652,20 +730,9 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
           fetchReactions();
         }
       )
-      .on("broadcast", { event: "typing" }, (payload) => {
-        // Handle typing indicator from other user
-        if (payload.payload?.user_id !== currentUserId) {
-          setIsTyping(payload.payload?.isTyping ?? false);
-          
-          // Auto-hide typing indicator after 3 seconds
-          if (payload.payload?.isTyping) {
-            setTimeout(() => setIsTyping(false), 3000);
-          }
-        }
-      })
       .subscribe();
 
-    channelRef.current = channel;
+    dbChannelsRef.current = [incomingChannel, outgoingChannel, reactionsChannel];
   };
 
   const handleTyping = () => {
