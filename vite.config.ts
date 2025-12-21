@@ -16,6 +16,13 @@ export default defineConfig(({ mode }) => ({
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["logo.png", "logo.jpeg"],
+      devOptions: {
+        enabled: true,
+        type: "module",
+        navigateFallback: "index.html",
+      },
+      strategies: "generateSW",
+      injectRegister: "auto",
       manifest: {
         id: "/",
         name: "Spaark - Find Your Perfect Match",
@@ -67,6 +74,18 @@ export default defineConfig(({ mode }) => ({
                 maxEntries: 10,
                 maxAgeSeconds: 60 * 60 * 24 * 365
               }
+            }
+          },
+          {
+            urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "supabase-cache",
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 5 // 5 minutes
+              },
+              networkTimeoutSeconds: 10
             }
           }
         ]
