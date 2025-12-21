@@ -1070,8 +1070,8 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
-      <div className="p-4 border-t border-border space-y-3">
+      {/* Input - Fixed at bottom */}
+      <div className="sticky bottom-0 left-0 right-0 p-4 border-t border-border space-y-3 bg-card z-10 shrink-0">
         {messages.length === 0 && (
           <div className="mb-2">
             <div className="flex items-center justify-between mb-2">
