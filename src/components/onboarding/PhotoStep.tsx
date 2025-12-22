@@ -109,7 +109,7 @@ export const PhotoStep = ({ data, updateData }: PhotoStepProps) => {
           </div>
         ))}
 
-        {photos.length < 2 && (
+        {photos.length < 6 && (
           <label className="aspect-square border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all">
             <input
               type="file"
