@@ -31,7 +31,9 @@ export const PhotoStep = ({ data, updateData }: PhotoStepProps) => {
     setUploading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
       const uploadedUrls: string[] = [];
@@ -46,9 +48,9 @@ export const PhotoStep = ({ data, updateData }: PhotoStepProps) => {
 
         if (uploadError) throw uploadError;
 
-        const { data: { publicUrl } } = supabase.storage
-          .from("profile-photos")
-          .getPublicUrl(fileName);
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("profile-photos").getPublicUrl(fileName);
 
         uploadedUrls.push(publicUrl);
       }
@@ -80,9 +82,7 @@ export const PhotoStep = ({ data, updateData }: PhotoStepProps) => {
       <div className="text-center">
         <ImageIcon className="h-16 w-16 text-primary mx-auto mb-4" />
         <h3 className="text-xl font-semibold mb-2">Add your best photos</h3>
-        <p className="text-muted-foreground">
-          Upload at least one photo. You can add up to 6 photos.
-        </p>
+        <p className="text-muted-foreground">Upload at least one photo. You can add up to 6 photos.</p>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
@@ -109,7 +109,7 @@ export const PhotoStep = ({ data, updateData }: PhotoStepProps) => {
           </div>
         ))}
 
-        {photos.length < 6 && (
+        {photos.length < 2 && (
           <label className="aspect-square border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all">
             <input
               type="file"
@@ -128,9 +128,7 @@ export const PhotoStep = ({ data, updateData }: PhotoStepProps) => {
       </div>
 
       {photos.length === 0 && (
-        <p className="text-sm text-center text-muted-foreground">
-          Add at least one photo to continue
-        </p>
+        <p className="text-sm text-center text-muted-foreground">Add at least two photo to continue</p>
       )}
     </div>
   );
