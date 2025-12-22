@@ -60,6 +60,19 @@ const Auth = () => {
     }
 
     setIsLoading(true);
+
+    // Check if email is blocked (previously deleted account)
+    const { data: isBlocked } = await supabase.rpc("is_email_blocked", { check_email: email });
+    
+    if (isBlocked) {
+      setIsLoading(false);
+      toast({
+        title: "Account Previously Deleted",
+        description: "This email was associated with a permanently deleted account and cannot be used again.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     const { data: authData, error } = await supabase.auth.signUp({
       email,
@@ -102,6 +115,19 @@ const Auth = () => {
     e.preventDefault();
     setIsLoading(true);
 
+    // Check if email is blocked (previously deleted account)
+    const { data: isBlocked } = await supabase.rpc("is_email_blocked", { check_email: email });
+    
+    if (isBlocked) {
+      setIsLoading(false);
+      toast({
+        title: "Account Previously Deleted",
+        description: "This email was associated with a permanently deleted account and cannot be used again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -115,6 +141,26 @@ const Auth = () => {
         variant: "destructive",
       });
       return;
+    }
+
+    // Check if user's account is deactivated and reactivate it
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("account_status")
+      .eq("id", data.user.id)
+      .single();
+
+    if (profile?.account_status === "deactivated") {
+      // Reactivate the account
+      await supabase
+        .from("profiles")
+        .update({ account_status: "active" } as any)
+        .eq("id", data.user.id);
+
+      toast({
+        title: "Welcome back!",
+        description: "Your account has been reactivated.",
+      });
     }
 
     // Check if user is admin using secure database function

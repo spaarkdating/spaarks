@@ -82,6 +82,30 @@ export type Database = {
         }
         Relationships: []
       }
+      blocked_emails: {
+        Row: {
+          deleted_at: string
+          email: string
+          id: string
+          reason: string | null
+          user_display_name: string | null
+        }
+        Insert: {
+          deleted_at?: string
+          email: string
+          id?: string
+          reason?: string | null
+          user_display_name?: string | null
+        }
+        Update: {
+          deleted_at?: string
+          email?: string
+          id?: string
+          reason?: string | null
+          user_display_name?: string | null
+        }
+        Relationships: []
+      }
       blocked_users: {
         Row: {
           blocked_at: string
@@ -1281,6 +1305,7 @@ export type Database = {
         Returns: undefined
       }
       is_admin: { Args: never; Returns: boolean }
+      is_email_blocked: { Args: { check_email: string }; Returns: boolean }
       is_full_admin: { Args: never; Returns: boolean }
       is_moderator: { Args: never; Returns: boolean }
       is_super_admin: { Args: never; Returns: boolean }

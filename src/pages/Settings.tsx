@@ -9,10 +9,12 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Mail, User, LogOut, MessageSquare, Heart, Filter, Palette, CreditCard } from "lucide-react";
+import { ArrowLeft, Mail, User, LogOut, MessageSquare, Heart, Filter, Palette, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ThemeToggle } from "@/components/landing/ThemeToggle";
 import { SubscriptionManagement } from "@/components/settings/SubscriptionManagement";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const Settings = () => {
   const [user, setUser] = useState<any>(null);
@@ -328,91 +330,7 @@ const Settings = () => {
             </CardContent>
           </Card>
 
-          <Card className="shadow-xl border-2">
-            <CardHeader>
-              <CardTitle className="text-destructive">Account Management</CardTitle>
-              <CardDescription>Manage your account status</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <h4 className="font-semibold mb-2">Deactivate Account</h4>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Your profile will be hidden from other users. You can reactivate anytime by logging in.
-                </p>
-                <Button
-                  variant="outline"
-                  className="w-full border-yellow-500 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950"
-                  onClick={async () => {
-                    if (window.confirm("Are you sure you want to deactivate your account?")) {
-                      const { error } = await supabase
-                        .from("profiles")
-                        .update({ account_status: "deactivated" } as any)
-                        .eq("id", user.id);
-
-                      if (!error) {
-                        toast({
-                          title: "Account deactivated",
-                          description: "Your account has been deactivated.",
-                        });
-                        await supabase.auth.signOut();
-                        navigate("/");
-                      } else {
-                        toast({
-                          title: "Error",
-                          description: error.message,
-                          variant: "destructive",
-                        });
-                      }
-                    }
-                  }}
-                >
-                  Deactivate Account
-                </Button>
-              </div>
-
-              <Separator />
-
-              <div>
-                <h4 className="font-semibold mb-2 text-destructive">Delete Account</h4>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Permanently delete your account and all data. This action cannot be undone.
-                </p>
-                <Button
-                  variant="destructive"
-                  className="w-full"
-                  onClick={async () => {
-                    if (window.confirm("Are you sure you want to permanently delete your account? This action cannot be undone.")) {
-                      try {
-                        // Delete profile (cascade will handle related data)
-                        const { error } = await supabase
-                          .from("profiles")
-                          .delete()
-                          .eq("id", user.id);
-
-                        if (error) throw error;
-
-                        toast({
-                          title: "Account deleted",
-                          description: "Your account has been permanently deleted.",
-                        });
-
-                        await supabase.auth.signOut();
-                        navigate("/");
-                      } catch (error: any) {
-                        toast({
-                          title: "Error",
-                          description: "Could not delete account. Please contact support.",
-                          variant: "destructive",
-                        });
-                      }
-                    }
-                  }}
-                >
-                  Permanently Delete Account
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <AccountManagementCard user={user} toast={toast} navigate={navigate} />
 
           <Card className="shadow-xl border-2">
             <CardHeader>
@@ -472,6 +390,213 @@ const Settings = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+// Account Management Card Component with proper dialogs
+const AccountManagementCard = ({ user, toast, navigate }: { user: any; toast: any; navigate: any }) => {
+  const [isDeactivating, setIsDeactivating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const [understandConsequences, setUnderstandConsequences] = useState(false);
+  const [showDeactivateDialog, setShowDeactivateDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  const handleDeactivate = async () => {
+    setIsDeactivating(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ account_status: "deactivated" } as any)
+      .eq("id", user.id);
+
+    if (!error) {
+      toast({
+        title: "Account deactivated",
+        description: "Your account has been deactivated. Log in again anytime to reactivate.",
+      });
+      await supabase.auth.signOut();
+      navigate("/");
+    } else {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+    setIsDeactivating(false);
+    setShowDeactivateDialog(false);
+  };
+
+  const handleDelete = async () => {
+    if (deleteConfirmation !== "DELETE MY ACCOUNT" || !understandConsequences) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("delete-account");
+      
+      if (error) throw error;
+
+      toast({
+        title: "Account Permanently Deleted",
+        description: "Your account and all data have been permanently deleted. This email can no longer be used.",
+      });
+
+      await supabase.auth.signOut();
+      navigate("/");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Could not delete account. Please contact support.",
+        variant: "destructive",
+      });
+    }
+    setIsDeleting(false);
+    setShowDeleteDialog(false);
+  };
+
+  return (
+    <Card className="shadow-xl border-2">
+      <CardHeader>
+        <CardTitle className="text-destructive">Account Management</CardTitle>
+        <CardDescription>Manage your account status</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div>
+          <h4 className="font-semibold mb-2">Deactivate Account</h4>
+          <p className="text-sm text-muted-foreground mb-3">
+            Your profile will be hidden from other users. You can reactivate anytime by logging back in.
+          </p>
+          <Dialog open={showDeactivateDialog} onOpenChange={setShowDeactivateDialog}>
+            <DialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full border-yellow-500 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950"
+              >
+                Deactivate Account
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Deactivate Your Account?</DialogTitle>
+                <DialogDescription className="space-y-2 pt-2">
+                  <p>When you deactivate your account:</p>
+                  <ul className="list-disc list-inside space-y-1 text-sm">
+                    <li>Your profile will be hidden from other users</li>
+                    <li>You won't appear in anyone's swipes or matches</li>
+                    <li>Your existing conversations will be preserved</li>
+                    <li><strong>You can reactivate anytime by simply logging back in</strong></li>
+                  </ul>
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter className="gap-2 sm:gap-0">
+                <Button variant="outline" onClick={() => setShowDeactivateDialog(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  variant="default"
+                  className="bg-yellow-500 hover:bg-yellow-600 text-white"
+                  onClick={handleDeactivate}
+                  disabled={isDeactivating}
+                >
+                  {isDeactivating ? "Deactivating..." : "Yes, Deactivate"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        <Separator />
+
+        <div>
+          <h4 className="font-semibold mb-2 text-destructive flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4" />
+            Permanently Delete Account
+          </h4>
+          <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 mb-3">
+            <p className="text-sm text-destructive font-medium mb-2">⚠️ Warning: This action is IRREVERSIBLE</p>
+            <ul className="text-xs text-muted-foreground space-y-1">
+              <li>• All your data, photos, matches, and messages will be permanently deleted</li>
+              <li>• <strong className="text-destructive">This email address can NEVER be used again</strong></li>
+              <li>• You cannot recover your account or create a new one with the same email</li>
+            </ul>
+          </div>
+          <Dialog open={showDeleteDialog} onOpenChange={(open) => {
+            setShowDeleteDialog(open);
+            if (!open) {
+              setDeleteConfirmation("");
+              setUnderstandConsequences(false);
+            }
+          }}>
+            <DialogTrigger asChild>
+              <Button variant="destructive" className="w-full">
+                Permanently Delete Account
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-destructive">
+                  <AlertTriangle className="h-5 w-5" />
+                  Delete Account Permanently
+                </DialogTitle>
+                <DialogDescription className="pt-2">
+                  <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 mb-4">
+                    <p className="text-sm font-medium text-destructive mb-2">This action CANNOT be undone!</p>
+                    <ul className="text-xs space-y-1">
+                      <li>• All your profile data will be erased</li>
+                      <li>• All your photos will be deleted</li>
+                      <li>• All your matches and messages will be lost</li>
+                      <li>• <strong>Your email ({user.email}) will be permanently blocked</strong></li>
+                      <li>• You can never create a new account with this email</li>
+                    </ul>
+                  </div>
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-4">
+                <div className="flex items-start space-x-2">
+                  <Checkbox 
+                    id="understand" 
+                    checked={understandConsequences}
+                    onCheckedChange={(checked) => setUnderstandConsequences(checked === true)}
+                  />
+                  <label htmlFor="understand" className="text-sm leading-tight cursor-pointer">
+                    I understand that this action is permanent and my email can never be used again
+                  </label>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-delete" className="text-sm">
+                    Type <span className="font-mono font-bold text-destructive">DELETE MY ACCOUNT</span> to confirm:
+                  </Label>
+                  <Input
+                    id="confirm-delete"
+                    value={deleteConfirmation}
+                    onChange={(e) => setDeleteConfirmation(e.target.value)}
+                    placeholder="DELETE MY ACCOUNT"
+                    className="font-mono"
+                  />
+                </div>
+              </div>
+              
+              <DialogFooter className="gap-2 sm:gap-0">
+                <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  variant="destructive"
+                  onClick={handleDelete}
+                  disabled={isDeleting || deleteConfirmation !== "DELETE MY ACCOUNT" || !understandConsequences}
+                >
+                  {isDeleting ? "Deleting..." : "Delete Forever"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

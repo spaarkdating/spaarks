@@ -79,6 +79,8 @@ export const OfflineDashboard = ({ user, onLogout }: OfflineDashboardProps) => {
         `)
         .neq("id", userId)
         .eq("dating_mode", "offline")
+        .eq("verification_status", "approved")
+        .eq("account_status", "active")
         .order("created_at", { ascending: false })
         .limit(50);
 
