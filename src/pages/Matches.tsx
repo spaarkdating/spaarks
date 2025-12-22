@@ -15,6 +15,7 @@ import { PullToRefreshIndicator } from "@/components/navigation/PullToRefreshInd
 import { ProfileView } from "@/components/profile/ProfileView";
 import { PhotoCarousel } from "@/components/profile/PhotoCarousel";
 import ReportProfileDialog from "@/components/profile/ReportProfileDialog";
+import { recordProfileView } from "@/lib/profileViews";
 
 const Matches = () => {
   const [user, setUser] = useState<any>(null);
@@ -243,26 +244,9 @@ const Matches = () => {
     setProfilePhotos(photos || []);
     setProfileInterests(interests?.map((i: any) => i.interest) || []);
     
-    // Record profile view (upsert to prevent duplicates)
+    // Record profile view when clicking to see details
     if (user && user.id !== profile.id) {
-      const { error: viewError } = await supabase.from("profile_views").upsert({
-        viewer_id: user.id,
-        viewed_profile_id: profile.id,
-        viewed_at: new Date().toISOString(),
-      }, {
-        onConflict: 'viewer_id,viewed_profile_id'
-      });
-
-      if (!viewError) {
-        // Create notification for profile view
-        await (supabase as any).from("notifications").insert({
-          user_id: profile.id,
-          type: "profile_view",
-          title: "Profile View",
-          message: `${user.email?.split('@')[0] || 'Someone'} viewed your profile`,
-          data: { viewer_id: user.id },
-        });
-      }
+      await recordProfileView(user.id, profile.id);
     }
   };
 

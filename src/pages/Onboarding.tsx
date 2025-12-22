@@ -79,10 +79,10 @@ const Onboarding = () => {
 
   const handleNext = () => {
     // Validate step before proceeding
-    if (currentStep === 2 && formData.photos.length < 5) {
+    if (currentStep === 2 && formData.photos.length < 2) {
       toast({
         title: "More photos needed",
-        description: "Please upload at least 5 photos before continuing.",
+        description: "Please upload at least 2 photos before continuing.",
         variant: "destructive",
       });
       return;
@@ -146,10 +146,10 @@ const Onboarding = () => {
       return;
     }
 
-    if (formData.photos.length < 5) {
+    if (formData.photos.length < 2) {
       toast({
         title: "More photos needed",
-        description: "Please upload at least 5 photos to complete your profile.",
+        description: "Please upload at least 2 photos to complete your profile.",
         variant: "destructive",
       });
       return;

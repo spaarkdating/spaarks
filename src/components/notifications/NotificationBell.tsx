@@ -161,7 +161,9 @@ export const NotificationBell = ({ userId }: NotificationBellProps) => {
                         {notification.title}
                       </p>
                       <p className="text-sm text-muted-foreground line-clamp-2">
-                        {notification.message}
+                        {notification.type === 'profile_view' 
+                          ? 'Someone viewed your profile' 
+                          : notification.message}
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
                         {formatDistanceToNow(new Date(notification.created_at), {

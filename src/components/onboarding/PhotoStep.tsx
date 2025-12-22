@@ -82,7 +82,7 @@ export const PhotoStep = ({ data, updateData }: PhotoStepProps) => {
       <div className="text-center">
         <ImageIcon className="h-16 w-16 text-primary mx-auto mb-4" />
         <h3 className="text-xl font-semibold mb-2">Add your best photos</h3>
-        <p className="text-muted-foreground">Upload at least one photo. You can add up to 6 photos.</p>
+        <p className="text-muted-foreground">Upload at least 2 photos. You can add up to 6 photos.</p>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
@@ -127,8 +127,8 @@ export const PhotoStep = ({ data, updateData }: PhotoStepProps) => {
         )}
       </div>
 
-      {photos.length === 0 && (
-        <p className="text-sm text-center text-muted-foreground">Add at least two photo to continue</p>
+      {photos.length < 2 && (
+        <p className="text-sm text-center text-muted-foreground">Add at least 2 photos to continue</p>
       )}
     </div>
   );

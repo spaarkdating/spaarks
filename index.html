@@ -110,6 +110,16 @@
 
   <body>
     <div id="root"></div>
+    <script>
+      // Unregister service workers that might be causing issues
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            registration.unregister();
+          }
+        });
+      }
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

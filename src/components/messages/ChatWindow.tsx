@@ -111,17 +111,17 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
   useEffect(() => {
     if (messages.length > 0) {
       if (!initialScrollDone.current) {
-        // Only auto-scroll on initial load
-        setTimeout(() => {
+      // Only auto-scroll on initial load
+      setTimeout(() => {
           scrollToBottom();
-          initialScrollDone.current = true;
-        }, 100);
+        initialScrollDone.current = true;
+      }, 100);
       } else {
         // Auto-scroll to bottom when new messages are added
         setTimeout(() => {
           scrollToBottom();
         }, 100);
-      }
+    }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messages.length]);

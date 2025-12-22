@@ -8,6 +8,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ArrowLeft, MessageCircle, Heart } from "lucide-react";
 import { toast } from "sonner";
 import ReportProfileDialog from "@/components/profile/ReportProfileDialog";
+import { recordProfileView } from "@/lib/profileViews";
 
 const ViewProfile = () => {
   const { id } = useParams<{ id: string }>();
@@ -33,7 +34,7 @@ const ViewProfile = () => {
       if (id) {
         await fetchProfile(id);
         await checkMatch(user.id, id);
-        // Record profile view
+        // Record profile view - this is the main trigger when someone views a profile
         await recordProfileView(user.id, id);
       }
     };
@@ -97,23 +98,6 @@ const ViewProfile = () => {
     }
   };
 
-  const recordProfileView = async (viewerId: string, viewedId: string) => {
-    if (viewerId === viewedId) return; // Don't record self-views
-    
-    try {
-      // Use upsert to update timestamp if view already exists
-      await supabase.from("profile_views").upsert({
-        viewer_id: viewerId,
-        viewed_profile_id: viewedId,
-        viewed_at: new Date().toISOString(),
-      }, {
-        onConflict: 'viewer_id,viewed_profile_id'
-      });
-    } catch (error) {
-      // Silently fail - view recording is not critical
-      console.error("Error recording profile view:", error);
-    }
-  };
 
   const handleMessage = () => {
     navigate("/messages", { state: { selectedUserId: id } });
