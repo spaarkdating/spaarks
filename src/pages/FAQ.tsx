@@ -23,7 +23,7 @@ const FAQ = () => {
         },
         {
           q: "How many photos do I need to upload?",
-          a: "You must upload at least 5 photos to complete your profile. This helps other users get a better sense of who you are."
+          a: "You must upload at least 2 photos to complete your profile. You can add up to 6 photos. This helps other users get a better sense of who you are."
         }
       ]
     },

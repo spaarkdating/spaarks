@@ -11,7 +11,7 @@ interface ProfileCompletionProps {
 const ProfileCompletion = ({ profile, photos, interests }: ProfileCompletionProps) => {
   const checks = [
     { label: "Profile photo added", completed: photos.length >= 1 },
-    { label: "5+ photos uploaded", completed: photos.length >= 5 },
+    { label: "2+ photos uploaded", completed: photos.length >= 2 },
     { label: "Bio written", completed: !!profile?.bio && profile.bio.length >= 20 },
     { label: "Interests selected", completed: interests.length >= 3 },
     { label: "Location added", completed: !!profile?.location },
