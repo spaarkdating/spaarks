@@ -155,7 +155,9 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
           user_interests(interest:interests(*))
         `)
         .neq("id", userId)
-        .eq("dating_mode", "online");
+        .eq("dating_mode", "online")
+        .eq("verification_status", "approved")
+        .eq("account_status", "active");
 
       // Filter by gender preference (looking_for)
       // Map looking_for values to database gender values: men->man, women->woman, male->man, female->woman
