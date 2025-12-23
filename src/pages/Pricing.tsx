@@ -10,12 +10,6 @@ import { useToast } from '@/hooks/use-toast';
 import { SEO } from '@/components/SEO';
 import { Header } from '@/components/navigation/Header';
 
-declare global {
-  interface Window {
-    Razorpay: any;
-  }
-}
-
 interface Plan {
   id: string;
   name: string;
@@ -101,15 +95,7 @@ export default function Pricing() {
 
   useEffect(() => {
     checkFoundingMemberStatus();
-    loadRazorpayScript();
   }, []);
-
-  const loadRazorpayScript = () => {
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.async = true;
-    document.body.appendChild(script);
-  };
 
   const checkFoundingMemberStatus = async () => {
     // Get current founding member count first (always runs)

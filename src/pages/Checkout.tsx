@@ -1,9 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
@@ -11,12 +10,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/navigation/Header";
 import SEO from "@/components/SEO";
 import { Check, Tag, Loader2, Shield, CreditCard, Sparkles, Crown, Zap, Star } from "lucide-react";
-
-declare global {
-  interface Window {
-    Razorpay: any;
-  }
-}
 
 interface Plan {
   id: string;
@@ -87,6 +80,7 @@ export default function Checkout() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const formRef = useRef<HTMLFormElement>(null);
   
   const planId = searchParams.get("plan") || "plus";
   const plan = plans[planId] || plans.plus;
@@ -97,21 +91,11 @@ export default function Checkout() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isFoundingMember, setIsFoundingMember] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [payuData, setPayuData] = useState<any>(null);
 
   useEffect(() => {
-    loadRazorpayScript();
     checkUserAndFoundingStatus();
   }, []);
-
-  const loadRazorpayScript = () => {
-    if (document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]')) {
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    document.body.appendChild(script);
-  };
 
   const checkUserAndFoundingStatus = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -230,67 +214,36 @@ export default function Checkout() {
     setIsProcessing(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke("razorpay-checkout", {
+      const baseUrl = window.location.origin;
+      
+      const { data, error } = await supabase.functions.invoke("payu-checkout", {
         body: {
-          action: "create_order",
+          action: "create_payment",
           plan: planId,
           coupon_code: appliedCoupon?.code || null,
+          success_url: `${baseUrl}/checkout/success`,
+          failure_url: `${baseUrl}/checkout/failure`,
         },
       });
 
       if (error) throw error;
 
-      const options = {
-        key: data.key_id,
-        amount: data.amount,
-        currency: data.currency,
-        name: "Spaark Dating",
-        description: `${plan.name} Plan Subscription`,
-        order_id: data.order_id,
-        handler: async (response: any) => {
-          try {
-            const { error: verifyError } = await supabase.functions.invoke("razorpay-checkout", {
-              body: {
-                action: "verify_payment",
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-                coupon_id: appliedCoupon?.coupon_id || null,
-              },
-            });
+      // Store PayU data and submit form
+      setPayuData(data);
+      
+      // Create and submit PayU form
+      setTimeout(() => {
+        if (formRef.current) {
+          formRef.current.submit();
+        }
+      }, 100);
 
-            if (verifyError) throw verifyError;
-
-            toast({
-              title: "Payment successful!",
-              description: `Welcome to Spaark ${plan.name}!`,
-            });
-            navigate("/dashboard");
-          } catch (err: any) {
-            toast({
-              title: "Payment verification failed",
-              description: err.message,
-              variant: "destructive",
-            });
-          }
-        },
-        prefill: {
-          email: user.email,
-        },
-        theme: {
-          color: "#dc2663",
-        },
-      };
-
-      const razorpay = new window.Razorpay(options);
-      razorpay.open();
     } catch (error: any) {
       toast({
         title: "Checkout failed",
         description: error.message || "Something went wrong.",
         variant: "destructive",
       });
-    } finally {
       setIsProcessing(false);
     }
   };
@@ -303,6 +256,33 @@ export default function Checkout() {
     <div className="min-h-screen bg-background">
       <SEO title={`Checkout - ${plan.name} Plan | Spaark`} description="Complete your subscription to Spaark" />
       <Header />
+      
+      {/* Hidden PayU form */}
+      {payuData && (
+        <form 
+          ref={formRef}
+          action="https://secure.payu.in/_payment" 
+          method="POST" 
+          style={{ display: 'none' }}
+        >
+          <input type="hidden" name="key" value={payuData.key} />
+          <input type="hidden" name="txnid" value={payuData.txnid} />
+          <input type="hidden" name="amount" value={payuData.amount} />
+          <input type="hidden" name="productinfo" value={payuData.productinfo} />
+          <input type="hidden" name="firstname" value={payuData.firstname} />
+          <input type="hidden" name="email" value={payuData.email} />
+          <input type="hidden" name="phone" value={payuData.phone || ""} />
+          <input type="hidden" name="surl" value={payuData.surl} />
+          <input type="hidden" name="furl" value={payuData.furl} />
+          <input type="hidden" name="hash" value={payuData.hash} />
+          <input type="hidden" name="udf1" value={payuData.udf1} />
+          <input type="hidden" name="udf2" value={payuData.udf2} />
+          <input type="hidden" name="udf3" value={payuData.udf3} />
+          <input type="hidden" name="udf4" value={payuData.udf4} />
+          <input type="hidden" name="udf5" value={payuData.udf5} />
+          <input type="hidden" name="service_provider" value="payu_paisa" />
+        </form>
+      )}
       
       <main className="container max-w-4xl mx-auto px-4 py-8 pt-24">
         <div className="grid gap-8 md:grid-cols-2">
@@ -443,7 +423,7 @@ export default function Checkout() {
                   Payment
                 </CardTitle>
                 <CardDescription>
-                  Secure payment powered by Razorpay
+                  Secure payment powered by PayU
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">

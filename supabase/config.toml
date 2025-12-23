@@ -84,5 +84,8 @@ verify_jwt = false
 [functions.send-verification-email]
 verify_jwt = true
 
-[functions.razorpay-checkout]
+[functions.delete-account]
+verify_jwt = true
+
+[functions.payu-checkout]
 verify_jwt = true
