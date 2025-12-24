@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -450,7 +450,22 @@ export default function Checkout() {
                 </Button>
                 
                 <p className="text-xs text-center text-muted-foreground">
-                  By proceeding, you agree to our Terms of Service and Privacy Policy
+                  By proceeding, you agree to our{" "}
+                  <Link to="/payment-terms" className="text-primary hover:underline">
+                    Payment Terms
+                  </Link>
+                  ,{" "}
+                  <Link to="/refund-policy" className="text-primary hover:underline">
+                    Refund Policy
+                  </Link>
+                  ,{" "}
+                  <Link to="/terms" className="text-primary hover:underline">
+                    Terms of Service
+                  </Link>
+                  {" "}and{" "}
+                  <Link to="/privacy" className="text-primary hover:underline">
+                    Privacy Policy
+                  </Link>
                 </p>
               </CardContent>
             </Card>
