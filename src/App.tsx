@@ -23,6 +23,8 @@ import AboutUs from "./pages/AboutUs";
 
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
+import PaymentTerms from "./pages/PaymentTerms";
+import RefundPolicy from "./pages/RefundPolicy";
 import SafetyTips from "./pages/SafetyTips";
 import ProfileViews from "./pages/ProfileViews";
 import SubmitTestimonial from "./pages/SubmitTestimonial";
@@ -65,6 +67,8 @@ const App = () => (
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<TermsOfService />} />
           <Route path="/safety" element={<SafetyTips />} />
+          <Route path="/payment-terms" element={<PaymentTerms />} />
+          <Route path="/refund-policy" element={<RefundPolicy />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/register" element={<AdminRegister />} />
           <Route path="/unsubscribe" element={<Unsubscribe />} />
