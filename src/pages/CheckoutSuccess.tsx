@@ -37,7 +37,7 @@ export default function CheckoutSuccess() {
       const udf5 = searchParams.get("udf5");
 
       if (!txnid || !status) {
-        throw new Error("Invalid payment response");
+        throw new Error("Payment under review");
       }
 
       if (status !== "success") {
