@@ -73,7 +73,7 @@ export default function CheckoutSuccess() {
     } catch (error: any) {
       console.error("Payment verification error:", error);
       toast({
-        title: "Verification failed",
+        title: "Verification under process",
         description: error.message || "Please contact support if you were charged.",
         variant: "destructive",
       });
