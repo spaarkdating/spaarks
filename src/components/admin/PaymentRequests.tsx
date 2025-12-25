@@ -114,17 +114,40 @@ export function PaymentRequests() {
       const expiresAt = new Date();
       expiresAt.setMonth(expiresAt.getMonth() + 1);
 
-      const { error: subError } = await supabase
+      // Check if user already has a subscription
+      const { data: existingSub } = await supabase
         .from("user_subscriptions")
-        .upsert({
-          user_id: request.user_id,
-          plan: request.plan_type as "free" | "plus" | "pro" | "elite",
-          status: "active",
-          started_at: new Date().toISOString(),
-          expires_at: expiresAt.toISOString(),
-        }, {
-          onConflict: "user_id",
-        });
+        .select("id")
+        .eq("user_id", request.user_id)
+        .maybeSingle();
+
+      let subError;
+      if (existingSub) {
+        // Update existing subscription
+        const { error } = await supabase
+          .from("user_subscriptions")
+          .update({
+            plan: request.plan_type as "free" | "plus" | "pro" | "elite",
+            status: "active",
+            started_at: new Date().toISOString(),
+            expires_at: expiresAt.toISOString(),
+            cancelled_at: null,
+          })
+          .eq("user_id", request.user_id);
+        subError = error;
+      } else {
+        // Insert new subscription
+        const { error } = await supabase
+          .from("user_subscriptions")
+          .insert({
+            user_id: request.user_id,
+            plan: request.plan_type as "free" | "plus" | "pro" | "elite",
+            status: "active",
+            started_at: new Date().toISOString(),
+            expires_at: expiresAt.toISOString(),
+          });
+        subError = error;
+      }
 
       if (subError) throw subError;
 
