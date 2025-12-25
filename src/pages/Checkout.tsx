@@ -1,15 +1,16 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/navigation/Header";
 import SEO from "@/components/SEO";
-import { Check, Tag, Loader2, Shield, CreditCard, Sparkles, Crown, Zap, Star } from "lucide-react";
+import { Check, Tag, Loader2, Shield, Upload, Copy, CheckCircle, Sparkles, Crown, Zap, Star, Smartphone, Building2, QrCode } from "lucide-react";
 
 interface Plan {
   id: string;
@@ -76,11 +77,19 @@ interface CouponData {
   discount_value?: number;
 }
 
+// Payment details - Update these with your actual details
+const PAYMENT_DETAILS = {
+  upiId: "yourupi@bank", // Replace with your actual UPI ID
+  bankName: "Your Bank Name",
+  accountName: "Your Account Name",
+  accountNumber: "XXXXXXXXXXXX",
+  ifscCode: "XXXX0000XXX",
+};
+
 export default function Checkout() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const formRef = useRef<HTMLFormElement>(null);
   
   const planId = searchParams.get("plan") || "plus";
   const plan = plans[planId] || plans.plus;
@@ -88,10 +97,16 @@ export default function Checkout() {
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<CouponData | null>(null);
   const [isValidating, setIsValidating] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFoundingMember, setIsFoundingMember] = useState(false);
   const [user, setUser] = useState<any>(null);
-  const [payuData, setPayuData] = useState<any>(null);
+  
+  // Payment proof state
+  const [transactionId, setTransactionId] = useState("");
+  const [upiReference, setUpiReference] = useState("");
+  const [paymentProof, setPaymentProof] = useState<File | null>(null);
+  const [copiedUpi, setCopiedUpi] = useState(false);
+  const [existingRequest, setExistingRequest] = useState<any>(null);
 
   useEffect(() => {
     checkUserAndFoundingStatus();
@@ -102,13 +117,24 @@ export default function Checkout() {
     setUser(user);
     
     if (user) {
-      const { data } = await supabase
+      // Check founding member status
+      const { data: founderData } = await supabase
         .from("founding_members")
         .select("id")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
       
-      setIsFoundingMember(!!data);
+      setIsFoundingMember(!!founderData);
+      
+      // Check for existing pending payment request
+      const { data: existingReq } = await supabase
+        .from("payment_requests")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("status", "pending")
+        .maybeSingle();
+      
+      setExistingRequest(existingReq);
     }
   };
 
@@ -178,12 +204,10 @@ export default function Checkout() {
   const calculateDiscount = () => {
     let discount = 0;
     
-    // Founding member discount (20%)
     if (isFoundingMember) {
       discount += plan.price * 0.2;
     }
     
-    // Coupon discount
     if (appliedCoupon?.valid) {
       const priceAfterFounder = plan.price - discount;
       if (appliedCoupon.discount_type === "percentage") {
@@ -200,7 +224,32 @@ export default function Checkout() {
     return Math.max(0, plan.price - calculateDiscount());
   };
 
-  const handleCheckout = async () => {
+  const copyToClipboard = async (text: string) => {
+    await navigator.clipboard.writeText(text);
+    setCopiedUpi(true);
+    setTimeout(() => setCopiedUpi(false), 2000);
+    toast({
+      title: "Copied!",
+      description: "UPI ID copied to clipboard",
+    });
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please upload a file smaller than 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      setPaymentProof(file);
+    }
+  };
+
+  const handleSubmitPayment = async () => {
     if (!user) {
       toast({
         title: "Login required",
@@ -211,40 +260,67 @@ export default function Checkout() {
       return;
     }
 
-    setIsProcessing(true);
+    if (!transactionId.trim() && !upiReference.trim()) {
+      toast({
+        title: "Transaction details required",
+        description: "Please enter your transaction ID or UPI reference number.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
 
     try {
-      const baseUrl = window.location.origin;
+      let proofUrl = null;
       
-      const { data, error } = await supabase.functions.invoke("payu-checkout", {
-        body: {
-          action: "create_payment",
-          plan: planId,
-          coupon_code: appliedCoupon?.code || null,
-          success_url: `${baseUrl}/checkout/success`,
-          failure_url: `${baseUrl}/checkout/failure`,
-        },
-      });
+      // Upload payment proof if provided
+      if (paymentProof) {
+        const fileExt = paymentProof.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from("payment-proofs")
+          .upload(fileName, paymentProof);
+        
+        if (uploadError) throw uploadError;
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from("payment-proofs")
+          .getPublicUrl(fileName);
+        
+        proofUrl = publicUrl;
+      }
+
+      // Create payment request
+      const { error } = await supabase
+        .from("payment_requests")
+        .insert({
+          user_id: user.id,
+          plan_type: planId,
+          amount: getFinalPrice(),
+          payment_proof_url: proofUrl,
+          transaction_id: transactionId.trim() || null,
+          upi_reference: upiReference.trim() || null,
+        });
 
       if (error) throw error;
 
-      // Store PayU data and submit form
-      setPayuData(data);
-      
-      // Create and submit PayU form
-      setTimeout(() => {
-        if (formRef.current) {
-          formRef.current.submit();
-        }
-      }, 100);
+      toast({
+        title: "Payment submitted!",
+        description: "Your payment is under review. We'll activate your subscription within 24 hours.",
+      });
+
+      navigate("/checkout/success?method=manual");
 
     } catch (error: any) {
       toast({
-        title: "Checkout failed",
-        description: error.message || "Something went wrong.",
+        title: "Submission failed",
+        description: error.message || "Something went wrong. Please try again.",
         variant: "destructive",
       });
-      setIsProcessing(false);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -252,37 +328,46 @@ export default function Checkout() {
   const discount = calculateDiscount();
   const finalPrice = getFinalPrice();
 
+  // Show pending request message
+  if (existingRequest) {
+    return (
+      <div className="min-h-screen bg-background">
+        <SEO title="Payment Pending | Spaark" description="Your payment is under review" />
+        <Header />
+        <main className="container max-w-2xl mx-auto px-4 py-8 pt-24">
+          <Card className="text-center">
+            <CardHeader>
+              <div className="mx-auto w-16 h-16 bg-yellow-100 dark:bg-yellow-900 rounded-full flex items-center justify-center mb-4">
+                <Loader2 className="h-8 w-8 text-yellow-600 animate-spin" />
+              </div>
+              <CardTitle>Payment Under Review</CardTitle>
+              <CardDescription>
+                You already have a pending payment request for the {existingRequest.plan_type.charAt(0).toUpperCase() + existingRequest.plan_type.slice(1)} plan.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="bg-muted p-4 rounded-lg text-left space-y-2">
+                <p className="text-sm"><strong>Amount:</strong> ₹{existingRequest.amount}</p>
+                <p className="text-sm"><strong>Submitted:</strong> {new Date(existingRequest.created_at).toLocaleDateString()}</p>
+                <p className="text-sm"><strong>Status:</strong> <Badge variant="secondary">Pending Review</Badge></p>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Our team will review your payment within 24 hours. You'll be notified once your subscription is activated.
+              </p>
+              <Button onClick={() => navigate("/dashboard")} className="w-full">
+                Go to Dashboard
+              </Button>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <SEO title={`Checkout - ${plan.name} Plan | Spaark`} description="Complete your subscription to Spaark" />
       <Header />
-      
-      {/* Hidden PayU form */}
-      {payuData && (
-        <form 
-          ref={formRef}
-          action="https://secure.payu.in/_payment" 
-          method="POST" 
-          style={{ display: 'none' }}
-        >
-          <input type="hidden" name="key" value={payuData.key} />
-          <input type="hidden" name="txnid" value={payuData.txnid} />
-          <input type="hidden" name="amount" value={payuData.amount} />
-          <input type="hidden" name="productinfo" value={payuData.productinfo} />
-          <input type="hidden" name="firstname" value={payuData.firstname} />
-          <input type="hidden" name="email" value={payuData.email} />
-          <input type="hidden" name="phone" value={payuData.phone || ""} />
-          <input type="hidden" name="surl" value={payuData.surl} />
-          <input type="hidden" name="furl" value={payuData.furl} />
-          <input type="hidden" name="hash" value={payuData.hash} />
-          <input type="hidden" name="udf1" value={payuData.udf1} />
-          <input type="hidden" name="udf2" value={payuData.udf2} />
-          <input type="hidden" name="udf3" value={payuData.udf3} />
-          <input type="hidden" name="udf4" value={payuData.udf4} />
-          <input type="hidden" name="udf5" value={payuData.udf5} />
-          <input type="hidden" name="service_provider" value="payu_paisa" />
-        </form>
-      )}
       
       <main className="container max-w-4xl mx-auto px-4 py-8 pt-24">
         <div className="grid gap-8 md:grid-cols-2">
@@ -357,23 +442,14 @@ export default function Checkout() {
                   </Badge>
                 )}
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Coupon & Payment */}
-          <div className="space-y-6">
-            {/* Coupon Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Tag className="h-5 w-5 text-primary" />
+              {/* Coupon Section */}
+              <Separator />
+              <div className="space-y-3">
+                <Label className="flex items-center gap-2">
+                  <Tag className="h-4 w-4" />
                   Apply Coupon
-                </CardTitle>
-                <CardDescription>
-                  Have a promo code? Enter it below
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+                </Label>
                 {appliedCoupon?.valid ? (
                   <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
                     <div className="flex items-center gap-2">
@@ -381,11 +457,6 @@ export default function Checkout() {
                       <span className="font-medium text-green-700 dark:text-green-300">
                         {appliedCoupon.code}
                       </span>
-                      {appliedCoupon.description && (
-                        <span className="text-sm text-green-600">
-                          - {appliedCoupon.description}
-                        </span>
-                      )}
                     </div>
                     <Button variant="ghost" size="sm" onClick={removeCoupon}>
                       Remove
@@ -404,47 +475,138 @@ export default function Checkout() {
                       disabled={isValidating}
                       variant="outline"
                     >
-                      {isValidating ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        "Apply"
-                      )}
+                      {isValidating ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
                     </Button>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Payment Section */}
+          {/* Payment Section */}
+          <div className="space-y-6">
+            {/* UPI Payment */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
-                  <CreditCard className="h-5 w-5 text-primary" />
-                  Payment
+                  <Smartphone className="h-5 w-5 text-primary" />
+                  Pay via UPI
                 </CardTitle>
                 <CardDescription>
-                  Secure payment powered by PayU
+                  Pay using any UPI app (GPay, PhonePe, Paytm, etc.)
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="bg-muted p-4 rounded-lg text-center">
+                  <QrCode className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
+                  <p className="text-sm text-muted-foreground mb-2">Scan or use UPI ID</p>
+                  <div className="flex items-center justify-center gap-2">
+                    <code className="bg-background px-3 py-2 rounded text-lg font-mono">
+                      {PAYMENT_DETAILS.upiId}
+                    </code>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => copyToClipboard(PAYMENT_DETAILS.upiId)}
+                    >
+                      {copiedUpi ? <CheckCircle className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                  <p className="text-lg font-bold text-primary mt-2">₹{finalPrice}</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Bank Transfer */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Building2 className="h-5 w-5 text-primary" />
+                  Bank Transfer
+                </CardTitle>
+                <CardDescription>
+                  Transfer directly to our bank account
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-muted p-4 rounded-lg space-y-2 text-sm">
+                  <p><strong>Bank:</strong> {PAYMENT_DETAILS.bankName}</p>
+                  <p><strong>Account Name:</strong> {PAYMENT_DETAILS.accountName}</p>
+                  <p><strong>Account Number:</strong> {PAYMENT_DETAILS.accountNumber}</p>
+                  <p><strong>IFSC Code:</strong> {PAYMENT_DETAILS.ifscCode}</p>
+                  <p className="text-primary font-bold pt-2">Amount: ₹{finalPrice}</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Submit Payment Proof */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Upload className="h-5 w-5 text-primary" />
+                  Confirm Payment
+                </CardTitle>
+                <CardDescription>
+                  After payment, submit your transaction details
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="transactionId">Transaction ID / UTR Number</Label>
+                  <Input
+                    id="transactionId"
+                    placeholder="Enter transaction ID"
+                    value={transactionId}
+                    onChange={(e) => setTransactionId(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="upiReference">UPI Reference Number (Optional)</Label>
+                  <Input
+                    id="upiReference"
+                    placeholder="Enter UPI reference"
+                    value={upiReference}
+                    onChange={(e) => setUpiReference(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="paymentProof">Payment Screenshot (Optional)</Label>
+                  <Input
+                    id="paymentProof"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="cursor-pointer"
+                  />
+                  {paymentProof && (
+                    <p className="text-sm text-muted-foreground flex items-center gap-1">
+                      <CheckCircle className="h-3 w-3 text-green-600" />
+                      {paymentProof.name}
+                    </p>
+                  )}
+                </div>
+                
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Shield className="h-4 w-4" />
-                  Your payment is secure and encrypted
+                  Your payment will be verified within 24 hours
                 </div>
                 
                 <Button 
                   className="w-full bg-gradient-to-r from-primary to-secondary text-lg py-6"
-                  onClick={handleCheckout}
-                  disabled={isProcessing}
+                  onClick={handleSubmitPayment}
+                  disabled={isSubmitting}
                 >
-                  {isProcessing ? (
+                  {isSubmitting ? (
                     <>
                       <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                      Processing...
+                      Submitting...
                     </>
                   ) : (
                     <>
-                      Pay ₹{finalPrice}
+                      <CheckCircle className="h-5 w-5 mr-2" />
+                      Submit Payment for Review
                     </>
                   )}
                 </Button>
