@@ -86,7 +86,7 @@ export default function CheckoutSuccess() {
     <div className="min-h-screen bg-background">
       <SEO title="Payment Success | Spaark" description="Your payment was successful" />
       <Header />
-      
+
       <main className="container max-w-md mx-auto px-4 py-8 pt-24">
         <Card className="text-center">
           <CardHeader>
@@ -107,19 +107,16 @@ export default function CheckoutSuccess() {
               </>
             ) : (
               <>
-                <CardTitle className="text-destructive">Verification Failed</CardTitle>
+                <CardTitle className="text-destructive">Verification Pending</CardTitle>
                 <CardDescription>
-                  We couldn't verify your payment. If you were charged, please contact support.
+                  We are verifying your payment, it might take some time. If have any queries please contact support.
                 </CardDescription>
               </>
             )}
           </CardHeader>
           <CardContent className="space-y-4">
             {!isVerifying && (
-              <Button 
-                className="w-full" 
-                onClick={() => navigate(verified ? "/dashboard" : "/support")}
-              >
+              <Button className="w-full" onClick={() => navigate(verified ? "/dashboard" : "/support")}>
                 {verified ? "Go to Dashboard" : "Contact Support"}
               </Button>
             )}
