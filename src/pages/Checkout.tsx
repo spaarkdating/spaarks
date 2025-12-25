@@ -10,7 +10,22 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/navigation/Header";
 import SEO from "@/components/SEO";
-import { Check, Tag, Loader2, Shield, Upload, Copy, CheckCircle, Sparkles, Crown, Zap, Star, Smartphone, Building2, QrCode } from "lucide-react";
+import {
+  Check,
+  Tag,
+  Loader2,
+  Shield,
+  Upload,
+  Copy,
+  CheckCircle,
+  Sparkles,
+  Crown,
+  Zap,
+  Star,
+  Smartphone,
+  Building2,
+  QrCode,
+} from "lucide-react";
 
 interface Plan {
   id: string;
@@ -79,28 +94,28 @@ interface CouponData {
 
 // Payment details - Update these with your actual details
 const PAYMENT_DETAILS = {
-  upiId: "yourupi@bank", // Replace with your actual UPI ID
-  bankName: "Your Bank Name",
-  accountName: "Your Account Name",
-  accountNumber: "XXXXXXXXXXXX",
-  ifscCode: "XXXX0000XXX",
+  upiId: "7054533509@slc", // Replace with your actual UPI ID
+  bankName: "Slice",
+  accountName: "Mandhata Singh",
+  accountNumber: "033325229664052",
+  ifscCode: "NESF0000333",
 };
 
 export default function Checkout() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  
+
   const planId = searchParams.get("plan") || "plus";
   const plan = plans[planId] || plans.plus;
-  
+
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<CouponData | null>(null);
   const [isValidating, setIsValidating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFoundingMember, setIsFoundingMember] = useState(false);
   const [user, setUser] = useState<any>(null);
-  
+
   // Payment proof state
   const [transactionId, setTransactionId] = useState("");
   const [upiReference, setUpiReference] = useState("");
@@ -113,9 +128,11 @@ export default function Checkout() {
   }, []);
 
   const checkUserAndFoundingStatus = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     setUser(user);
-    
+
     if (user) {
       // Check founding member status
       const { data: founderData } = await supabase
@@ -123,9 +140,9 @@ export default function Checkout() {
         .select("id")
         .eq("user_id", user.id)
         .maybeSingle();
-      
+
       setIsFoundingMember(!!founderData);
-      
+
       // Check for existing pending payment request
       const { data: existingReq } = await supabase
         .from("payment_requests")
@@ -133,7 +150,7 @@ export default function Checkout() {
         .eq("user_id", user.id)
         .eq("status", "pending")
         .maybeSingle();
-      
+
       setExistingRequest(existingReq);
     }
   };
@@ -159,7 +176,7 @@ export default function Checkout() {
     }
 
     setIsValidating(true);
-    
+
     try {
       const { data, error } = await supabase.rpc("validate_coupon", {
         p_code: couponCode.trim(),
@@ -171,12 +188,14 @@ export default function Checkout() {
       if (!data) throw new Error("No response from coupon validation");
 
       const couponData = data as unknown as CouponData;
-      
+
       if (couponData.valid) {
         setAppliedCoupon(couponData);
         toast({
           title: "Coupon applied!",
-          description: couponData.description || `You saved ${couponData.discount_type === "percentage" ? `${couponData.discount_value}%` : `₹${couponData.discount_value}`}!`,
+          description:
+            couponData.description ||
+            `You saved ${couponData.discount_type === "percentage" ? `${couponData.discount_value}%` : `₹${couponData.discount_value}`}!`,
         });
       } else {
         toast({
@@ -203,11 +222,11 @@ export default function Checkout() {
 
   const calculateDiscount = () => {
     let discount = 0;
-    
+
     if (isFoundingMember) {
       discount += plan.price * 0.2;
     }
-    
+
     if (appliedCoupon?.valid) {
       const priceAfterFounder = plan.price - discount;
       if (appliedCoupon.discount_type === "percentage") {
@@ -216,7 +235,7 @@ export default function Checkout() {
         discount += Math.min(appliedCoupon.discount_value!, priceAfterFounder);
       }
     }
-    
+
     return Math.round(discount);
   };
 
@@ -273,36 +292,32 @@ export default function Checkout() {
 
     try {
       let proofUrl = null;
-      
+
       // Upload payment proof if provided
       if (paymentProof) {
-        const fileExt = paymentProof.name.split('.').pop();
+        const fileExt = paymentProof.name.split(".").pop();
         const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-        
-        const { error: uploadError } = await supabase.storage
-          .from("payment-proofs")
-          .upload(fileName, paymentProof);
-        
+
+        const { error: uploadError } = await supabase.storage.from("payment-proofs").upload(fileName, paymentProof);
+
         if (uploadError) throw uploadError;
-        
-        const { data: { publicUrl } } = supabase.storage
-          .from("payment-proofs")
-          .getPublicUrl(fileName);
-        
+
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("payment-proofs").getPublicUrl(fileName);
+
         proofUrl = publicUrl;
       }
 
       // Create payment request
-      const { error } = await supabase
-        .from("payment_requests")
-        .insert({
-          user_id: user.id,
-          plan_type: planId,
-          amount: getFinalPrice(),
-          payment_proof_url: proofUrl,
-          transaction_id: transactionId.trim() || null,
-          upi_reference: upiReference.trim() || null,
-        });
+      const { error } = await supabase.from("payment_requests").insert({
+        user_id: user.id,
+        plan_type: planId,
+        amount: getFinalPrice(),
+        payment_proof_url: proofUrl,
+        transaction_id: transactionId.trim() || null,
+        upi_reference: upiReference.trim() || null,
+      });
 
       if (error) throw error;
 
@@ -312,7 +327,6 @@ export default function Checkout() {
       });
 
       navigate("/checkout/success?method=manual");
-
     } catch (error: any) {
       toast({
         title: "Submission failed",
@@ -342,17 +356,25 @@ export default function Checkout() {
               </div>
               <CardTitle>Payment Under Review</CardTitle>
               <CardDescription>
-                You already have a pending payment request for the {existingRequest.plan_type.charAt(0).toUpperCase() + existingRequest.plan_type.slice(1)} plan.
+                You already have a pending payment request for the{" "}
+                {existingRequest.plan_type.charAt(0).toUpperCase() + existingRequest.plan_type.slice(1)} plan.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="bg-muted p-4 rounded-lg text-left space-y-2">
-                <p className="text-sm"><strong>Amount:</strong> ₹{existingRequest.amount}</p>
-                <p className="text-sm"><strong>Submitted:</strong> {new Date(existingRequest.created_at).toLocaleDateString()}</p>
-                <p className="text-sm"><strong>Status:</strong> <Badge variant="secondary">Pending Review</Badge></p>
+                <p className="text-sm">
+                  <strong>Amount:</strong> ₹{existingRequest.amount}
+                </p>
+                <p className="text-sm">
+                  <strong>Submitted:</strong> {new Date(existingRequest.created_at).toLocaleDateString()}
+                </p>
+                <p className="text-sm">
+                  <strong>Status:</strong> <Badge variant="secondary">Pending Review</Badge>
+                </p>
               </div>
               <p className="text-sm text-muted-foreground">
-                Our team will review your payment within 24 hours. You'll be notified once your subscription is activated.
+                Our team will review your payment within 24 hours. You'll be notified once your subscription is
+                activated.
               </p>
               <Button onClick={() => navigate("/dashboard")} className="w-full">
                 Go to Dashboard
@@ -368,7 +390,7 @@ export default function Checkout() {
     <div className="min-h-screen bg-background">
       <SEO title={`Checkout - ${plan.name} Plan | Spaark`} description="Complete your subscription to Spaark" />
       <Header />
-      
+
       <main className="container max-w-4xl mx-auto px-4 py-8 pt-24">
         <div className="grid gap-8 md:grid-cols-2">
           {/* Order Summary */}
@@ -389,15 +411,15 @@ export default function Checkout() {
                   </li>
                 ))}
               </ul>
-              
+
               <Separator />
-              
+
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Subtotal</span>
                   <span>₹{plan.price}/month</span>
                 </div>
-                
+
                 {isFoundingMember && (
                   <div className="flex justify-between text-sm text-primary">
                     <span className="flex items-center gap-1">
@@ -407,7 +429,7 @@ export default function Checkout() {
                     <span>-₹{Math.round(plan.price * 0.2)}</span>
                   </div>
                 )}
-                
+
                 {appliedCoupon?.valid && (
                   <div className="flex justify-between text-sm text-green-600">
                     <span className="flex items-center gap-1">
@@ -415,27 +437,26 @@ export default function Checkout() {
                       Coupon: {appliedCoupon.code}
                     </span>
                     <span>
-                      -{appliedCoupon.discount_type === "percentage" 
-                        ? `${appliedCoupon.discount_value}%` 
+                      -
+                      {appliedCoupon.discount_type === "percentage"
+                        ? `${appliedCoupon.discount_value}%`
                         : `₹${appliedCoupon.discount_value}`}
                     </span>
                   </div>
                 )}
-                
+
                 <Separator />
-                
+
                 <div className="flex justify-between font-bold text-lg">
                   <span>Total</span>
                   <div className="text-right">
                     {discount > 0 && (
-                      <span className="text-sm text-muted-foreground line-through mr-2">
-                        ₹{plan.price}
-                      </span>
+                      <span className="text-sm text-muted-foreground line-through mr-2">₹{plan.price}</span>
                     )}
                     <span className="text-primary">₹{finalPrice}/month</span>
                   </div>
                 </div>
-                
+
                 {discount > 0 && (
                   <Badge variant="secondary" className="w-full justify-center">
                     You save ₹{discount} this month!
@@ -454,9 +475,7 @@ export default function Checkout() {
                   <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
                     <div className="flex items-center gap-2">
                       <Check className="h-4 w-4 text-green-600" />
-                      <span className="font-medium text-green-700 dark:text-green-300">
-                        {appliedCoupon.code}
-                      </span>
+                      <span className="font-medium text-green-700 dark:text-green-300">{appliedCoupon.code}</span>
                     </div>
                     <Button variant="ghost" size="sm" onClick={removeCoupon}>
                       Remove
@@ -470,11 +489,7 @@ export default function Checkout() {
                       onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                       className="flex-1"
                     />
-                    <Button 
-                      onClick={handleApplyCoupon} 
-                      disabled={isValidating}
-                      variant="outline"
-                    >
+                    <Button onClick={handleApplyCoupon} disabled={isValidating} variant="outline">
                       {isValidating ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
                     </Button>
                   </div>
@@ -492,23 +507,15 @@ export default function Checkout() {
                   <Smartphone className="h-5 w-5 text-primary" />
                   Pay via UPI
                 </CardTitle>
-                <CardDescription>
-                  Pay using any UPI app (GPay, PhonePe, Paytm, etc.)
-                </CardDescription>
+                <CardDescription>Pay using any UPI app (GPay, PhonePe, Paytm, etc.)</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="bg-muted p-4 rounded-lg text-center">
                   <QrCode className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
                   <p className="text-sm text-muted-foreground mb-2">Scan or use UPI ID</p>
                   <div className="flex items-center justify-center gap-2">
-                    <code className="bg-background px-3 py-2 rounded text-lg font-mono">
-                      {PAYMENT_DETAILS.upiId}
-                    </code>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => copyToClipboard(PAYMENT_DETAILS.upiId)}
-                    >
+                    <code className="bg-background px-3 py-2 rounded text-lg font-mono">{PAYMENT_DETAILS.upiId}</code>
+                    <Button variant="outline" size="sm" onClick={() => copyToClipboard(PAYMENT_DETAILS.upiId)}>
                       {copiedUpi ? <CheckCircle className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
                     </Button>
                   </div>
@@ -524,16 +531,22 @@ export default function Checkout() {
                   <Building2 className="h-5 w-5 text-primary" />
                   Bank Transfer
                 </CardTitle>
-                <CardDescription>
-                  Transfer directly to our bank account
-                </CardDescription>
+                <CardDescription>Transfer directly to our bank account</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="bg-muted p-4 rounded-lg space-y-2 text-sm">
-                  <p><strong>Bank:</strong> {PAYMENT_DETAILS.bankName}</p>
-                  <p><strong>Account Name:</strong> {PAYMENT_DETAILS.accountName}</p>
-                  <p><strong>Account Number:</strong> {PAYMENT_DETAILS.accountNumber}</p>
-                  <p><strong>IFSC Code:</strong> {PAYMENT_DETAILS.ifscCode}</p>
+                  <p>
+                    <strong>Bank:</strong> {PAYMENT_DETAILS.bankName}
+                  </p>
+                  <p>
+                    <strong>Account Name:</strong> {PAYMENT_DETAILS.accountName}
+                  </p>
+                  <p>
+                    <strong>Account Number:</strong> {PAYMENT_DETAILS.accountNumber}
+                  </p>
+                  <p>
+                    <strong>IFSC Code:</strong> {PAYMENT_DETAILS.ifscCode}
+                  </p>
                   <p className="text-primary font-bold pt-2">Amount: ₹{finalPrice}</p>
                 </div>
               </CardContent>
@@ -546,9 +559,7 @@ export default function Checkout() {
                   <Upload className="h-5 w-5 text-primary" />
                   Confirm Payment
                 </CardTitle>
-                <CardDescription>
-                  After payment, submit your transaction details
-                </CardDescription>
+                <CardDescription>After payment, submit your transaction details</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -587,13 +598,13 @@ export default function Checkout() {
                     </p>
                   )}
                 </div>
-                
+
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Shield className="h-4 w-4" />
                   Your payment will be verified within 24 hours
                 </div>
-                
-                <Button 
+
+                <Button
                   className="w-full bg-gradient-to-r from-primary to-secondary text-lg py-6"
                   onClick={handleSubmitPayment}
                   disabled={isSubmitting}
@@ -610,7 +621,7 @@ export default function Checkout() {
                     </>
                   )}
                 </Button>
-                
+
                 <p className="text-xs text-center text-muted-foreground">
                   By proceeding, you agree to our{" "}
                   <Link to="/payment-terms" className="text-primary hover:underline">
@@ -623,8 +634,8 @@ export default function Checkout() {
                   ,{" "}
                   <Link to="/terms" className="text-primary hover:underline">
                     Terms of Service
-                  </Link>
-                  {" "}and{" "}
+                  </Link>{" "}
+                  and{" "}
                   <Link to="/privacy" className="text-primary hover:underline">
                     Privacy Policy
                   </Link>
