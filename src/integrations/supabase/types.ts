@@ -646,6 +646,50 @@ export type Database = {
           },
         ]
       }
+      payment_settings: {
+        Row: {
+          account_name: string | null
+          account_number: string | null
+          bank_name: string | null
+          id: string
+          ifsc_code: string | null
+          updated_at: string
+          updated_by: string | null
+          upi_id: string | null
+          upi_qr_url: string | null
+        }
+        Insert: {
+          account_name?: string | null
+          account_number?: string | null
+          bank_name?: string | null
+          id?: string
+          ifsc_code?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          upi_id?: string | null
+          upi_qr_url?: string | null
+        }
+        Update: {
+          account_name?: string | null
+          account_number?: string | null
+          bank_name?: string | null
+          id?: string
+          ifsc_code?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          upi_id?: string | null
+          upi_qr_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number
