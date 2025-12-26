@@ -24,6 +24,7 @@ export interface SubscriptionData {
   status: string;
   expires_at: string | null;
   is_founding_member: boolean;
+  cancelled_at: string | null;
 }
 
 export function useSubscription() {
@@ -58,6 +59,7 @@ export function useSubscription() {
           status: subData.status,
           expires_at: subData.expires_at,
           is_founding_member: subData.is_founding_member || false,
+          cancelled_at: subData.cancelled_at,
         });
       } else {
         // Default to free plan
@@ -66,6 +68,7 @@ export function useSubscription() {
           status: 'active',
           expires_at: null,
           is_founding_member: false,
+          cancelled_at: null,
         });
       }
 
