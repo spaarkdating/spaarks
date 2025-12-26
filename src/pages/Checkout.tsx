@@ -92,14 +92,14 @@ interface CouponData {
   discount_value?: number;
 }
 
-// Payment details - Update these with your actual details
-const PAYMENT_DETAILS = {
-  upiId: "7054533509@slc", // Replace with your actual UPI ID
-  bankName: "Slice",
-  accountName: "Mandhata Singh",
-  accountNumber: "033325229664052",
-  ifscCode: "NESF0000333",
-};
+interface PaymentSettings {
+  upi_id: string | null;
+  upi_qr_url: string | null;
+  bank_name: string | null;
+  account_name: string | null;
+  account_number: string | null;
+  ifsc_code: string | null;
+}
 
 export default function Checkout() {
   const [searchParams] = useSearchParams();
@@ -122,10 +122,27 @@ export default function Checkout() {
   const [paymentProof, setPaymentProof] = useState<File | null>(null);
   const [copiedUpi, setCopiedUpi] = useState(false);
   const [existingRequest, setExistingRequest] = useState<any>(null);
+  const [paymentSettings, setPaymentSettings] = useState<PaymentSettings | null>(null);
 
   useEffect(() => {
     checkUserAndFoundingStatus();
+    fetchPaymentSettings();
   }, []);
+
+  const fetchPaymentSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("payment_settings")
+        .select("*")
+        .eq("id", "00000000-0000-0000-0000-000000000001")
+        .single();
+
+      if (error) throw error;
+      setPaymentSettings(data);
+    } catch (error) {
+      console.error("Error fetching payment settings:", error);
+    }
+  };
 
   const checkUserAndFoundingStatus = async () => {
     const {
@@ -510,15 +527,32 @@ export default function Checkout() {
                 <CardDescription>Pay using any UPI app (GPay, PhonePe, Paytm, etc.)</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="bg-muted p-4 rounded-lg text-center">
-                  <QrCode className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
-                  <p className="text-sm text-muted-foreground mb-2">Scan or use UPI ID</p>
-                  <div className="flex items-center justify-center gap-2">
-                    <code className="bg-background px-3 py-2 rounded text-lg font-mono">{PAYMENT_DETAILS.upiId}</code>
-                    <Button variant="outline" size="sm" onClick={() => copyToClipboard(PAYMENT_DETAILS.upiId)}>
-                      {copiedUpi ? <CheckCircle className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
-                    </Button>
+                {paymentSettings?.upi_qr_url && (
+                  <div className="flex justify-center">
+                    <div className="w-48 h-48 border rounded-lg overflow-hidden bg-white p-2">
+                      <img
+                        src={paymentSettings.upi_qr_url}
+                        alt="UPI QR Code"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
                   </div>
+                )}
+                <div className="bg-muted p-4 rounded-lg text-center">
+                  {!paymentSettings?.upi_qr_url && (
+                    <QrCode className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
+                  )}
+                  <p className="text-sm text-muted-foreground mb-2">
+                    {paymentSettings?.upi_qr_url ? "Or use UPI ID" : "Scan or use UPI ID"}
+                  </p>
+                  {paymentSettings?.upi_id && (
+                    <div className="flex items-center justify-center gap-2">
+                      <code className="bg-background px-3 py-2 rounded text-lg font-mono">{paymentSettings.upi_id}</code>
+                      <Button variant="outline" size="sm" onClick={() => copyToClipboard(paymentSettings.upi_id!)}>
+                        {copiedUpi ? <CheckCircle className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  )}
                   <p className="text-lg font-bold text-primary mt-2">₹{finalPrice}</p>
                 </div>
               </CardContent>
@@ -535,18 +569,26 @@ export default function Checkout() {
               </CardHeader>
               <CardContent>
                 <div className="bg-muted p-4 rounded-lg space-y-2 text-sm">
-                  <p>
-                    <strong>Bank:</strong> {PAYMENT_DETAILS.bankName}
-                  </p>
-                  <p>
-                    <strong>Account Name:</strong> {PAYMENT_DETAILS.accountName}
-                  </p>
-                  <p>
-                    <strong>Account Number:</strong> {PAYMENT_DETAILS.accountNumber}
-                  </p>
-                  <p>
-                    <strong>IFSC Code:</strong> {PAYMENT_DETAILS.ifscCode}
-                  </p>
+                  {paymentSettings?.bank_name && (
+                    <p>
+                      <strong>Bank:</strong> {paymentSettings.bank_name}
+                    </p>
+                  )}
+                  {paymentSettings?.account_name && (
+                    <p>
+                      <strong>Account Name:</strong> {paymentSettings.account_name}
+                    </p>
+                  )}
+                  {paymentSettings?.account_number && (
+                    <p>
+                      <strong>Account Number:</strong> {paymentSettings.account_number}
+                    </p>
+                  )}
+                  {paymentSettings?.ifsc_code && (
+                    <p>
+                      <strong>IFSC Code:</strong> {paymentSettings.ifsc_code}
+                    </p>
+                  )}
                   <p className="text-primary font-bold pt-2">Amount: ₹{finalPrice}</p>
                 </div>
               </CardContent>

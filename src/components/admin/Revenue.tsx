@@ -44,38 +44,42 @@ const Revenue = () => {
 
   const fetchRevenueData = async () => {
     try {
-      // Fetch total revenue
-      const { data: allPayments } = await supabase
-        .from("payments")
-        .select("amount");
+      // Fetch total revenue from approved payment_requests
+      const { data: allRequests } = await supabase
+        .from("payment_requests")
+        .select("amount")
+        .eq("status", "approved");
       
-      const totalRevenue = allPayments?.reduce((sum, payment) => sum + Number(payment.amount), 0) || 0;
+      const totalRevenue = allRequests?.reduce((sum, req) => sum + Number(req.amount), 0) || 0;
 
       // Fetch monthly revenue (last 30 days)
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       
-      const { data: monthlyPayments } = await supabase
-        .from("payments")
+      const { data: monthlyRequests } = await supabase
+        .from("payment_requests")
         .select("amount")
-        .gte("created_at", thirtyDaysAgo.toISOString());
+        .eq("status", "approved")
+        .gte("reviewed_at", thirtyDaysAgo.toISOString());
       
-      const monthlyRevenue = monthlyPayments?.reduce((sum, payment) => sum + Number(payment.amount), 0) || 0;
+      const monthlyRevenue = monthlyRequests?.reduce((sum, req) => sum + Number(req.amount), 0) || 0;
 
-      // Fetch active subscriptions count
+      // Fetch active subscriptions count from user_subscriptions
       const { count: activeSubsCount } = await supabase
-        .from("subscriptions")
+        .from("user_subscriptions")
         .select("*", { count: "exact", head: true })
-        .eq("status", "active");
+        .eq("status", "active")
+        .neq("plan", "free");
 
-      // Fetch total transactions count
+      // Fetch total approved transactions count
       const { count: totalTransCount } = await supabase
-        .from("payments")
-        .select("*", { count: "exact", head: true });
+        .from("payment_requests")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "approved");
 
-      // Fetch recent payments with user info
-      const { data: payments } = await supabase
-        .from("payments")
+      // Fetch recent approved payment requests with user info
+      const { data: requests } = await supabase
+        .from("payment_requests")
         .select(`
           *,
           profiles:user_id (
@@ -83,7 +87,8 @@ const Revenue = () => {
             email
           )
         `)
-        .order("created_at", { ascending: false })
+        .eq("status", "approved")
+        .order("reviewed_at", { ascending: false })
         .limit(10);
 
       setStats({
@@ -93,7 +98,20 @@ const Revenue = () => {
         totalTransactions: totalTransCount || 0,
       });
 
-      setRecentPayments(payments as any || []);
+      // Transform payment requests to match expected format
+      const transformedPayments = (requests || []).map((req: any) => ({
+        id: req.id,
+        user_id: req.user_id,
+        amount: req.amount,
+        currency: "INR",
+        status: "completed",
+        transaction_type: "subscription",
+        description: `${req.plan_type.charAt(0).toUpperCase() + req.plan_type.slice(1)} Plan`,
+        created_at: req.reviewed_at || req.created_at,
+        profiles: req.profiles,
+      }));
+
+      setRecentPayments(transformedPayments);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching revenue data:", error);
@@ -104,13 +122,13 @@ const Revenue = () => {
   const statCards = [
     {
       title: "Total Revenue",
-      value: `$${stats.totalRevenue.toFixed(2)}`,
+      value: `₹${stats.totalRevenue.toFixed(0)}`,
       icon: DollarSign,
       color: "text-green-500",
     },
     {
       title: "Monthly Revenue",
-      value: `$${stats.monthlyRevenue.toFixed(2)}`,
+      value: `₹${stats.monthlyRevenue.toFixed(0)}`,
       icon: TrendingUp,
       color: "text-blue-500",
     },
@@ -190,7 +208,7 @@ const Revenue = () => {
                       <Badge variant="outline">{payment.transaction_type}</Badge>
                     </TableCell>
                     <TableCell className="font-medium">
-                      ${Number(payment.amount).toFixed(2)} {payment.currency}
+                      ₹{Number(payment.amount).toFixed(0)}
                     </TableCell>
                     <TableCell>
                       <Badge
