@@ -48,12 +48,13 @@ export const SubscriptionManagement = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Update subscription status to cancelled
+      // Mark subscription as cancelled but keep it active until expiry
+      // The subscription will remain usable until expires_at
       const { error } = await supabase
         .from('user_subscriptions')
         .update({ 
-          status: 'cancelled',
           cancelled_at: new Date().toISOString()
+          // Note: status stays 'active' - user keeps access until expires_at
         })
         .eq('user_id', user.id)
         .eq('status', 'active');
@@ -115,11 +116,14 @@ export const SubscriptionManagement = () => {
               <p className="font-semibold text-lg capitalize">{limits?.display_name || currentPlan} Plan</p>
               {subscription?.expires_at && (
                 <p className="text-sm text-muted-foreground">
-                  {subscription.status === 'cancelled' 
-                    ? `Access until ${format(new Date(subscription.expires_at), 'MMM d, yyyy')}`
+                  {subscription.cancelled_at 
+                    ? `Cancelled - Access until ${format(new Date(subscription.expires_at), 'MMM d, yyyy')}`
                     : `Renews on ${format(new Date(subscription.expires_at), 'MMM d, yyyy')}`
                   }
                 </p>
+              )}
+              {subscription?.cancelled_at && (
+                <Badge variant="secondary" className="mt-1 text-yellow-600">Cancelled</Badge>
               )}
             </div>
           </div>
@@ -186,7 +190,7 @@ export const SubscriptionManagement = () => {
                 Change Plan
               </Button>
               
-              {subscription?.status === 'active' && (
+              {subscription?.status === 'active' && !subscription?.cancelled_at && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="ghost" className="w-full text-destructive hover:text-destructive">

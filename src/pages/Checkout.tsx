@@ -25,6 +25,7 @@ import {
   Smartphone,
   Building2,
   QrCode,
+  AlertCircle,
 } from "lucide-react";
 
 interface Plan {
@@ -115,6 +116,7 @@ export default function Checkout() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFoundingMember, setIsFoundingMember] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [currentPlan, setCurrentPlan] = useState<string | null>(null);
 
   // Payment proof state
   const [transactionId, setTransactionId] = useState("");
@@ -123,6 +125,14 @@ export default function Checkout() {
   const [copiedUpi, setCopiedUpi] = useState(false);
   const [existingRequest, setExistingRequest] = useState<any>(null);
   const [paymentSettings, setPaymentSettings] = useState<PaymentSettings | null>(null);
+
+  // Plan tier order for upgrade/downgrade check
+  const planTiers: Record<string, number> = {
+    free: 0,
+    plus: 1,
+    pro: 2,
+    elite: 3,
+  };
 
   useEffect(() => {
     checkUserAndFoundingStatus();
@@ -159,6 +169,18 @@ export default function Checkout() {
         .maybeSingle();
 
       setIsFoundingMember(!!founderData);
+
+      // Check current subscription
+      const { data: subData } = await supabase
+        .from("user_subscriptions")
+        .select("plan, status, expires_at, cancelled_at")
+        .eq("user_id", user.id)
+        .eq("status", "active")
+        .maybeSingle();
+
+      if (subData) {
+        setCurrentPlan(subData.plan);
+      }
 
       // Check for existing pending payment request
       const { data: existingReq } = await supabase
@@ -296,6 +318,16 @@ export default function Checkout() {
       return;
     }
 
+    // Check if this is a downgrade (not allowed)
+    if (currentPlan && planTiers[currentPlan] >= planTiers[planId]) {
+      toast({
+        title: "Downgrade not allowed",
+        description: `You are already on the ${currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)} plan. You can only upgrade to a higher tier plan.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!transactionId.trim() && !upiReference.trim()) {
       toast({
         title: "Transaction details required",
@@ -396,6 +428,54 @@ export default function Checkout() {
               <Button onClick={() => navigate("/dashboard")} className="w-full">
                 Go to Dashboard
               </Button>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
+
+  // Check if user is trying to downgrade
+  const isDowngrade = currentPlan && planTiers[currentPlan] >= planTiers[planId];
+  const isSamePlan = currentPlan === planId;
+
+  // Show downgrade warning
+  if (isDowngrade) {
+    return (
+      <div className="min-h-screen bg-background">
+        <SEO title="Cannot Downgrade | Spaark" description="Upgrade your plan" />
+        <Header />
+        <main className="container max-w-2xl mx-auto px-4 py-8 pt-24">
+          <Card className="text-center">
+            <CardHeader>
+              <div className="mx-auto w-16 h-16 bg-yellow-100 dark:bg-yellow-900 rounded-full flex items-center justify-center mb-4">
+                <AlertCircle className="h-8 w-8 text-yellow-600" />
+              </div>
+              <CardTitle>{isSamePlan ? "Already on This Plan" : "Downgrades Not Allowed"}</CardTitle>
+              <CardDescription>
+                {isSamePlan 
+                  ? `You are already subscribed to the ${currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)} plan.`
+                  : `You are currently on the ${currentPlan!.charAt(0).toUpperCase() + currentPlan!.slice(1)} plan. You can only upgrade to a higher tier.`
+                }
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                {isSamePlan 
+                  ? "Your current plan is still active. No action needed."
+                  : "To change to a lower tier, please wait until your current subscription expires or contact support."
+                }
+              </p>
+              <div className="flex gap-2 justify-center">
+                <Button variant="outline" onClick={() => navigate("/dashboard")}>
+                  Go to Dashboard
+                </Button>
+                {!isSamePlan && currentPlan !== "elite" && (
+                  <Button onClick={() => navigate("/pricing")}>
+                    View Higher Plans
+                  </Button>
+                )}
+              </div>
             </CardContent>
           </Card>
         </main>
