@@ -87,5 +87,8 @@ verify_jwt = true
 [functions.delete-account]
 verify_jwt = true
 
-[functions.payu-checkout]
-verify_jwt = true
+[functions.deactivate-expired-subscriptions]
+verify_jwt = false
+
+[functions.send-payment-notification]
+verify_jwt = false
