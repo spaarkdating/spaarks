@@ -91,6 +91,29 @@ export function PaymentRequests() {
     }
   };
 
+  const sendPaymentNotification = async (
+    email: string,
+    name: string,
+    type: "approved" | "rejected",
+    planType: string,
+    amount: number,
+    reason?: string
+  ) => {
+    try {
+      const response = await supabase.functions.invoke("send-payment-notification", {
+        body: { email, name, type, planType, amount, reason },
+      });
+      
+      if (response.error) {
+        console.error("Failed to send email notification:", response.error);
+      } else {
+        console.log("Email notification sent successfully");
+      }
+    } catch (error) {
+      console.error("Error sending email notification:", error);
+    }
+  };
+
   const handleApprove = async (request: PaymentRequest) => {
     setProcessingId(request.id);
     try {
@@ -159,6 +182,17 @@ export function PaymentRequests() {
         message: `Your ${request.plan_type.charAt(0).toUpperCase() + request.plan_type.slice(1)} plan is now active. Enjoy your premium features!`,
       });
 
+      // Send email notification
+      if (request.profiles?.email) {
+        sendPaymentNotification(
+          request.profiles.email,
+          request.profiles.display_name || "User",
+          "approved",
+          request.plan_type,
+          request.amount
+        );
+      }
+
       toast({
         title: "Payment Approved",
         description: "User subscription has been activated.",
@@ -197,13 +231,25 @@ export function PaymentRequests() {
 
       if (error) throw error;
 
-      // Notify user
+      // Notify user via in-app notification
       await supabase.from("notifications").insert({
         user_id: selectedRequest.user_id,
         type: "payment",
         title: "Payment Not Verified",
         message: adminNotes || "Your payment could not be verified. Please contact support.",
       });
+
+      // Send email notification
+      if (selectedRequest.profiles?.email) {
+        sendPaymentNotification(
+          selectedRequest.profiles.email,
+          selectedRequest.profiles.display_name || "User",
+          "rejected",
+          selectedRequest.plan_type,
+          selectedRequest.amount,
+          adminNotes
+        );
+      }
 
       toast({
         title: "Payment Rejected",
