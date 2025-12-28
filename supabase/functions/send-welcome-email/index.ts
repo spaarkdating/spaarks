@@ -83,7 +83,6 @@ const handler = async (req: Request): Promise<Response> => {
             </p>
             <p style="color: #999999; font-size: 12px; margin: 0 0 15px 0;">
               © 2025 Spaark Dating. All rights reserved.<br>
-              Made with ❤️ by Saurabh Sharma, Aakanksha Singh & Mandhata Singh
             </p>
             <p style="color: #999999; font-size: 11px; margin: 0;">
               You're receiving this because you subscribed to Spaark updates.<br>
