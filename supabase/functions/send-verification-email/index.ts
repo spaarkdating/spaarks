@@ -91,7 +91,6 @@ const handler = async (req: Request): Promise<Response> => {
           <div style="background-color: #f8f9fa; padding: 30px; border-radius: 0 0 16px 16px; border: 1px solid #e9ecef; border-top: none; text-align: center;">
             <p style="color: #999999; font-size: 12px; margin: 0 0 15px 0;">
               © 2025 Spaark Dating. All rights reserved.<br>
-              Made with ❤️ by Saurabh Sharma, Aakanksha Singh & Mandhata Singh
             </p>
           </div>
         </div>
@@ -121,12 +120,16 @@ const handler = async (req: Request): Promise<Response> => {
               Unfortunately, we couldn't verify your student ID card at this time.
             </p>
             
-            ${rejectionReason ? `
+            ${
+              rejectionReason
+                ? `
             <div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 15px 20px; margin: 20px 0; border-radius: 0 8px 8px 0;">
               <p style="color: #991b1b; font-size: 14px; margin: 0; font-weight: 600;">Reason:</p>
               <p style="color: #7f1d1d; font-size: 14px; margin: 8px 0 0 0;">${rejectionReason}</p>
             </div>
-            ` : ''}
+            `
+                : ""
+            }
             
             <p style="color: #555555; font-size: 16px; line-height: 1.8; margin: 20px 0;">
               Don't worry! You can resubmit your ID card for verification. Please make sure:
@@ -162,7 +165,6 @@ const handler = async (req: Request): Promise<Response> => {
           <div style="background-color: #f8f9fa; padding: 30px; border-radius: 0 0 16px 16px; border: 1px solid #e9ecef; border-top: none; text-align: center;">
             <p style="color: #999999; font-size: 12px; margin: 0 0 15px 0;">
               © 2025 Spaark Dating. All rights reserved.<br>
-              Made with ❤️ by Saurabh Sharma, Aakanksha Singh & Mandhata Singh
             </p>
           </div>
         </div>
