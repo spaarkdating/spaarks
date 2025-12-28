@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Heart, MessageCircle, User as UserIcon, Settings, LogOut, RefreshCw, Eye, HelpCircle, Filter, Bell, Crown, Zap, Users } from "lucide-react";
+import { Heart, MessageCircle, User as UserIcon, Settings, LogOut, RefreshCw, Eye, HelpCircle, Filter, Bell, Crown, Zap, Users, Home } from "lucide-react";
 import logo from "@/assets/spaark-logo.png";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -27,6 +27,7 @@ import { X, MapPin, Briefcase, GraduationCap, Heart as HeartIcon } from "lucide-
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { cn } from "@/lib/utils";
 
 interface OnlineDashboardProps {
   user: User;
@@ -88,14 +89,13 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
         looking_for: profile.looking_for || "everyone",
         min_age: profile.min_age || 18,
         max_age: profile.max_age || 99,
-        location: "", // Don't default to user's location, let them choose
+        location: "",
       });
     }
   };
 
   const applyQuickFilters = async () => {
     try {
-      // Save preferences to profile (except location filter which is temporary)
       const { error: updateError } = await supabase
         .from("profiles")
         .update({
@@ -110,7 +110,7 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
       }
 
       setShowFilterDialog(false);
-      setCurrentIndex(0); // Reset to first profile
+      setCurrentIndex(0);
       await fetchProfiles(user.id, tempFilters.location);
       toast({
         title: "Filters applied!",
@@ -147,7 +147,6 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
 
       const swipedIds = swipedMatches?.map(m => m.liked_user_id) || [];
 
-      // Build the query with gender filter
       let query = supabase
         .from("profiles")
         .select(`
@@ -160,34 +159,26 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
         .eq("verification_status", "approved")
         .eq("account_status", "active");
 
-      // Filter by gender preference (looking_for)
-      // Map looking_for values to database gender values: men->man, women->woman, male->man, female->woman
       if (currentUserProfile?.looking_for && currentUserProfile.looking_for !== 'everyone') {
         let genderFilter = currentUserProfile.looking_for;
-        // Handle all possible variations
         if (genderFilter === 'men' || genderFilter === 'male') genderFilter = 'man';
         else if (genderFilter === 'women' || genderFilter === 'female') genderFilter = 'woman';
         query = query.eq("gender", genderFilter);
       }
 
-      // Filter by location (case-insensitive partial match)
       if (locationFilter && locationFilter.trim()) {
         query = query.ilike("location", `%${locationFilter.trim()}%`);
       }
-
-      // Exclude already swiped profiles - filter client-side for better performance
-      // (Supabase .not() with "in" has syntax issues, so we filter after query)
 
       const { data: potentialMatches } = await query
         .order("created_at", { ascending: false })
         .limit(50);
 
-      // Filter by age preferences and exclude swiped profiles client-side
       let filteredMatches = (potentialMatches || []).filter(profile => !swipedIds.includes(profile.id));
       if (currentUserProfile?.min_age || currentUserProfile?.max_age) {
         const today = new Date();
         filteredMatches = filteredMatches.filter((profile) => {
-          if (!profile.date_of_birth) return true; // Include profiles without DOB
+          if (!profile.date_of_birth) return true;
           
           const birthDate = new Date(profile.date_of_birth);
           let age = today.getFullYear() - birthDate.getFullYear();
@@ -252,7 +243,6 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
       setProfilePhotos(photos || []);
       setProfileInterests(userInterests?.map((ui: any) => ui.interest) || []);
 
-      // Record profile view when clicking to see details
       if (user && user.id !== profile.id) {
         await recordProfileView(user.id, profile.id);
       }
@@ -303,7 +293,6 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
     const isLike = direction === "right" || direction === "super";
     const currentProfileIndex = currentIndex;
 
-    // Check swipe limit before proceeding
     const canSwipe = await checkSwipeLimit();
     if (!canSwipe) {
       toast({
@@ -320,7 +309,6 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
       return;
     }
 
-    // Check active matches limit if this is a like
     if (isLike) {
       const canMatch = await checkActiveMatchesLimit();
       if (!canMatch) {
@@ -354,7 +342,6 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
 
       if (error) throw error;
 
-      // Increment swipe count
       await incrementSwipeCount();
 
       setLastSwipe({ matchId: likedProfile.id, profileIndex: currentProfileIndex });
@@ -370,8 +357,6 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
           .maybeSingle();
 
         if (reverseMatch && (reverseMatch.action === "like" || reverseMatch.action === "super")) {
-          // Only create a match if the other person also liked (not passed)
-          // Ensure we only update records with like/super actions, never pass actions
           await (supabase as any)
             .from("matches")
             .update({ is_match: true })
@@ -420,6 +405,22 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
   const currentProfile = profiles[currentIndex];
   const hasMoreProfiles = currentIndex < profiles.length;
 
+  // Navigation items for the header
+  const navItems = [
+    { id: "discover", icon: Heart, label: "Discover", path: "/dashboard", active: true },
+    { id: "matches", icon: Users, label: "Matches", path: "/matches", active: false },
+    { id: "messages", icon: MessageCircle, label: "Messages", path: "/messages", active: false },
+    { id: "profile", icon: UserIcon, label: "Profile", path: "/profile", active: false },
+  ];
+
+  const actionItems = [
+    { icon: Bell, label: "Notifications", component: <NotificationBell userId={user.id} /> },
+    { icon: Filter, label: "Filters", onClick: () => setShowFilterDialog(true) },
+    { icon: Eye, label: "Views", onClick: () => navigate("/profile-views") },
+    { icon: Settings, label: "Settings", onClick: () => navigate("/settings") },
+    { icon: LogOut, label: "Logout", onClick: onLogout },
+  ];
+
   return (
     <div ref={containerRef} className="min-h-screen bg-background">
       <PullToRefreshIndicator
@@ -428,185 +429,157 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
         shouldTrigger={shouldTrigger}
       />
       
-      {/* Modern Bumble-style Header */}
-      <header className="sticky top-0 z-40 bg-card/80 backdrop-blur-xl border-b border-border/30">
-        <div className="container mx-auto px-4">
+      {/* Bumble-Style Header */}
+      <header className="sticky top-0 z-40 bg-card border-b border-border">
+        <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex items-center gap-2">
-              <div className="bg-primary p-1.5 rounded-full">
-                <img 
-                  src={logo} 
-                  alt="Spaark" 
-                  className="h-6 w-6 object-contain"
-                />
+              <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+                <img src={logo} alt="Spaark" className="h-5 w-5 object-contain" />
               </div>
-              <span className="text-lg font-display font-bold text-foreground hidden sm:block">
-                Spaark
-              </span>
+              <span className="text-xl font-display font-bold text-foreground hidden sm:block">Spaark</span>
             </div>
             
-            {/* Desktop Nav - Pill Style Icons */}
-            <nav className="hidden md:flex items-center">
-              <div className="flex items-center bg-muted/30 rounded-full p-1 gap-1">
-                <button 
-                  onClick={() => navigate("/dashboard")}
-                  className="flex flex-col items-center px-4 py-2 rounded-full bg-primary text-primary-foreground transition-all"
-                  title="Discover"
+            {/* Center Navigation - Desktop */}
+            <nav className="hidden md:flex items-center gap-1">
+              {navItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => navigate(item.path)}
+                  className={cn(
+                    "relative flex items-center justify-center w-12 h-12 rounded-full transition-all",
+                    item.active 
+                      ? "bg-primary text-primary-foreground" 
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  )}
+                  title={item.label}
                 >
-                  <Heart className="h-5 w-5" />
+                  <item.icon className="h-5 w-5" />
                 </button>
-                <button 
-                  onClick={() => navigate("/matches")}
-                  className="flex flex-col items-center px-4 py-2 rounded-full hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all"
-                  title="Matches"
-                >
-                  <Users className="h-5 w-5" />
-                </button>
-                <button 
-                  onClick={() => navigate("/messages")}
-                  className="flex flex-col items-center px-4 py-2 rounded-full hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all"
-                  title="Messages"
-                >
-                  <MessageCircle className="h-5 w-5" />
-                </button>
-                <button 
-                  onClick={() => navigate("/profile")}
-                  className="flex flex-col items-center px-4 py-2 rounded-full hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all"
-                  title="Profile"
-                >
-                  <UserIcon className="h-5 w-5" />
-                </button>
-              </div>
+              ))}
             </nav>
             
-            {/* Right Actions */}
-            <div className="flex items-center gap-1.5">
+            {/* Right Actions - Desktop */}
+            <div className="hidden md:flex items-center gap-1">
               <NotificationBell userId={user.id} />
-              
-              <Button 
-                variant="icon" 
-                size="icon-sm"
-                onClick={() => setShowFilterDialog(true)} 
+              <button
+                onClick={() => setShowFilterDialog(true)}
+                className="flex items-center justify-center w-10 h-10 rounded-full border border-border bg-card hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all"
                 title="Filters"
               >
                 <Filter className="h-4 w-4" />
-              </Button>
-              
-              <Button 
-                variant="icon" 
-                size="icon-sm"
-                onClick={() => navigate("/profile-views")} 
-                title="Who viewed you"
-                className="hidden sm:flex"
+              </button>
+              <button
+                onClick={() => navigate("/profile-views")}
+                className="flex items-center justify-center w-10 h-10 rounded-full border border-border bg-card hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all"
+                title="Profile Views"
               >
                 <Eye className="h-4 w-4" />
-              </Button>
-              
-              <Button 
-                variant="icon" 
-                size="icon-sm"
-                onClick={() => navigate("/settings")} 
+              </button>
+              <button
+                onClick={() => navigate("/settings")}
+                className="flex items-center justify-center w-10 h-10 rounded-full border border-border bg-card hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all"
                 title="Settings"
-                className="hidden sm:flex"
               >
                 <Settings className="h-4 w-4" />
-              </Button>
-              
-              <Button 
-                variant="icon" 
-                size="icon-sm"
-                onClick={onLogout} 
+              </button>
+              <button
+                onClick={onLogout}
+                className="flex items-center justify-center w-10 h-10 rounded-full border border-border bg-card hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all"
                 title="Logout"
-                className="hidden sm:flex"
               >
                 <LogOut className="h-4 w-4" />
-              </Button>
+              </button>
+            </div>
 
-              {/* Mobile Menu */}
-              <div className="md:hidden">
-                <MobileNav
-                  isAuthenticated
-                  onLogout={onLogout}
-                  links={[
-                    { to: "/profile-views", label: "Profile Views", icon: <Eye className="h-5 w-5" />, onClick: () => navigate("/profile-views") },
-                    { to: "/matches", label: "Matches", icon: <Heart className="h-5 w-5" />, onClick: () => navigate("/matches") },
-                    { to: "/messages", label: "Messages", icon: <MessageCircle className="h-5 w-5" />, onClick: () => navigate("/messages") },
-                    { to: "/profile", label: "Profile", icon: <UserIcon className="h-5 w-5" />, onClick: () => navigate("/profile") },
-                    { to: "/faq", label: "FAQ", icon: <HelpCircle className="h-5 w-5" />, onClick: () => navigate("/faq") },
-                    { to: "/settings", label: "Settings", icon: <Settings className="h-5 w-5" />, onClick: () => navigate("/settings") },
-                  ]}
-                />
-              </div>
+            {/* Mobile Actions */}
+            <div className="flex md:hidden items-center gap-2">
+              <NotificationBell userId={user.id} />
+              <button
+                onClick={() => setShowFilterDialog(true)}
+                className="flex items-center justify-center w-9 h-9 rounded-full border border-border bg-card text-muted-foreground"
+              >
+                <Filter className="h-4 w-4" />
+              </button>
+              <MobileNav
+                isAuthenticated
+                onLogout={onLogout}
+                links={[
+                  { to: "/profile-views", label: "Profile Views", icon: <Eye className="h-5 w-5" />, onClick: () => navigate("/profile-views") },
+                  { to: "/matches", label: "Matches", icon: <Heart className="h-5 w-5" />, onClick: () => navigate("/matches") },
+                  { to: "/messages", label: "Messages", icon: <MessageCircle className="h-5 w-5" />, onClick: () => navigate("/messages") },
+                  { to: "/profile", label: "Profile", icon: <UserIcon className="h-5 w-5" />, onClick: () => navigate("/profile") },
+                  { to: "/faq", label: "FAQ", icon: <HelpCircle className="h-5 w-5" />, onClick: () => navigate("/faq") },
+                  { to: "/settings", label: "Settings", icon: <Settings className="h-5 w-5" />, onClick: () => navigate("/settings") },
+                ]}
+              />
             </div>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-6 pb-24 md:pb-8">
-        <div className="grid lg:grid-cols-[1fr_400px] gap-4 sm:gap-8 max-w-7xl mx-auto">
-          <div className="flex items-center justify-center">
-            <div className="w-full max-w-md">
-              {isLoading ? (
-                <div className="text-center space-y-4 animate-fade-in">
-                  <RefreshCw className="h-12 w-12 text-primary animate-spin mx-auto" />
-                  <p className="text-muted-foreground">Finding matches for you...</p>
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 py-6 pb-24 md:pb-8">
+        <div className="flex justify-center">
+          <div className="w-full max-w-md">
+            {isLoading ? (
+              <div className="text-center space-y-4 py-20">
+                <RefreshCw className="h-12 w-12 text-primary animate-spin mx-auto" />
+                <p className="text-muted-foreground">Finding matches for you...</p>
+              </div>
+            ) : hasMoreProfiles ? (
+              <div className="space-y-6">
+                <div className="relative h-[500px] sm:h-[550px]">
+                  <AnimatePresence>
+                    {profiles.slice(currentIndex, currentIndex + 2).map((profile, index) => (
+                      <SwipeCard
+                        key={profile.id}
+                        profile={profile}
+                        onSwipe={index === 0 ? handleSwipe : () => {}}
+                        compatibilityScore={compatibilityScores[profile.id]}
+                        onProfileClick={index === 0 ? () => handleProfileClick(profile) : undefined}
+                        style={{
+                          zIndex: 2 - index,
+                          scale: 1 - index * 0.05,
+                          opacity: 1 - index * 0.3,
+                        }}
+                      />
+                    ))}
+                  </AnimatePresence>
                 </div>
-              ) : hasMoreProfiles ? (
-                <div className="space-y-4 sm:space-y-6 animate-fade-in">
-                  <div className="relative h-[500px] sm:h-[600px]">
-                    <AnimatePresence>
-                      {profiles.slice(currentIndex, currentIndex + 2).map((profile, index) => (
-                        <SwipeCard
-                          key={profile.id}
-                          profile={profile}
-                          onSwipe={index === 0 ? handleSwipe : () => {}}
-                          compatibilityScore={compatibilityScores[profile.id]}
-                          onProfileClick={index === 0 ? () => handleProfileClick(profile) : undefined}
-                          style={{
-                            zIndex: 2 - index,
-                            scale: 1 - index * 0.05,
-                            opacity: 1 - index * 0.3,
-                          }}
-                        />
-                      ))}
-                    </AnimatePresence>
-                  </div>
 
-                  <SwipeActions
-                    onDislike={() => handleSwipe("left")}
-                    onLike={() => handleSwipe("right")}
-                    onSuperLike={() => handleSwipe("super")}
-                    onRewind={handleRewind}
-                    disabled={!hasMoreProfiles}
-                    canRewind={canRewind}
-                  />
-                </div>
-              ) : (
-                <div className="text-center space-y-4 animate-scale-in">
-                  <Heart className="h-24 w-24 text-muted-foreground mx-auto animate-pulse" />
-                  <h3 className="text-2xl font-bold gradient-text">No more profiles</h3>
-                  <p className="text-muted-foreground">
-                    Check back later for new matches!
-                  </p>
-                  <Button
-                    onClick={() => {
-                      setCurrentIndex(0);
-                      fetchProfiles(user.id);
-                    }}
-                    className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 shadow-lg hover:shadow-xl transition-all"
-                  >
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Refresh
-                  </Button>
-                </div>
-              )}
-            </div>
+                <SwipeActions
+                  onDislike={() => handleSwipe("left")}
+                  onLike={() => handleSwipe("right")}
+                  onSuperLike={() => handleSwipe("super")}
+                  onRewind={handleRewind}
+                  disabled={!hasMoreProfiles}
+                  canRewind={canRewind}
+                />
+              </div>
+            ) : (
+              <div className="text-center space-y-4 py-20">
+                <Heart className="h-24 w-24 text-muted-foreground mx-auto" />
+                <h3 className="text-2xl font-display font-bold text-foreground">No more profiles</h3>
+                <p className="text-muted-foreground">Check back later for new matches!</p>
+                <Button
+                  onClick={() => {
+                    setCurrentIndex(0);
+                    fetchProfiles(user.id);
+                  }}
+                  className="rounded-full"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Refresh
+                </Button>
+              </div>
+            )}
           </div>
-
         </div>
       </div>
 
+      {/* Match Notification */}
       <AnimatePresence>
         {matchedProfile && (
           <MatchNotification
@@ -616,6 +589,7 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
         )}
       </AnimatePresence>
 
+      {/* Profile Dialog */}
       <Dialog open={!!selectedProfile} onOpenChange={(open) => !open && setSelectedProfile(null)}>
         <DialogContent className="max-w-4xl max-h-[95vh] p-0 overflow-hidden">
           {isProfileLoading ? (
@@ -624,7 +598,6 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
             </div>
           ) : selectedProfile ? (
             <div className="grid md:grid-cols-2 h-full max-h-[95vh]">
-              {/* Photo Carousel - Left Side */}
               <div className="relative h-[50vh] md:h-[95vh] bg-muted">
                 {profilePhotos.length > 0 ? (
                   <PhotoCarousel photos={profilePhotos} />
@@ -635,7 +608,6 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
                 )}
               </div>
 
-              {/* Profile Details - Right Side */}
               <div className="overflow-y-auto p-6 space-y-4 max-h-[45vh] md:max-h-[95vh]">
                 <div className="flex justify-between items-start">
                   <div>
@@ -692,7 +664,7 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
                     <h3 className="font-semibold mb-2">Interests</h3>
                     <div className="flex flex-wrap gap-2">
                       {profileInterests.map((interest: any) => (
-                        <Badge key={interest.id} variant="secondary">
+                        <Badge key={interest.id} variant="secondary" className="rounded-full">
                           {interest.name}
                         </Badge>
                       ))}
@@ -700,51 +672,18 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
                   </div>
                 )}
 
-                {(selectedProfile.height || selectedProfile.relationship_goal || 
-                  selectedProfile.smoking || selectedProfile.drinking || selectedProfile.religion) && (
-                  <div>
-                    <h3 className="font-semibold mb-2">More Details</h3>
-                    <div className="space-y-2 text-sm">
-                      {selectedProfile.height && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Height</span>
-                          <span>{selectedProfile.height}</span>
-                        </div>
-                      )}
-                      {selectedProfile.relationship_goal && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Looking for</span>
-                          <span>{selectedProfile.relationship_goal}</span>
-                        </div>
-                      )}
-                      {selectedProfile.smoking && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Smoking</span>
-                          <span>{selectedProfile.smoking}</span>
-                        </div>
-                      )}
-                      {selectedProfile.drinking && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Drinking</span>
-                          <span>{selectedProfile.drinking}</span>
-                        </div>
-                      )}
-                      {selectedProfile.religion && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Religion</span>
-                          <span>{selectedProfile.religion}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Action buttons */}
-                <div className="flex gap-2 pt-4 border-t">
-                  <ReportProfileDialog 
-                    reportedUserId={selectedProfile.id} 
-                    reportedUserName={selectedProfile.display_name || "User"} 
-                  />
+                <div className="pt-4 flex gap-2">
+                  <Button
+                    className="flex-1 rounded-full"
+                    onClick={() => {
+                      setSelectedProfile(null);
+                      handleSwipe("right");
+                    }}
+                  >
+                    <Heart className="h-4 w-4 mr-2" />
+                    Like
+                  </Button>
+                  <ReportProfileDialog reportedUserId={selectedProfile.id} reportedUserName={selectedProfile.display_name} />
                 </div>
               </div>
             </div>
@@ -752,87 +691,64 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
         </DialogContent>
       </Dialog>
 
-      {/* Quick Filter Dialog */}
-      <Dialog open={showFilterDialog} onOpenChange={(open) => {
-        setShowFilterDialog(open);
-        if (open) {
-          loadUserFilters();
-        }
-      }}>
+      {/* Filter Dialog */}
+      <Dialog open={showFilterDialog} onOpenChange={setShowFilterDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5 text-primary" />
-              Quick Filters
-            </DialogTitle>
+            <DialogTitle>Quick Filters</DialogTitle>
           </DialogHeader>
-          
           <div className="space-y-6 py-4">
             <div className="space-y-2">
-              <Label htmlFor="location-filter">Location</Label>
-              <Input
-                id="location-filter"
-                value={tempFilters.location}
-                onChange={(e) => setTempFilters({ ...tempFilters, location: e.target.value })}
-                placeholder="City or region (e.g., New York, London)"
-              />
-              <p className="text-xs text-muted-foreground">
-                Leave empty to see all locations
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="gender-filter">Looking for</Label>
-              <Select
-                value={tempFilters.looking_for}
-                onValueChange={(value) => setTempFilters({ ...tempFilters, looking_for: value })}
-              >
-                <SelectTrigger id="gender-filter">
-                  <SelectValue placeholder="Select gender preference" />
+              <Label>Looking for</Label>
+              <Select value={tempFilters.looking_for} onValueChange={(v) => setTempFilters({ ...tempFilters, looking_for: v })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select preference" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="everyone">Everyone</SelectItem>
-                  <SelectItem value="man">Man</SelectItem>
-                  <SelectItem value="woman">Woman</SelectItem>
-                  <SelectItem value="non-binary">Non-binary</SelectItem>
+                  <SelectItem value="women">Women</SelectItem>
+                  <SelectItem value="men">Men</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-2">
               <Label>Age Range: {tempFilters.min_age} - {tempFilters.max_age}</Label>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="text-sm text-muted-foreground">Minimum Age: {tempFilters.min_age}</Label>
-                  <Slider
-                    value={[tempFilters.min_age]}
-                    onValueChange={([value]) => setTempFilters({ ...tempFilters, min_age: value })}
-                    min={18}
-                    max={tempFilters.max_age - 1}
-                    step={1}
-                    className="w-full"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm text-muted-foreground">Maximum Age: {tempFilters.max_age}</Label>
-                  <Slider
-                    value={[tempFilters.max_age]}
-                    onValueChange={([value]) => setTempFilters({ ...tempFilters, max_age: value })}
-                    min={tempFilters.min_age + 1}
-                    max={99}
-                    step={1}
-                    className="w-full"
-                  />
-                </div>
+              <div className="flex gap-4 items-center">
+                <Input
+                  type="number"
+                  min={18}
+                  max={tempFilters.max_age}
+                  value={tempFilters.min_age}
+                  onChange={(e) => setTempFilters({ ...tempFilters, min_age: Number(e.target.value) })}
+                  className="w-20"
+                />
+                <span>to</span>
+                <Input
+                  type="number"
+                  min={tempFilters.min_age}
+                  max={99}
+                  value={tempFilters.max_age}
+                  onChange={(e) => setTempFilters({ ...tempFilters, max_age: Number(e.target.value) })}
+                  className="w-20"
+                />
               </div>
             </div>
-          </div>
 
+            <div className="space-y-2">
+              <Label>Location (optional)</Label>
+              <Input
+                placeholder="City name..."
+                value={tempFilters.location}
+                onChange={(e) => setTempFilters({ ...tempFilters, location: e.target.value })}
+              />
+            </div>
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowFilterDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={applyQuickFilters} className="bg-gradient-to-r from-primary to-secondary">
+            <Button onClick={applyQuickFilters}>
               Apply Filters
             </Button>
           </DialogFooter>
