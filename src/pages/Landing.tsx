@@ -1,63 +1,48 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Heart, MessageCircle, Shield, Users, Star, Sparkles, ChevronRight, MapPin, Check, ArrowRight, Zap } from "lucide-react";
+import { Heart, Shield, Users, Sparkles, Check, ArrowRight, Menu, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import logo from "@/assets/spaark-logo.png";
-import { MobileNav } from "@/components/navigation/MobileNav";
 import { Footer } from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { ThemeToggle } from "@/components/landing/ThemeToggle";
 import { ChatbotWidget } from "@/components/landing/ChatbotWidget";
 import { NewsletterSignup } from "@/components/landing/NewsletterSignup";
-import { InstallAppBanner } from "@/components/landing/InstallAppBanner";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { SEO, JsonLd, getOrganizationSchema, getDatingServiceSchema } from "@/components/SEO";
 
-// Import profile images for phone mockups
-import profile1 from "@/assets/profile-1.jpg";
-import profile2 from "@/assets/profile-2.jpg";
-import profile3 from "@/assets/profile-3.jpg";
-import profile4 from "@/assets/profile-4.jpg";
-import profile5 from "@/assets/profile-5.jpg";
-import profile6 from "@/assets/profile-6.jpg";
+// Real people photos
+import person1 from "@/assets/person-1.jpg";
+import person2 from "@/assets/person-2.jpg";
+import person3 from "@/assets/person-3.jpg";
+import person4 from "@/assets/person-4.jpg";
+import person5 from "@/assets/person-5.jpg";
+import person6 from "@/assets/person-6.jpg";
 
 const Landing = () => {
   const [stats, setStats] = useState({ users: 0, matches: 0 });
-  const [testimonials, setTestimonials] = useState<any[]>([]);
-  const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
-  const [activeProfileIndex, setActiveProfileIndex] = useState(0);
+  const [activeCard, setActiveCard] = useState(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Profile cards for the phone mockups
-  const phoneProfiles = [
-    { name: "Priya", age: 22, image: profile1, verified: true, location: "Mumbai", bio: "Coffee enthusiast. Book lover. Looking for genuine connections.", interests: ["Travel", "Photography", "Music"] },
-    { name: "Rahul", age: 25, image: profile2, verified: true, location: "Delhi", bio: "Adventure seeker with a passion for cooking.", interests: ["Hiking", "Cooking", "Movies"] },
-    { name: "Ananya", age: 24, image: profile3, verified: true, location: "Bangalore", bio: "Art lover. Chai over coffee. Dog mom.", interests: ["Art", "Yoga", "Reading"] },
-    { name: "Arjun", age: 26, image: profile4, verified: false, location: "Pune", bio: "Fitness enthusiast. Netflix binger.", interests: ["Fitness", "Gaming", "Travel"] },
-    { name: "Neha", age: 23, image: profile5, verified: true, location: "Hyderabad", bio: "Dance like nobody's watching. ✨", interests: ["Dance", "Fashion", "Food"] },
-    { name: "Vikram", age: 27, image: profile6, verified: true, location: "Chennai", bio: "Tech geek. Music lover. Always curious.", interests: ["Technology", "Music", "Sports"] },
+  const profiles = [
+    { name: "Anika", age: 24, image: person1, location: "Mumbai", verified: true },
+    { name: "Rohan", age: 27, image: person2, location: "Delhi", verified: true },
+    { name: "Maya", age: 25, image: person3, location: "Bangalore", verified: true },
+    { name: "Arjun", age: 26, image: person4, location: "Pune", verified: true },
+    { name: "Priya", age: 23, image: person5, location: "Hyderabad", verified: true },
+    { name: "Vikram", age: 28, image: person6, location: "Chennai", verified: true },
   ];
 
   useEffect(() => {
     fetchStats();
-    fetchTestimonials();
     const interval = setInterval(fetchStats, 30000);
     return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
-    if (testimonials.length > 1) {
-      const interval = setInterval(() => {
-        setCurrentTestimonialIndex((prev) => (prev + 1) % testimonials.length);
-      }, 5000);
-      return () => clearInterval(interval);
-    }
-  }, [testimonials.length]);
-
-  useEffect(() => {
     const interval = setInterval(() => {
-      setActiveProfileIndex((prev) => (prev + 1) % phoneProfiles.length);
+      setActiveCard((prev) => (prev + 1) % profiles.length);
     }, 3000);
     return () => clearInterval(interval);
   }, []);
@@ -78,31 +63,11 @@ const Landing = () => {
     }
   };
 
-  const fetchTestimonials = async () => {
-    try {
-      const { data, error } = await (supabase as any)
-        .from("testimonials")
-        .select(`
-          *,
-          user:profiles!testimonials_user_id_fkey(display_name),
-          partner:profiles!testimonials_partner_id_fkey(display_name)
-        `)
-        .eq("status", "approved")
-        .order("created_at", { ascending: false })
-        .limit(6);
-
-      if (error) throw error;
-      setTestimonials(data || []);
-    } catch (error) {
-      console.error("Error fetching testimonials:", error);
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-background font-body">
+    <div className="min-h-screen bg-background font-body overflow-x-hidden">
       <SEO 
         title="Find Your Perfect Match"
-        description="Discover meaningful connections on Spaark. Swipe, match, and chat with compatible singles in your area."
+        description="Discover meaningful connections on Spaark. Meet real people, have real conversations, find real love."
         canonicalUrl="/"
       />
       <JsonLd data={getOrganizationSchema()} />
@@ -110,253 +75,276 @@ const Landing = () => {
       
       <ChatbotWidget />
       
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/60 backdrop-blur-xl border-b border-border/30">
-        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <motion.div 
-            className="flex items-center gap-3 group cursor-pointer"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            whileHover={{ scale: 1.02 }}
-          >
-            <motion.div 
-              className="bg-card p-2 rounded-2xl shadow-md border border-border/50"
-              whileHover={{ rotate: [0, -5, 5, 0] }}
-              transition={{ duration: 0.4 }}
-            >
-              <img src={logo} alt="Spaark" className="h-8 w-8 object-contain" />
-            </motion.div>
-            <span className="text-xl font-display font-semibold text-foreground tracking-tight">Spaark</span>
-          </motion.div>
+      {/* Floating Pill Navigation - Bumble Style */}
+      <motion.header 
+        className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-5xl"
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <nav className="bg-card/90 backdrop-blur-xl rounded-full px-4 py-2.5 shadow-lg border border-border/50 flex items-center justify-between">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2 group">
+            <div className="bg-primary p-1.5 rounded-full">
+              <img src={logo} alt="Spaark" className="h-6 w-6 object-contain" />
+            </div>
+            <span className="text-lg font-display font-bold text-foreground hidden sm:block">Spaark</span>
+          </Link>
           
-          <motion.div 
-            className="hidden md:flex items-center gap-4"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-          >
+          {/* Desktop Nav Links */}
+          <div className="hidden md:flex items-center gap-1">
+            <Link to="/about-us">
+              <Button variant="ghost" size="sm" className="rounded-full text-muted-foreground hover:text-foreground">
+                About
+              </Button>
+            </Link>
+            <Link to="/safety-tips">
+              <Button variant="ghost" size="sm" className="rounded-full text-muted-foreground hover:text-foreground">
+                Safety
+              </Button>
+            </Link>
+            <Link to="/testimonials">
+              <Button variant="ghost" size="sm" className="rounded-full text-muted-foreground hover:text-foreground">
+                Stories
+              </Button>
+            </Link>
+            <Link to="/support">
+              <Button variant="ghost" size="sm" className="rounded-full text-muted-foreground hover:text-foreground">
+                Support
+              </Button>
+            </Link>
+          </div>
+          
+          {/* Right Actions */}
+          <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Link to="/auth">
-              <Button variant="ghost" className="text-muted-foreground hover:text-foreground font-medium">
+            <Link to="/auth" className="hidden sm:block">
+              <Button variant="ghost" size="sm" className="rounded-full text-muted-foreground hover:text-foreground">
                 Sign in
               </Button>
             </Link>
             <Link to="/auth">
-              <Button variant="glow" size="default">
-                Get Started
-                <ArrowRight className="w-4 h-4 ml-1" />
+              <Button variant="bumble" size="sm" className="rounded-full">
+                Join Free
               </Button>
             </Link>
-          </motion.div>
-          
-          <div className="md:hidden flex items-center gap-2">
-            <ThemeToggle />
-            <MobileNav />
+            
+            {/* Mobile Menu Toggle */}
+            <button 
+              className="md:hidden p-2 rounded-full hover:bg-muted/50 transition-colors"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
           </div>
-        </div>
-      </header>
+        </nav>
+        
+        {/* Mobile Menu Dropdown */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div 
+              className="md:hidden mt-2 bg-card/95 backdrop-blur-xl rounded-2xl shadow-lg border border-border/50 overflow-hidden"
+              initial={{ opacity: 0, y: -10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="p-4 space-y-2">
+                <Link to="/about-us" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start rounded-xl">About</Button>
+                </Link>
+                <Link to="/safety-tips" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start rounded-xl">Safety</Button>
+                </Link>
+                <Link to="/testimonials" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start rounded-xl">Stories</Button>
+                </Link>
+                <Link to="/support" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start rounded-xl">Support</Button>
+                </Link>
+                <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start rounded-xl">Sign in</Button>
+                </Link>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.header>
 
-      {/* Hero Section - Asymmetric Layout */}
-      <section className="relative min-h-screen overflow-hidden pt-20">
-        <div className="container mx-auto px-4 py-12 md:py-20">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center min-h-[80vh]">
+      {/* Hero Section - Bumble Style with Stacked Cards */}
+      <section className="relative min-h-screen flex items-center justify-center pt-24 pb-16 px-4">
+        {/* Background Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-card/50" />
+        
+        <div className="container mx-auto relative z-10">
+          <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
             {/* Left Content */}
             <motion.div 
-              className="order-2 lg:order-1 text-center lg:text-left"
-              initial={{ opacity: 0, y: 40 }}
+              className="flex-1 text-center lg:text-left"
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7 }}
+              transition={{ duration: 0.6 }}
             >
-              <motion.div 
-                className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6"
+              <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.2 }}
+                className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full text-sm font-medium mb-6"
               >
                 <Sparkles className="w-4 h-4" />
-                <span>Where real connections happen</span>
+                <span>Real people, real connections</span>
               </motion.div>
               
-              <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6 leading-[1.1] tracking-tight">
-                Your story is{" "}
-                <span className="relative">
-                  <span className="bg-gradient-to-r from-primary via-primary-light to-accent bg-clip-text text-transparent">
-                    waiting
+              <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground mb-6 leading-[1.1] tracking-tight">
+                Make the first{" "}
+                <span className="relative inline-block">
+                  <span className="bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent">
+                    move
                   </span>
-                  <motion.div 
-                    className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent rounded-full"
-                    initial={{ scaleX: 0 }}
-                    animate={{ scaleX: 1 }}
-                    transition={{ delay: 0.5, duration: 0.6 }}
-                  />
+                  <motion.svg 
+                    className="absolute -bottom-1 left-0 w-full"
+                    viewBox="0 0 100 10"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ delay: 0.5, duration: 0.8 }}
+                  >
+                    <motion.path 
+                      d="M0 8 Q 50 0, 100 8" 
+                      fill="none" 
+                      stroke="hsl(var(--primary))" 
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                  </motion.svg>
                 </span>
-                {" "}to be written.
               </h1>
               
-              <p className="text-muted-foreground text-lg md:text-xl mb-8 max-w-lg mx-auto lg:mx-0 leading-relaxed">
-                Forget endless swiping. Spaark helps you find people who actually get you. 
-                Real profiles, real conversations, real sparks.
+              <p className="text-muted-foreground text-lg sm:text-xl mb-8 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+                On Spaark, you're in control. Start conversations, make connections, 
+                and meet people who are genuinely looking for what you are.
               </p>
               
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link to="/auth">
-                  <Button variant="pill" size="xl" className="w-full sm:w-auto">
-                    Start Your Journey
-                    <Heart className="w-5 h-5 ml-2 fill-current" />
-                  </Button>
-                </Link>
-                <Link to="/testimonials">
-                  <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                    Read Success Stories
+                  <Button variant="bumble" size="xl" className="w-full sm:w-auto group">
+                    Get Started
+                    <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </Link>
               </div>
 
-              {/* Trust Indicators */}
+              {/* Stats */}
               <motion.div 
-                className="flex flex-wrap items-center justify-center lg:justify-start gap-6 text-sm text-muted-foreground"
+                className="flex flex-wrap items-center justify-center lg:justify-start gap-8 mt-12"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.6 }}
               >
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                    <Users className="w-4 h-4 text-primary" />
-                  </div>
-                  <span className="font-medium">{stats.users.toLocaleString()}+ members</span>
+                <div className="text-center lg:text-left">
+                  <p className="text-3xl font-display font-bold text-foreground">{stats.users.toLocaleString()}+</p>
+                  <p className="text-sm text-muted-foreground">Active members</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                    <Heart className="w-4 h-4 text-primary fill-primary" />
-                  </div>
-                  <span className="font-medium">{stats.matches.toLocaleString()}+ matches</span>
+                <div className="w-px h-12 bg-border hidden sm:block" />
+                <div className="text-center lg:text-left">
+                  <p className="text-3xl font-display font-bold text-foreground">{stats.matches.toLocaleString()}+</p>
+                  <p className="text-sm text-muted-foreground">Matches made</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                    <Shield className="w-4 h-4 text-primary" />
-                  </div>
-                  <span className="font-medium">100% Verified</span>
+                <div className="w-px h-12 bg-border hidden sm:block" />
+                <div className="text-center lg:text-left">
+                  <p className="text-3xl font-display font-bold text-foreground">100%</p>
+                  <p className="text-sm text-muted-foreground">Verified profiles</p>
                 </div>
               </motion.div>
             </motion.div>
 
-            {/* Right - Interactive Profile Preview */}
+            {/* Right - Stacked Profile Cards */}
             <motion.div 
-              className="order-1 lg:order-2 relative"
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.7, delay: 0.2 }}
+              className="flex-1 relative w-full max-w-md mx-auto"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
             >
-              <div className="relative max-w-sm mx-auto">
-                {/* Decorative Elements */}
-                <div className="absolute -top-8 -right-8 w-24 h-24 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full blur-2xl" />
-                <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-gradient-to-br from-accent/20 to-primary/20 rounded-full blur-2xl" />
+              <div className="relative h-[450px] sm:h-[500px]">
+                {/* Stacked Cards Background */}
+                {profiles.slice(0, 3).map((_, index) => (
+                  <motion.div
+                    key={`bg-${index}`}
+                    className="absolute inset-0 rounded-3xl bg-card border border-border/50 shadow-lg"
+                    style={{
+                      transform: `translateY(${(2 - index) * 8}px) scale(${1 - (2 - index) * 0.03})`,
+                      zIndex: index,
+                      opacity: 0.5 + index * 0.2,
+                    }}
+                  />
+                ))}
                 
-                {/* Profile Card */}
-                <motion.div 
-                  className="relative bg-card rounded-3xl shadow-2xl border border-border/50 overflow-hidden"
-                  whileHover={{ y: -5 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={activeProfileIndex}
-                      initial={{ opacity: 0, scale: 1.05 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      transition={{ duration: 0.4 }}
-                    >
-                      {/* Profile Image */}
-                      <div className="relative aspect-[3/4]">
-                        <img 
-                          src={phoneProfiles[activeProfileIndex].image} 
-                          alt={phoneProfiles[activeProfileIndex].name}
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                        
-                        {/* Profile Info Overlay */}
-                        <div className="absolute bottom-0 left-0 right-0 p-6">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h3 className="text-white font-display text-2xl font-semibold">
-                              {phoneProfiles[activeProfileIndex].name}, {phoneProfiles[activeProfileIndex].age}
-                            </h3>
-                            {phoneProfiles[activeProfileIndex].verified && (
-                              <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                                <Check className="w-4 h-4 text-white" />
-                              </div>
-                            )}
+                {/* Main Active Card */}
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeCard}
+                    className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl border border-border/30"
+                    initial={{ opacity: 0, scale: 1.05, rotateY: 10 }}
+                    animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, x: -100 }}
+                    transition={{ duration: 0.4 }}
+                    style={{ zIndex: 10 }}
+                  >
+                    <img 
+                      src={profiles[activeCard].image} 
+                      alt={profiles[activeCard].name}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                    
+                    {/* Profile Info */}
+                    <div className="absolute bottom-0 left-0 right-0 p-6">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="text-white font-display text-2xl sm:text-3xl font-bold">
+                          {profiles[activeCard].name}, {profiles[activeCard].age}
+                        </h3>
+                        {profiles[activeCard].verified && (
+                          <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                            <Check className="w-4 h-4 text-white" />
                           </div>
-                          
-                          <div className="flex items-center gap-1 text-white/80 text-sm mb-3">
-                            <MapPin className="w-4 h-4" />
-                            <span>{phoneProfiles[activeProfileIndex].location}</span>
-                          </div>
-                          
-                          <p className="text-white/90 text-sm mb-4 line-clamp-2">
-                            {phoneProfiles[activeProfileIndex].bio}
-                          </p>
-                          
-                          <div className="flex flex-wrap gap-2">
-                            {phoneProfiles[activeProfileIndex].interests.map((interest, idx) => (
-                              <span 
-                                key={idx}
-                                className="bg-white/20 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full"
-                              >
-                                {interest}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
+                        )}
                       </div>
-                    </motion.div>
-                  </AnimatePresence>
+                      <p className="text-white/80 text-sm">{profiles[activeCard].location}</p>
+                    </div>
 
-                  {/* Action Buttons */}
-                  <div className="absolute bottom-6 right-6 flex gap-3">
-                    <motion.button 
-                      className="w-14 h-14 bg-white rounded-full shadow-lg flex items-center justify-center"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                    >
-                      <span className="text-2xl">✕</span>
-                    </motion.button>
-                    <motion.button 
-                      className="w-14 h-14 bg-gradient-to-r from-primary to-primary-light rounded-full shadow-lg flex items-center justify-center"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                    >
-                      <Heart className="w-6 h-6 text-white fill-white" />
-                    </motion.button>
-                  </div>
-                </motion.div>
+                    {/* Swipe Buttons */}
+                    <div className="absolute bottom-6 right-6 flex gap-3">
+                      <button className="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform">
+                        <X className="w-6 h-6 text-muted-foreground" />
+                      </button>
+                      <button className="w-12 h-12 sm:w-14 sm:h-14 bg-primary rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform">
+                        <Heart className="w-6 h-6 text-primary-foreground fill-primary-foreground" />
+                      </button>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
 
-                {/* Profile Indicators */}
-                <div className="flex justify-center gap-2 mt-6">
-                  {phoneProfiles.map((_, idx) => (
+                {/* Card Indicators */}
+                <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
+                  {profiles.map((_, idx) => (
                     <button
                       key={idx}
-                      onClick={() => setActiveProfileIndex(idx)}
+                      onClick={() => setActiveCard(idx)}
                       className={`h-2 rounded-full transition-all duration-300 ${
-                        idx === activeProfileIndex 
-                          ? "bg-primary w-8" 
+                        idx === activeCard 
+                          ? "bg-primary w-6" 
                           : "bg-muted-foreground/30 w-2 hover:bg-muted-foreground/50"
                       }`}
                     />
                   ))}
                 </div>
-
-                {/* Small disclaimer */}
-                <p className="text-center text-xs text-muted-foreground/60 mt-4">
-                  Sample profiles for illustration only
-                </p>
               </div>
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* How It Works - Horizontal Steps */}
-      <section className="py-24 bg-card/30">
+      {/* How It Works - Bumble Style Steps */}
+      <section className="py-20 sm:py-28 bg-card/50">
         <div className="container mx-auto px-4">
           <motion.div 
             className="text-center mb-16"
@@ -364,138 +352,54 @@ const Landing = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="font-display text-3xl md:text-5xl font-bold text-foreground mb-4">
-              Three steps to your next chapter
+            <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4">
+              How Spaark works
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              No complicated algorithms. No games. Just genuine connections made simple.
+              Finding your person shouldn't be complicated. Here's how it works.
             </p>
           </motion.div>
 
-          <div className="relative max-w-5xl mx-auto">
-            {/* Connection Line */}
-            <div className="hidden md:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-border to-transparent -translate-y-1/2" />
-            
-            <div className="grid md:grid-cols-3 gap-8 md:gap-12">
-              {[
-                { 
-                  step: "01", 
-                  icon: Users, 
-                  title: "Be yourself", 
-                  desc: "Create a profile that shows the real you. Share your story, your interests, what makes you tick." 
-                },
-                { 
-                  step: "02", 
-                  icon: Heart, 
-                  title: "Find your match", 
-                  desc: "Browse through profiles of people who share your values. When there's mutual interest, magic happens." 
-                },
-                { 
-                  step: "03", 
-                  icon: MessageCircle, 
-                  title: "Start talking", 
-                  desc: "Skip the small talk. Our conversation starters help you dive into meaningful discussions right away." 
-                },
-              ].map((item, idx) => (
-                <motion.div
-                  key={idx}
-                  className="relative text-center"
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: idx * 0.15 }}
-                >
-                  <motion.div 
-                    className="relative inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary to-primary-light rounded-2xl shadow-lg mb-6 mx-auto"
-                    whileHover={{ rotate: [0, -5, 5, 0], scale: 1.05 }}
-                    transition={{ duration: 0.4 }}
-                  >
-                    <item.icon className="w-8 h-8 text-primary-foreground" />
-                    <span className="absolute -top-2 -right-2 w-8 h-8 bg-card border-2 border-primary rounded-full flex items-center justify-center text-xs font-bold text-primary">
-                      {item.step}
-                    </span>
-                  </motion.div>
-                  <h3 className="font-display text-xl font-semibold text-foreground mb-3">{item.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed">{item.desc}</p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features - Bento Grid */}
-      <section className="py-24">
-        <div className="container mx-auto px-4">
-          <motion.div 
-            className="text-center mb-16"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="font-display text-3xl md:text-5xl font-bold text-foreground mb-4">
-              Dating, but make it thoughtful
-            </h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              We've built the features that actually matter for finding lasting connections.
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {[
-              { 
-                icon: Shield, 
-                title: "Safety first, always", 
-                desc: "Every profile is verified. We take your safety seriously with ID verification and reporting tools.",
-                gradient: "from-blue-500/10 to-cyan-500/10"
+              {
+                step: "01",
+                icon: Users,
+                title: "Create your profile",
+                desc: "Upload your best photos, write a bio that shows who you really are, and set your preferences.",
               },
-              { 
-                icon: Zap, 
-                title: "Compatibility that clicks", 
-                desc: "Our matching considers what actually matters - values, life goals, and what you're looking for.",
-                gradient: "from-amber-500/10 to-orange-500/10"
+              {
+                step: "02",
+                icon: Heart,
+                title: "Start connecting",
+                desc: "Browse profiles, swipe right on people you like, and start conversations when you match.",
               },
-              { 
-                icon: MessageCircle, 
-                title: "Conversations that flow", 
-                desc: "Real-time chat with icebreakers, voice messages, and reactions to keep things interesting.",
-                gradient: "from-purple-500/10 to-pink-500/10"
+              {
+                step: "03",
+                icon: Sparkles,
+                title: "Meet your match",
+                desc: "Take it offline! Meet up for coffee, dinner, or whatever feels right for you both.",
               },
-              { 
-                icon: Star, 
-                title: "Stand out when it counts", 
-                desc: "Boost your profile visibility when you want to make an impression. Premium features for premium results.",
-                gradient: "from-primary/10 to-accent/10"
-              },
-              { 
-                icon: Users, 
-                title: "A community that cares", 
-                desc: "Join thousands of people who are tired of superficial dating and want something real.",
-                gradient: "from-green-500/10 to-emerald-500/10"
-              },
-              { 
-                icon: Heart, 
-                title: "Made for lasting love", 
-                desc: "Whether you're looking for friendship, romance, or your life partner - find your kind of connection.",
-                gradient: "from-rose-500/10 to-red-500/10"
-              },
-            ].map((feature, idx) => (
+            ].map((item, idx) => (
               <motion.div
-                key={idx}
-                className={`group relative bg-card border border-border/50 rounded-3xl p-8 hover:border-primary/30 transition-all duration-300`}
-                initial={{ opacity: 0, y: 20 }}
+                key={item.step}
+                className="relative"
+                initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: idx * 0.1 }}
-                whileHover={{ y: -5 }}
+                transition={{ delay: idx * 0.15 }}
               >
-                <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-                <div className="relative">
-                  <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
-                    <feature.icon className="w-7 h-7 text-primary" />
+                <div className="bg-card rounded-3xl p-8 h-full border border-border/50 hover:border-primary/30 transition-colors hover:shadow-lg">
+                  <div className="relative mb-6">
+                    <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center">
+                      <item.icon className="w-8 h-8 text-primary" />
+                    </div>
+                    <span className="absolute -top-2 -right-2 w-8 h-8 bg-primary text-primary-foreground text-sm font-bold rounded-full flex items-center justify-center">
+                      {item.step}
+                    </span>
                   </div>
-                  <h3 className="font-display text-xl font-semibold text-foreground mb-3">{feature.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed">{feature.desc}</p>
+                  <h3 className="font-display text-xl font-bold text-foreground mb-3">{item.title}</h3>
+                  <p className="text-muted-foreground leading-relaxed">{item.desc}</p>
                 </div>
               </motion.div>
             ))}
@@ -503,177 +407,117 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      {testimonials.length > 0 && (
-        <section className="py-24 bg-card/30">
-          <div className="container mx-auto px-4">
-            <motion.div 
-              className="text-center mb-16"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            >
-              <h2 className="font-display text-3xl md:text-5xl font-bold text-foreground mb-4">
-                They found their person
-              </h2>
-              <p className="text-muted-foreground text-lg">Real stories from real couples who met on Spaark</p>
-            </motion.div>
-
-            <div className="relative max-w-4xl mx-auto">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={currentTestimonialIndex}
-                  initial={{ opacity: 0, x: 50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -50 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Card className="border border-border/50 bg-card/80 backdrop-blur-sm rounded-3xl overflow-hidden">
-                    <CardContent className="p-8 md:p-12">
-                      <div className="flex justify-center gap-1 mb-6">
-                        {[...Array(testimonials[currentTestimonialIndex]?.rating || 5)].map((_, i) => (
-                          <Star key={i} className="h-5 w-5 fill-amber-400 text-amber-400" />
-                        ))}
-                      </div>
-
-                      <blockquote className="font-display text-xl md:text-2xl text-foreground italic text-center mb-8 leading-relaxed">
-                        "{testimonials[currentTestimonialIndex]?.story}"
-                      </blockquote>
-
-                      <div className="flex items-center justify-center gap-4">
-                        <div className="flex -space-x-3">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary-light border-3 border-card" />
-                          {testimonials[currentTestimonialIndex]?.partner && (
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-accent to-primary border-3 border-card" />
-                          )}
-                        </div>
-                        <div className="text-left">
-                          <p className="font-semibold text-foreground">
-                            {testimonials[currentTestimonialIndex]?.user?.display_name || "Anonymous"}
-                            {testimonials[currentTestimonialIndex]?.partner?.display_name && 
-                              ` & ${testimonials[currentTestimonialIndex]?.partner?.display_name}`}
-                          </p>
-                          {testimonials[currentTestimonialIndex]?.match_duration && (
-                            <p className="text-sm text-muted-foreground">
-                              Together for {testimonials[currentTestimonialIndex]?.match_duration}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </AnimatePresence>
-
-              {testimonials.length > 1 && (
-                <div className="flex justify-center gap-2 mt-6">
-                  {testimonials.map((_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setCurrentTestimonialIndex(idx)}
-                      className={`h-2 rounded-full transition-all ${
-                        idx === currentTestimonialIndex 
-                          ? "bg-primary w-8" 
-                          : "bg-muted-foreground/30 w-2 hover:bg-muted-foreground/50"
-                      }`}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <motion.div 
-              className="text-center mt-10"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-            >
-              <Link to="/testimonials">
-                <Button variant="magnetic" size="lg">
-                  Read More Stories
-                  <ChevronRight className="ml-1 h-4 w-4" />
-                </Button>
-              </Link>
-            </motion.div>
-          </div>
-        </section>
-      )}
-
-      {/* Pricing Section */}
-      <PricingSection />
-
-      {/* Newsletter Section */}
-      <section className="py-20 bg-muted/20">
+      {/* Why Spaark - Feature Cards */}
+      <section className="py-20 sm:py-28">
         <div className="container mx-auto px-4">
-          <motion.div
+          <motion.div 
+            className="text-center mb-16"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <NewsletterSignup />
+            <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4">
+              Why choose Spaark?
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              We're building a different kind of dating app. One where quality matters more than quantity.
+            </p>
           </motion.div>
-        </div>
-      </section>
 
-      {/* Install App Section */}
-      <section className="py-16 bg-background">
-        <div className="container mx-auto px-4">
-          <motion.div 
-            className="max-w-md mx-auto"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <InstallAppBanner />
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Final CTA */}
-      <section className="py-24">
-        <div className="container mx-auto px-4">
-          <motion.div 
-            className="relative bg-gradient-to-br from-primary via-primary-light to-accent rounded-[2rem] p-10 md:p-20 text-center overflow-hidden"
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-          >
-            {/* Decorative circles */}
-            <div className="absolute inset-0 overflow-hidden">
-              <div className="absolute top-10 left-10 w-40 h-40 border border-white/20 rounded-full" />
-              <div className="absolute bottom-10 right-10 w-32 h-32 border border-white/20 rounded-full" />
-              <div className="absolute top-1/2 left-1/4 w-20 h-20 border border-white/10 rounded-full" />
-              <div className="absolute bottom-1/4 right-1/3 w-24 h-24 border border-white/10 rounded-full" />
-            </div>
-            
-            <div className="relative z-10">
-              <motion.h2 
-                className="font-display text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-6"
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            {[
+              {
+                icon: Shield,
+                title: "Verified profiles only",
+                desc: "Every profile is verified with ID. No catfish, no bots, just real people looking for real connections.",
+                color: "bg-blue-500/10 text-blue-600",
+              },
+              {
+                icon: Heart,
+                title: "Quality over quantity",
+                desc: "Our matching algorithm focuses on compatibility, not endless swiping. Fewer matches, better connections.",
+                color: "bg-pink-500/10 text-pink-600",
+              },
+              {
+                icon: Users,
+                title: "Respectful community",
+                desc: "Zero tolerance for harassment. Our moderation team works 24/7 to keep the community safe.",
+                color: "bg-purple-500/10 text-purple-600",
+              },
+              {
+                icon: Sparkles,
+                title: "Smart compatibility",
+                desc: "Our algorithm considers values, interests, and relationship goals—not just looks.",
+                color: "bg-amber-500/10 text-amber-600",
+              },
+              {
+                icon: Check,
+                title: "Privacy first",
+                desc: "Your data is yours. We never sell your information or show you to people you've passed on.",
+                color: "bg-green-500/10 text-green-600",
+              },
+              {
+                icon: ArrowRight,
+                title: "Always improving",
+                desc: "We listen to our users and constantly improve based on your feedback.",
+                color: "bg-indigo-500/10 text-indigo-600",
+              },
+            ].map((feature, idx) => (
+              <motion.div
+                key={feature.title}
+                className="bg-card rounded-2xl p-6 border border-border/50 hover:border-primary/30 transition-all hover:shadow-lg"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
+                transition={{ delay: idx * 0.1 }}
               >
-                Your person is out there.
-                <br />
-                <span className="opacity-90">Let's find them together.</span>
-              </motion.h2>
-              <p className="text-white/80 text-lg md:text-xl mb-10 max-w-2xl mx-auto">
-                Join Spaark today and take the first step towards a connection that actually means something.
-              </p>
-              <Link to="/auth">
-                <Button 
-                  size="xl" 
-                  className="bg-white text-primary hover:bg-white/90 rounded-full shadow-2xl hover:shadow-white/20 hover:-translate-y-1 transition-all duration-300"
-                >
-                  Create Your Free Profile
-                  <Heart className="ml-2 h-5 w-5 fill-primary" />
-                </Button>
-              </Link>
-            </div>
+                <div className={`w-12 h-12 rounded-xl ${feature.color} flex items-center justify-center mb-4`}>
+                  <feature.icon className="w-6 h-6" />
+                </div>
+                <h3 className="font-display text-lg font-bold text-foreground mb-2">{feature.title}</h3>
+                <p className="text-muted-foreground text-sm leading-relaxed">{feature.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 sm:py-28 bg-gradient-to-br from-primary to-primary-dark relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-0 left-0 w-64 h-64 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-white/5 rounded-full translate-x-1/2 translate-y-1/2" />
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <motion.div 
+            className="text-center max-w-3xl mx-auto"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-primary-foreground mb-6">
+              Your next chapter starts here
+            </h2>
+            <p className="text-primary-foreground/80 text-lg mb-8">
+              Join thousands of people who've found meaningful connections on Spaark.
+            </p>
+            <Link to="/auth">
+              <Button variant="secondary" size="xl" className="rounded-full font-semibold">
+                Create Your Profile
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </Link>
           </motion.div>
         </div>
       </section>
 
+      {/* Pricing */}
+      <PricingSection />
+
+      {/* Newsletter */}
+      <NewsletterSignup />
+
+      {/* Footer */}
       <Footer />
     </div>
   );
