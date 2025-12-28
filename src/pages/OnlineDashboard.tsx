@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Heart, MessageCircle, User as UserIcon, Settings, LogOut, RefreshCw, Eye, HelpCircle, Filter, Bell, Crown, Zap } from "lucide-react";
+import { Heart, MessageCircle, User as UserIcon, Settings, LogOut, RefreshCw, Eye, HelpCircle, Filter, Bell, Crown, Zap, Users } from "lucide-react";
 import logo from "@/assets/spaark-logo.png";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -421,89 +421,129 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
   const hasMoreProfiles = currentIndex < profiles.length;
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-gradient-to-br from-background via-muted to-background">
+    <div ref={containerRef} className="min-h-screen bg-background">
       <PullToRefreshIndicator
         pullDistance={pullDistance}
         isRefreshing={isRefreshing}
         shouldTrigger={shouldTrigger}
       />
-      <header className="border-b border-border/50 bg-card/80 backdrop-blur-md sticky top-0 z-10 shadow-sm">
-        <div className="container mx-auto px-4 py-3 md:py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2 animate-fade-in group cursor-pointer">
-            <div className="bg-white/90 p-1.5 rounded-lg shadow-md">
-              <img 
-                src={logo} 
-                alt="Spaark Logo" 
-                className="h-6 w-6 md:h-7 md:w-7 object-contain"
-              />
+      
+      {/* Modern Bumble-style Header */}
+      <header className="sticky top-0 z-40 bg-card/80 backdrop-blur-xl border-b border-border/30">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <div className="flex items-center gap-2">
+              <div className="bg-primary p-1.5 rounded-full">
+                <img 
+                  src={logo} 
+                  alt="Spaark" 
+                  className="h-6 w-6 object-contain"
+                />
+              </div>
+              <span className="text-lg font-display font-bold text-foreground hidden sm:block">
+                Spaark
+              </span>
             </div>
-            <span className="text-xl md:text-2xl font-bold text-white">
-              Spaark <span className="text-sm font-normal text-white/70">Online</span>
-            </span>
-          </div>
-          
-          <div className="hidden md:flex gap-2">
-            <NotificationBell userId={user.id} />
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={() => setShowFilterDialog(true)} 
-              title="Quick Filters" 
-              className="hover:scale-110 transition-transform"
-            >
-              <Filter className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon" onClick={() => navigate("/profile-views")} title="Profile Views" className="hover:scale-110 transition-transform">
-              <Eye className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon" onClick={() => navigate("/matches")} className="hover:scale-110 transition-transform">
-              <Heart className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon" onClick={() => navigate("/messages")} className="hover:scale-110 transition-transform">
-              <MessageCircle className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon" onClick={() => navigate("/profile")} className="hover:scale-110 transition-transform">
-              <UserIcon className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon" onClick={() => navigate("/faq")} title="FAQ" className="hover:scale-110 transition-transform">
-              <HelpCircle className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon" onClick={() => navigate("/settings")} className="hover:scale-110 transition-transform">
-              <Settings className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon" onClick={onLogout} className="hover:scale-110 transition-transform">
-              <LogOut className="h-5 w-5" />
-            </Button>
-          </div>
+            
+            {/* Desktop Nav - Pill Style Icons */}
+            <nav className="hidden md:flex items-center">
+              <div className="flex items-center bg-muted/30 rounded-full p-1 gap-1">
+                <button 
+                  onClick={() => navigate("/dashboard")}
+                  className="flex flex-col items-center px-4 py-2 rounded-full bg-primary text-primary-foreground transition-all"
+                  title="Discover"
+                >
+                  <Heart className="h-5 w-5" />
+                </button>
+                <button 
+                  onClick={() => navigate("/matches")}
+                  className="flex flex-col items-center px-4 py-2 rounded-full hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all"
+                  title="Matches"
+                >
+                  <Users className="h-5 w-5" />
+                </button>
+                <button 
+                  onClick={() => navigate("/messages")}
+                  className="flex flex-col items-center px-4 py-2 rounded-full hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all"
+                  title="Messages"
+                >
+                  <MessageCircle className="h-5 w-5" />
+                </button>
+                <button 
+                  onClick={() => navigate("/profile")}
+                  className="flex flex-col items-center px-4 py-2 rounded-full hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all"
+                  title="Profile"
+                >
+                  <UserIcon className="h-5 w-5" />
+                </button>
+              </div>
+            </nav>
+            
+            {/* Right Actions */}
+            <div className="flex items-center gap-1.5">
+              <NotificationBell userId={user.id} />
+              
+              <Button 
+                variant="icon" 
+                size="icon-sm"
+                onClick={() => setShowFilterDialog(true)} 
+                title="Filters"
+              >
+                <Filter className="h-4 w-4" />
+              </Button>
+              
+              <Button 
+                variant="icon" 
+                size="icon-sm"
+                onClick={() => navigate("/profile-views")} 
+                title="Who viewed you"
+                className="hidden sm:flex"
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+              
+              <Button 
+                variant="icon" 
+                size="icon-sm"
+                onClick={() => navigate("/settings")} 
+                title="Settings"
+                className="hidden sm:flex"
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
+              
+              <Button 
+                variant="icon" 
+                size="icon-sm"
+                onClick={onLogout} 
+                title="Logout"
+                className="hidden sm:flex"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
 
-          <div className="md:hidden flex items-center gap-2">
-            <NotificationBell userId={user.id} />
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={() => setShowFilterDialog(true)} 
-              title="Quick Filters"
-              className="hover:scale-110 transition-transform"
-            >
-              <Filter className="h-5 w-5" />
-            </Button>
-            <MobileNav
-              isAuthenticated
-              onLogout={onLogout}
-              links={[
-                { to: "/profile-views", label: "Profile Views", icon: <Eye className="h-5 w-5" />, onClick: () => navigate("/profile-views") },
-                { to: "/matches", label: "Matches", icon: <Heart className="h-5 w-5" />, onClick: () => navigate("/matches") },
-                { to: "/messages", label: "Messages", icon: <MessageCircle className="h-5 w-5" />, onClick: () => navigate("/messages") },
-                { to: "/profile", label: "Profile", icon: <UserIcon className="h-5 w-5" />, onClick: () => navigate("/profile") },
-                { to: "/faq", label: "FAQ", icon: <HelpCircle className="h-5 w-5" />, onClick: () => navigate("/faq") },
-                { to: "/settings", label: "Settings", icon: <Settings className="h-5 w-5" />, onClick: () => navigate("/settings") },
-              ]}
-            />
+              {/* Mobile Menu */}
+              <div className="md:hidden">
+                <MobileNav
+                  isAuthenticated
+                  onLogout={onLogout}
+                  links={[
+                    { to: "/profile-views", label: "Profile Views", icon: <Eye className="h-5 w-5" />, onClick: () => navigate("/profile-views") },
+                    { to: "/matches", label: "Matches", icon: <Heart className="h-5 w-5" />, onClick: () => navigate("/matches") },
+                    { to: "/messages", label: "Messages", icon: <MessageCircle className="h-5 w-5" />, onClick: () => navigate("/messages") },
+                    { to: "/profile", label: "Profile", icon: <UserIcon className="h-5 w-5" />, onClick: () => navigate("/profile") },
+                    { to: "/faq", label: "FAQ", icon: <HelpCircle className="h-5 w-5" />, onClick: () => navigate("/faq") },
+                    { to: "/settings", label: "Settings", icon: <Settings className="h-5 w-5" />, onClick: () => navigate("/settings") },
+                  ]}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 pb-24 md:pb-8">
+      <div className="container mx-auto px-4 py-6 pb-24 md:pb-8">
         <div className="grid lg:grid-cols-[1fr_400px] gap-4 sm:gap-8 max-w-7xl mx-auto">
           <div className="flex items-center justify-center">
             <div className="w-full max-w-md">
