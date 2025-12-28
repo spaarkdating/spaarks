@@ -25,12 +25,12 @@ const Landing = () => {
   const [activeCard, setActiveCard] = useState(0);
 
   const profiles = [
-    { name: "Anika", age: 24, image: person1, tags: ["Outdoors", "Music", "Travel"] },
-    { name: "Rohan", age: 27, image: person2, tags: ["Fitness", "Cooking", "Movies"] },
-    { name: "Maya", age: 25, image: person3, tags: ["Art", "Reading", "Yoga"] },
-    { name: "Arjun", age: 26, image: person4, tags: ["Tech", "Gaming", "Sports"] },
-    { name: "Priya", age: 23, image: person5, tags: ["Dance", "Fashion", "Food"] },
-    { name: "Vikram", age: 28, image: person6, tags: ["Music", "Travel", "Photography"] },
+    { name: "Max", age: 24, image: person1, tags: ["Outdoors", "Music", "Travel"] },
+    { name: "Robin", age: 27, image: person2, tags: ["Fitness", "Cooking", "Movies"] },
+    { name: "May", age: 25, image: person3, tags: ["Art", "Reading", "Yoga"] },
+    { name: "Will", age: 26, image: person4, tags: ["Tech", "Gaming", "Sports"] },
+    { name: "Nancy", age: 23, image: person5, tags: ["Dance", "Fashion", "Food"] },
+    { name: "Steve", age: 28, image: person6, tags: ["Music", "Travel", "Photography"] },
   ];
 
   useEffect(() => {
@@ -42,16 +42,16 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen bg-background font-body overflow-x-hidden">
-      <SEO 
+      <SEO
         title="Find Your Perfect Match"
         description="Discover meaningful connections on Spaark. Meet real people, have real conversations, find real love."
         canonicalUrl="/"
       />
       <JsonLd data={getOrganizationSchema()} />
       <JsonLd data={getDatingServiceSchema()} />
-      
+
       <ChatbotWidget />
-      
+
       {/* Navigation - Bumble Style */}
       <header className="fixed top-0 left-0 right-0 z-50 px-4 py-4">
         <nav className="max-w-7xl mx-auto flex items-center justify-between">
@@ -62,7 +62,7 @@ const Landing = () => {
             </div>
             <span className="text-2xl font-display font-bold text-foreground">Spaark</span>
           </Link>
-          
+
           {/* Center Nav - Desktop */}
           <div className="hidden md:flex items-center gap-8">
             <Link to="/about-us" className="text-foreground/80 hover:text-foreground font-medium transition-colors">
@@ -78,7 +78,7 @@ const Landing = () => {
               Support
             </Link>
           </div>
-          
+
           {/* Right Actions */}
           <div className="flex items-center gap-3">
             <ThemeToggle />
@@ -92,32 +92,59 @@ const Landing = () => {
                 Join
               </Button>
             </Link>
-            
+
             {/* Mobile Menu */}
-            <button 
-              className="md:hidden p-2"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
+            <button className="md:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
         </nav>
-        
+
         {/* Mobile Menu Dropdown */}
         <AnimatePresence>
           {mobileMenuOpen && (
-            <motion.div 
+            <motion.div
               className="md:hidden absolute top-full left-4 right-4 bg-card rounded-2xl shadow-xl border border-border mt-2 overflow-hidden"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
             >
               <div className="p-4 space-y-3">
-                <Link to="/about-us" className="block py-2 text-foreground font-medium" onClick={() => setMobileMenuOpen(false)}>About</Link>
-                <Link to="/safety-tips" className="block py-2 text-foreground font-medium" onClick={() => setMobileMenuOpen(false)}>Safety</Link>
-                <Link to="/testimonials" className="block py-2 text-foreground font-medium" onClick={() => setMobileMenuOpen(false)}>Stories</Link>
-                <Link to="/support" className="block py-2 text-foreground font-medium" onClick={() => setMobileMenuOpen(false)}>Support</Link>
-                <Link to="/auth" className="block py-2 text-foreground font-medium" onClick={() => setMobileMenuOpen(false)}>Sign in</Link>
+                <Link
+                  to="/about-us"
+                  className="block py-2 text-foreground font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  About
+                </Link>
+                <Link
+                  to="/safety-tips"
+                  className="block py-2 text-foreground font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Safety
+                </Link>
+                <Link
+                  to="/testimonials"
+                  className="block py-2 text-foreground font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Stories
+                </Link>
+                <Link
+                  to="/support"
+                  className="block py-2 text-foreground font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Support
+                </Link>
+                <Link
+                  to="/auth"
+                  className="block py-2 text-foreground font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Sign in
+                </Link>
               </div>
             </motion.div>
           )}
@@ -132,11 +159,11 @@ const Landing = () => {
             Spaark
           </span>
         </div>
-        
+
         <div className="container mx-auto px-4 relative z-10">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center min-h-[80vh]">
             {/* Left Content */}
-            <motion.div 
+            <motion.div
               className="text-center lg:text-left order-2 lg:order-1"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -147,12 +174,11 @@ const Landing = () => {
                 <br />
                 <span className="text-primary">first move</span>
               </h1>
-              
+
               <p className="text-muted-foreground text-lg sm:text-xl mb-8 max-w-lg mx-auto lg:mx-0">
-                Start something epic. Meet new people, build genuine connections, 
-                and find your person on Spaark.
+                Start something epic. Meet new people, build genuine connections, and find your person on Spaark.
               </p>
-              
+
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link to="/auth">
                   <Button className="bg-foreground text-background hover:bg-foreground/90 rounded-full h-14 px-8 text-lg font-semibold group">
@@ -164,7 +190,7 @@ const Landing = () => {
             </motion.div>
 
             {/* Right - 3D Stacked Profile Cards */}
-            <motion.div 
+            <motion.div
               className="relative order-1 lg:order-2 flex justify-center"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -181,17 +207,17 @@ const Landing = () => {
                       zIndex: 3 - offset,
                     }}
                     initial={{ opacity: 0, x: 50 }}
-                    animate={{ opacity: 0.3 + (0.2 * (3 - offset)), x: offset * 15 }}
+                    animate={{ opacity: 0.3 + 0.2 * (3 - offset), x: offset * 15 }}
                     transition={{ delay: 0.3 + offset * 0.1 }}
                   />
                 ))}
-                
+
                 {/* Main Active Card */}
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeCard}
                     className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl"
-                    style={{ 
+                    style={{
                       transform: "rotateY(-5deg) rotateX(2deg)",
                       zIndex: 10,
                     }}
@@ -200,13 +226,13 @@ const Landing = () => {
                     exit={{ opacity: 0, x: -100, rotateY: -20 }}
                     transition={{ duration: 0.5 }}
                   >
-                    <img 
-                      src={profiles[activeCard].image} 
+                    <img
+                      src={profiles[activeCard].image}
                       alt={profiles[activeCard].name}
                       className="w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                    
+
                     {/* Profile Info - Bottom Left */}
                     <div className="absolute bottom-6 left-6 right-6">
                       <h3 className="text-white font-display text-3xl font-bold mb-1">
@@ -214,7 +240,7 @@ const Landing = () => {
                       </h3>
                       <div className="flex flex-wrap gap-2 mt-3">
                         {profiles[activeCard].tags.map((tag, idx) => (
-                          <span 
+                          <span
                             key={idx}
                             className="bg-white/20 backdrop-blur-sm text-white text-sm px-3 py-1 rounded-full"
                           >
@@ -233,8 +259,8 @@ const Landing = () => {
                       key={idx}
                       onClick={() => setActiveCard(idx)}
                       className={`h-2 rounded-full transition-all duration-300 ${
-                        idx === activeCard 
-                          ? "bg-primary w-8" 
+                        idx === activeCard
+                          ? "bg-primary w-8"
                           : "bg-muted-foreground/30 w-2 hover:bg-muted-foreground/50"
                       }`}
                     />
@@ -249,15 +275,13 @@ const Landing = () => {
       {/* How It Works */}
       <section className="py-24 bg-card/30">
         <div className="container mx-auto px-4">
-          <motion.div 
+          <motion.div
             className="text-center mb-16"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="font-display text-4xl sm:text-5xl font-bold text-foreground mb-4">
-              How Spaark works
-            </h2>
+            <h2 className="font-display text-4xl sm:text-5xl font-bold text-foreground mb-4">How Spaark works</h2>
             <p className="text-muted-foreground text-lg max-w-xl mx-auto">
               Simple, safe, and designed for real connections.
             </p>
@@ -303,15 +327,13 @@ const Landing = () => {
       {/* Features Grid */}
       <section className="py-24">
         <div className="container mx-auto px-4">
-          <motion.div 
+          <motion.div
             className="text-center mb-16"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="font-display text-4xl sm:text-5xl font-bold text-foreground mb-4">
-              Why Spaark?
-            </h2>
+            <h2 className="font-display text-4xl sm:text-5xl font-bold text-foreground mb-4">Why Spaark?</h2>
           </motion.div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
@@ -342,11 +364,7 @@ const Landing = () => {
       {/* CTA */}
       <section className="py-24 bg-primary">
         <div className="container mx-auto px-4 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <h2 className="font-display text-4xl sm:text-5xl font-bold text-primary-foreground mb-6">
               Ready to find your person?
             </h2>
