@@ -68,7 +68,7 @@ const Landing = () => {
             <Link to="/about-us" className="text-foreground/80 hover:text-foreground font-medium transition-colors">
               About
             </Link>
-            <Link to="/safety-tips" className="text-foreground/80 hover:text-foreground font-medium transition-colors">
+            <Link to="/safetytips" className="text-foreground/80 hover:text-foreground font-medium transition-colors">
               Safety
             </Link>
             <Link to="/testimonials" className="text-foreground/80 hover:text-foreground font-medium transition-colors">
@@ -118,7 +118,7 @@ const Landing = () => {
                   About
                 </Link>
                 <Link
-                  to="/safety-tips"
+                  to="/safetytips"
                   className="block py-2 text-foreground font-medium"
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -371,9 +371,7 @@ const Landing = () => {
             viewport={{ once: true }}
           >
             <h2 className="font-display text-4xl sm:text-5xl font-bold text-foreground mb-4">Real love stories</h2>
-            <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-              Couples who found each other on Spaark.
-            </p>
+            <p className="text-muted-foreground text-lg max-w-xl mx-auto">Couples who found each other on Spaark.</p>
           </motion.div>
 
           <div className="relative">
@@ -387,31 +385,36 @@ const Landing = () => {
                 {
                   names: "Priya & Arjun",
                   image: person1,
-                  quote: "We matched on Spaark and talked for hours that first night. Three months later, we're planning our future together. Never thought I'd find someone who gets me so completely.",
+                  quote:
+                    "We matched on Spaark and talked for hours that first night. Three months later, we're planning our future together. Never thought I'd find someone who gets me so completely.",
                   duration: "Together 8 months",
                 },
                 {
                   names: "Neha & Vikram",
                   image: person2,
-                  quote: "After so many bad dates, I almost gave up. Then Vikram's profile popped up. His bio made me laugh, his messages made me smile. Now I wake up next to my best friend.",
+                  quote:
+                    "After so many bad dates, I almost gave up. Then Vikram's profile popped up. His bio made me laugh, his messages made me smile. Now I wake up next to my best friend.",
                   duration: "Engaged!",
                 },
                 {
                   names: "Ananya & Rohit",
                   image: person3,
-                  quote: "Long distance seemed impossible, but Spaark connected us when we were both in different cities. We made it work, and now we're living together in Mumbai.",
+                  quote:
+                    "Long distance seemed impossible, but Spaark connected us when we were both in different cities. We made it work, and now we're living together in Mumbai.",
                   duration: "Together 1 year",
                 },
                 {
                   names: "Kavya & Aditya",
                   image: person4,
-                  quote: "He super-liked my profile because of my love for old Hindi movies. Our first date was a Raj Kapoor marathon. The rest is history.",
+                  quote:
+                    "He super-liked my profile because of my love for old Hindi movies. Our first date was a Raj Kapoor marathon. The rest is history.",
                   duration: "Married!",
                 },
                 {
                   names: "Riya & Sameer",
                   image: person5,
-                  quote: "We bonded over our shared love of trekking. Our third date was a Himalayan trek. Somewhere between the peaks and valleys, I knew he was the one.",
+                  quote:
+                    "We bonded over our shared love of trekking. Our third date was a Himalayan trek. Somewhere between the peaks and valleys, I knew he was the one.",
                   duration: "Together 6 months",
                 },
               ].map((testimonial, idx) => (
