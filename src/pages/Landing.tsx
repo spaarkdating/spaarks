@@ -361,6 +361,96 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Testimonials Carousel */}
+      <section className="py-24 bg-card/30 overflow-hidden">
+        <div className="container mx-auto px-4">
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="font-display text-4xl sm:text-5xl font-bold text-foreground mb-4">Real love stories</h2>
+            <p className="text-muted-foreground text-lg max-w-xl mx-auto">
+              Couples who found each other on Spaark.
+            </p>
+          </motion.div>
+
+          <div className="relative">
+            <motion.div
+              className="flex gap-6 overflow-x-auto pb-8 scrollbar-hide snap-x snap-mandatory"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+            >
+              {[
+                {
+                  names: "Priya & Arjun",
+                  image: person1,
+                  quote: "We matched on Spaark and talked for hours that first night. Three months later, we're planning our future together. Never thought I'd find someone who gets me so completely.",
+                  duration: "Together 8 months",
+                },
+                {
+                  names: "Neha & Vikram",
+                  image: person2,
+                  quote: "After so many bad dates, I almost gave up. Then Vikram's profile popped up. His bio made me laugh, his messages made me smile. Now I wake up next to my best friend.",
+                  duration: "Engaged!",
+                },
+                {
+                  names: "Ananya & Rohit",
+                  image: person3,
+                  quote: "Long distance seemed impossible, but Spaark connected us when we were both in different cities. We made it work, and now we're living together in Mumbai.",
+                  duration: "Together 1 year",
+                },
+                {
+                  names: "Kavya & Aditya",
+                  image: person4,
+                  quote: "He super-liked my profile because of my love for old Hindi movies. Our first date was a Raj Kapoor marathon. The rest is history.",
+                  duration: "Married!",
+                },
+                {
+                  names: "Riya & Sameer",
+                  image: person5,
+                  quote: "We bonded over our shared love of trekking. Our third date was a Himalayan trek. Somewhere between the peaks and valleys, I knew he was the one.",
+                  duration: "Together 6 months",
+                },
+              ].map((testimonial, idx) => (
+                <motion.div
+                  key={idx}
+                  className="flex-shrink-0 w-[320px] sm:w-[400px] snap-center"
+                  initial={{ opacity: 0, x: 50 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                >
+                  <div className="bg-card rounded-3xl p-6 border border-border h-full">
+                    <div className="flex items-center gap-4 mb-4">
+                      <img
+                        src={testimonial.image}
+                        alt={testimonial.names}
+                        className="w-16 h-16 rounded-full object-cover ring-4 ring-primary/20"
+                      />
+                      <div>
+                        <h4 className="font-display text-lg font-bold text-foreground">{testimonial.names}</h4>
+                        <span className="text-primary text-sm font-medium">{testimonial.duration}</span>
+                      </div>
+                    </div>
+                    <p className="text-muted-foreground leading-relaxed italic">"{testimonial.quote}"</p>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+
+            {/* Scroll Hint */}
+            <div className="flex justify-center mt-4 gap-2">
+              <div className="h-1 w-16 bg-primary/30 rounded-full">
+                <div className="h-1 w-8 bg-primary rounded-full animate-pulse" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="py-24 bg-primary">
         <div className="container mx-auto px-4 text-center">
