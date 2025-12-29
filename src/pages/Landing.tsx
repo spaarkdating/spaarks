@@ -68,7 +68,7 @@ const Landing = () => {
             <Link to="/about-us" className="text-foreground/80 hover:text-foreground font-medium transition-colors">
               About
             </Link>
-            <Link to="/safetytips" className="text-foreground/80 hover:text-foreground font-medium transition-colors">
+            <Link to="/safety" className="text-foreground/80 hover:text-foreground font-medium transition-colors">
               Safety
             </Link>
             <Link to="/testimonials" className="text-foreground/80 hover:text-foreground font-medium transition-colors">
@@ -118,7 +118,7 @@ const Landing = () => {
                   About
                 </Link>
                 <Link
-                  to="/safetytips"
+                  to="/safety"
                   className="block py-2 text-foreground font-medium"
                   onClick={() => setMobileMenuOpen(false)}
                 >
