@@ -430,38 +430,41 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
       />
       
       {/* Bumble-Style Header */}
-      <header className="sticky top-0 z-40 bg-card border-b border-border">
+      <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-lg border-b border-border">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                <img src={logo} alt="Spaark" className="h-5 w-5 object-contain" />
+            {/* Logo + Nav combined on left for desktop */}
+            <div className="flex items-center gap-6">
+              {/* Logo */}
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center shadow-lg shadow-primary/20">
+                  <img src={logo} alt="Spaark" className="h-6 w-6 object-contain" />
+                </div>
+                <span className="text-xl font-display font-bold text-foreground hidden lg:block">Spaark</span>
               </div>
-              <span className="text-xl font-display font-bold text-foreground hidden sm:block">Spaark</span>
+            
+              {/* Navigation - Desktop - Next to logo */}
+              <nav className="hidden md:flex items-center gap-2">
+                {navItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => navigate(item.path)}
+                    className={cn(
+                      "relative flex items-center justify-center w-11 h-11 rounded-full transition-all",
+                      item.active 
+                        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30" 
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    )}
+                    title={item.label}
+                  >
+                    <item.icon className={cn("h-5 w-5", item.active && "fill-current")} />
+                  </button>
+                ))}
+              </nav>
             </div>
             
-            {/* Center Navigation - Desktop */}
-            <nav className="hidden md:flex items-center gap-1">
-              {navItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => navigate(item.path)}
-                  className={cn(
-                    "relative flex items-center justify-center w-12 h-12 rounded-full transition-all",
-                    item.active 
-                      ? "bg-primary text-primary-foreground" 
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                  )}
-                  title={item.label}
-                >
-                  <item.icon className="h-5 w-5" />
-                </button>
-              ))}
-            </nav>
-            
-            {/* Right Actions - Desktop */}
-            <div className="hidden md:flex items-center gap-1">
+            {/* Right Actions - Desktop - All together */}
+            <div className="hidden md:flex items-center gap-2">
               <NotificationBell userId={user.id} />
               <button
                 onClick={() => setShowFilterDialog(true)}
@@ -493,14 +496,24 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
               </button>
             </div>
 
-            {/* Mobile Actions */}
+            {/* Mobile Header - Logo + Actions */}
+            <div className="flex md:hidden items-center gap-3">
+              {/* Logo for mobile */}
+              <div className="flex items-center gap-2">
+                <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center shadow-md">
+                  <img src={logo} alt="Spaark" className="h-5 w-5 object-contain" />
+                </div>
+              </div>
+            </div>
+            
+            {/* Mobile Right Actions */}
             <div className="flex md:hidden items-center gap-2">
               <NotificationBell userId={user.id} />
               <button
                 onClick={() => setShowFilterDialog(true)}
-                className="flex items-center justify-center w-9 h-9 rounded-full border border-border bg-card text-muted-foreground"
+                className="flex items-center justify-center w-10 h-10 rounded-full border border-border bg-card text-muted-foreground hover:text-foreground"
               >
-                <Filter className="h-4 w-4" />
+                <Filter className="h-5 w-5" />
               </button>
               <MobileNav
                 isAuthenticated
