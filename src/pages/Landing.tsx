@@ -20,9 +20,19 @@ import person4 from "@/assets/person-4.jpg";
 import person5 from "@/assets/person-5.jpg";
 import person6 from "@/assets/person-6.jpg";
 
+interface Testimonial {
+  id: string;
+  story: string;
+  match_duration: string | null;
+  photo_url: string | null;
+  user_profile?: { display_name: string | null };
+  partner_profile?: { display_name: string | null };
+}
+
 const Landing = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeCard, setActiveCard] = useState(0);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
 
   const profiles = [
     { name: "Max", age: 24, image: person1, tags: ["Outdoors", "Music", "Travel"] },
@@ -38,6 +48,26 @@ const Landing = () => {
       setActiveCard((prev) => (prev + 1) % profiles.length);
     }, 4000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const fetchTestimonials = async () => {
+      const { data } = await supabase
+        .from("testimonials")
+        .select(`
+          id,
+          story,
+          match_duration,
+          photo_url,
+          user_profile:profiles!testimonials_user_id_fkey(display_name),
+          partner_profile:profiles!testimonials_partner_id_fkey(display_name)
+        `)
+        .eq("status", "approved")
+        .limit(6);
+      
+      if (data) setTestimonials(data as any);
+    };
+    fetchTestimonials();
   }, []);
 
   return (
@@ -68,7 +98,7 @@ const Landing = () => {
             <Link to="/about-us" className="text-foreground/80 hover:text-foreground font-medium transition-colors">
               About
             </Link>
-            <Link to="/safety" className="text-foreground/80 hover:text-foreground font-medium transition-colors">
+            <Link to="/safety-tips" className="text-foreground/80 hover:text-foreground font-medium transition-colors">
               Safety
             </Link>
             <Link to="/testimonials" className="text-foreground/80 hover:text-foreground font-medium transition-colors">
@@ -118,7 +148,7 @@ const Landing = () => {
                   About
                 </Link>
                 <Link
-                  to="/safety"
+                  to="/safety-tips"
                   className="block py-2 text-foreground font-medium"
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -336,7 +366,7 @@ const Landing = () => {
             <h2 className="font-display text-4xl sm:text-5xl font-bold text-foreground mb-4">Why Spaark?</h2>
           </motion.div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-4xl mx-auto">
             {[
               { title: "Verified profiles", desc: "Every user is ID verified. No fakes, no catfish." },
               { title: "Quality matches", desc: "Our algorithm focuses on compatibility, not just looks." },
@@ -347,13 +377,13 @@ const Landing = () => {
             ].map((feature, idx) => (
               <motion.div
                 key={feature.title}
-                className="bg-card rounded-2xl p-6 border border-border/50"
+                className="bg-card rounded-2xl p-5 border border-border/50"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
               >
-                <h3 className="font-display text-lg font-bold text-foreground mb-2">{feature.title}</h3>
+                <h3 className="font-display text-base sm:text-lg font-bold text-foreground mb-1">{feature.title}</h3>
                 <p className="text-muted-foreground text-sm">{feature.desc}</p>
               </motion.div>
             ))}
@@ -361,98 +391,78 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Testimonials Carousel */}
-      <section className="py-24 bg-card/30 overflow-hidden">
-        <div className="container mx-auto px-4">
-          <motion.div
-            className="text-center mb-16"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="font-display text-4xl sm:text-5xl font-bold text-foreground mb-4">Real love stories</h2>
-            <p className="text-muted-foreground text-lg max-w-xl mx-auto">Couples who found each other on Spaark.</p>
-          </motion.div>
-
-          <div className="relative">
+      {/* Testimonials Section - Real Data */}
+      {testimonials.length > 0 && (
+        <section className="py-16 sm:py-24 bg-card/30 overflow-hidden">
+          <div className="container mx-auto px-4">
             <motion.div
-              className="flex gap-6 overflow-x-auto pb-8 scrollbar-hide snap-x snap-mandatory"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
+              className="text-center mb-10 sm:mb-16"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-              {[
-                {
-                  names: "Priya & Arjun",
-                  image: person1,
-                  quote:
-                    "We matched on Spaark and talked for hours that first night. Three months later, we're planning our future together. Never thought I'd find someone who gets me so completely.",
-                  duration: "Together 8 months",
-                },
-                {
-                  names: "Neha & Vikram",
-                  image: person2,
-                  quote:
-                    "After so many bad dates, I almost gave up. Then Vikram's profile popped up. His bio made me laugh, his messages made me smile. Now I wake up next to my best friend.",
-                  duration: "Engaged!",
-                },
-                {
-                  names: "Ananya & Rohit",
-                  image: person3,
-                  quote:
-                    "Long distance seemed impossible, but Spaark connected us when we were both in different cities. We made it work, and now we're living together in Mumbai.",
-                  duration: "Together 1 year",
-                },
-                {
-                  names: "Kavya & Aditya",
-                  image: person4,
-                  quote:
-                    "He super-liked my profile because of my love for old Hindi movies. Our first date was a Raj Kapoor marathon. The rest is history.",
-                  duration: "Married!",
-                },
-                {
-                  names: "Riya & Sameer",
-                  image: person5,
-                  quote:
-                    "We bonded over our shared love of trekking. Our third date was a Himalayan trek. Somewhere between the peaks and valleys, I knew he was the one.",
-                  duration: "Together 6 months",
-                },
-              ].map((testimonial, idx) => (
-                <motion.div
-                  key={idx}
-                  className="flex-shrink-0 w-[320px] sm:w-[400px] snap-center"
-                  initial={{ opacity: 0, x: 50 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: idx * 0.1 }}
-                >
-                  <div className="bg-card rounded-3xl p-6 border border-border h-full">
-                    <div className="flex items-center gap-4 mb-4">
-                      <img
-                        src={testimonial.image}
-                        alt={testimonial.names}
-                        className="w-16 h-16 rounded-full object-cover ring-4 ring-primary/20"
-                      />
-                      <div>
-                        <h4 className="font-display text-lg font-bold text-foreground">{testimonial.names}</h4>
-                        <span className="text-primary text-sm font-medium">{testimonial.duration}</span>
-                      </div>
-                    </div>
-                    <p className="text-muted-foreground leading-relaxed italic">"{testimonial.quote}"</p>
-                  </div>
-                </motion.div>
-              ))}
+              <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">Real love stories</h2>
+              <p className="text-muted-foreground text-base sm:text-lg max-w-xl mx-auto">Couples who found each other on Spaark.</p>
             </motion.div>
 
-            {/* Scroll Hint */}
-            <div className="flex justify-center mt-4 gap-2">
-              <div className="h-1 w-16 bg-primary/30 rounded-full">
-                <div className="h-1 w-8 bg-primary rounded-full animate-pulse" />
+            <div className="relative">
+              <motion.div
+                className="flex gap-4 sm:gap-6 overflow-x-auto pb-8 scrollbar-hide snap-x snap-mandatory px-4 -mx-4"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+              >
+                {testimonials.map((testimonial, idx) => {
+                  const userName = (testimonial.user_profile as any)?.display_name || "Anonymous";
+                  const partnerName = (testimonial.partner_profile as any)?.display_name;
+                  const coupleNames = partnerName ? `${userName} & ${partnerName}` : userName;
+                  
+                  return (
+                    <motion.div
+                      key={testimonial.id}
+                      className="flex-shrink-0 w-[280px] sm:w-[350px] snap-center"
+                      initial={{ opacity: 0, x: 50 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: idx * 0.1 }}
+                    >
+                      <div className="bg-card rounded-3xl p-5 sm:p-6 border border-border h-full">
+                        <div className="flex items-center gap-3 sm:gap-4 mb-4">
+                          {testimonial.photo_url ? (
+                            <img
+                              src={testimonial.photo_url}
+                              alt={coupleNames}
+                              className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover ring-4 ring-primary/20"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-primary/20 flex items-center justify-center ring-4 ring-primary/20">
+                              <span className="text-lg sm:text-xl font-bold text-primary">{userName.charAt(0)}</span>
+                            </div>
+                          )}
+                          <div>
+                            <h4 className="font-display text-base sm:text-lg font-bold text-foreground">{coupleNames}</h4>
+                            {testimonial.match_duration && (
+                              <span className="text-primary text-xs sm:text-sm font-medium">{testimonial.match_duration}</span>
+                            )}
+                          </div>
+                        </div>
+                        <p className="text-muted-foreground text-sm sm:text-base leading-relaxed italic line-clamp-4">"{testimonial.story}"</p>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </motion.div>
+
+              {/* Scroll Hint */}
+              <div className="flex justify-center mt-4 gap-2">
+                <div className="h-1 w-16 bg-primary/30 rounded-full">
+                  <div className="h-1 w-8 bg-primary rounded-full animate-pulse" />
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* CTA */}
       <section className="py-24 bg-primary">
