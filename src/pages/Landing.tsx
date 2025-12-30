@@ -54,17 +54,19 @@ const Landing = () => {
     const fetchTestimonials = async () => {
       const { data } = await supabase
         .from("testimonials")
-        .select(`
+        .select(
+          `
           id,
           story,
           match_duration,
           photo_url,
           user_profile:profiles!testimonials_user_id_fkey(display_name),
           partner_profile:profiles!testimonials_partner_id_fkey(display_name)
-        `)
+        `,
+        )
         .eq("status", "approved")
         .limit(6);
-      
+
       if (data) setTestimonials(data as any);
     };
     fetchTestimonials();
@@ -98,7 +100,7 @@ const Landing = () => {
             <Link to="/about-us" className="text-foreground/80 hover:text-foreground font-medium transition-colors">
               About
             </Link>
-            <Link to="/safety-tips" className="text-foreground/80 hover:text-foreground font-medium transition-colors">
+            <Link to="/safety" className="text-foreground/80 hover:text-foreground font-medium transition-colors">
               Safety
             </Link>
             <Link to="/testimonials" className="text-foreground/80 hover:text-foreground font-medium transition-colors">
@@ -148,7 +150,7 @@ const Landing = () => {
                   About
                 </Link>
                 <Link
-                  to="/safety-tips"
+                  to="/safety"
                   className="block py-2 text-foreground font-medium"
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -337,10 +339,7 @@ const Landing = () => {
             ].map((item, idx) => (
               <motion.div
                 key={item.step}
-                className={
-                  "relative text-center " +
-                  (idx === 2 ? "col-span-2 md:col-span-1" : "")
-                }
+                className={"relative text-center " + (idx === 2 ? "col-span-2 md:col-span-1" : "")}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -349,7 +348,9 @@ const Landing = () => {
                 <div className="w-18 h-18 sm:w-20 sm:h-20 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-5 sm:mb-6 relative">
                   <span className="text-2xl sm:text-3xl font-display font-bold text-primary">{item.step}</span>
                 </div>
-                <h3 className="font-display text-base sm:text-xl font-bold text-foreground mb-2 sm:mb-3">{item.title}</h3>
+                <h3 className="font-display text-base sm:text-xl font-bold text-foreground mb-2 sm:mb-3">
+                  {item.title}
+                </h3>
                 <p className="text-muted-foreground text-sm sm:text-base">{item.desc}</p>
               </motion.div>
             ))}
@@ -404,8 +405,12 @@ const Landing = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-              <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">Real love stories</h2>
-              <p className="text-muted-foreground text-base sm:text-lg max-w-xl mx-auto">Couples who found each other on Spaark.</p>
+              <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+                Real love stories
+              </h2>
+              <p className="text-muted-foreground text-base sm:text-lg max-w-xl mx-auto">
+                Couples who found each other on Spaark.
+              </p>
             </motion.div>
 
             <div className="relative">
@@ -419,7 +424,7 @@ const Landing = () => {
                   const userName = (testimonial.user_profile as any)?.display_name || "Anonymous";
                   const partnerName = (testimonial.partner_profile as any)?.display_name;
                   const coupleNames = partnerName ? `${userName} & ${partnerName}` : userName;
-                  
+
                   return (
                     <motion.div
                       key={testimonial.id}
@@ -443,13 +448,19 @@ const Landing = () => {
                             </div>
                           )}
                           <div>
-                            <h4 className="font-display text-base sm:text-lg font-bold text-foreground">{coupleNames}</h4>
+                            <h4 className="font-display text-base sm:text-lg font-bold text-foreground">
+                              {coupleNames}
+                            </h4>
                             {testimonial.match_duration && (
-                              <span className="text-primary text-xs sm:text-sm font-medium">{testimonial.match_duration}</span>
+                              <span className="text-primary text-xs sm:text-sm font-medium">
+                                {testimonial.match_duration}
+                              </span>
                             )}
                           </div>
                         </div>
-                        <p className="text-muted-foreground text-sm sm:text-base leading-relaxed italic line-clamp-4">"{testimonial.story}"</p>
+                        <p className="text-muted-foreground text-sm sm:text-base leading-relaxed italic line-clamp-4">
+                          "{testimonial.story}"
+                        </p>
                       </div>
                     </motion.div>
                   );
