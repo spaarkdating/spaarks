@@ -4,8 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Heart, MessageCircle, User as UserIcon, Settings, LogOut, RefreshCw, Eye, HelpCircle, Filter, Bell, Crown, Zap, Users, Home } from "lucide-react";
-import logo from "@/assets/spaark-logo.png";
+import { Heart, RefreshCw, Crown, Zap, X, MapPin, Briefcase, GraduationCap, Heart as HeartIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -14,20 +13,18 @@ import ReportProfileDialog from "@/components/profile/ReportProfileDialog";
 import { SwipeActions } from "@/components/swipe/SwipeActions";
 import { recordProfileView } from "@/lib/profileViews";
 import { MatchNotification } from "@/components/swipe/MatchNotification";
-import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { AnimatePresence } from "framer-motion";
 import { calculateCompatibilityScore } from "@/lib/compatibility";
-import { MobileNav } from "@/components/navigation/MobileNav";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/navigation/PullToRefreshIndicator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { PhotoCarousel } from "@/components/profile/PhotoCarousel";
 import { Badge } from "@/components/ui/badge";
-import { X, MapPin, Briefcase, GraduationCap, Heart as HeartIcon } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
+import { AppHeader } from "@/components/navigation/AppHeader";
 
 interface OnlineDashboardProps {
   user: User;
@@ -405,22 +402,6 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
   const currentProfile = profiles[currentIndex];
   const hasMoreProfiles = currentIndex < profiles.length;
 
-  // Navigation items for the header
-  const navItems = [
-    { id: "discover", icon: Heart, label: "Discover", path: "/dashboard", active: true },
-    { id: "matches", icon: Users, label: "Matches", path: "/matches", active: false },
-    { id: "messages", icon: MessageCircle, label: "Messages", path: "/messages", active: false },
-    { id: "profile", icon: UserIcon, label: "Profile", path: "/profile", active: false },
-  ];
-
-  const actionItems = [
-    { icon: Bell, label: "Notifications", component: <NotificationBell userId={user.id} /> },
-    { icon: Filter, label: "Filters", onClick: () => setShowFilterDialog(true) },
-    { icon: Eye, label: "Views", onClick: () => navigate("/profile-views") },
-    { icon: Settings, label: "Settings", onClick: () => navigate("/settings") },
-    { icon: LogOut, label: "Logout", onClick: onLogout },
-  ];
-
   return (
     <div ref={containerRef} className="min-h-screen bg-background">
       <PullToRefreshIndicator
@@ -429,98 +410,11 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
         shouldTrigger={shouldTrigger}
       />
       
-      {/* Bumble-Style Header */}
-      <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-lg border-b border-border">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            {/* Left: Logo */}
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center shadow-lg shadow-primary/20">
-                <img src={logo} alt="Spaark" className="h-6 w-6 object-contain" />
-              </div>
-              <span className="text-xl font-display font-bold text-foreground hidden lg:block">Spaark</span>
-            </div>
-
-            {/* Center: Navigation (desktop) */}
-            <nav className="hidden md:flex items-center justify-center gap-2 flex-1">
-              {navItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => navigate(item.path)}
-                  className={cn(
-                    "relative flex items-center justify-center w-11 h-11 rounded-full transition-all",
-                    item.active
-                      ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                  )}
-                  title={item.label}
-                >
-                  <item.icon className={cn("h-5 w-5", item.active && "fill-current")} />
-                </button>
-              ))}
-            </nav>
-
-            {/* Right: Actions */}
-            <div className="flex items-center gap-2">
-              <div className="hidden md:flex items-center gap-2">
-                <NotificationBell userId={user.id} />
-                <button
-                  onClick={() => setShowFilterDialog(true)}
-                  className="flex items-center justify-center w-10 h-10 rounded-full border border-border bg-card hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all"
-                  title="Filters"
-                >
-                  <Filter className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={() => navigate("/profile-views")}
-                  className="flex items-center justify-center w-10 h-10 rounded-full border border-border bg-card hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all"
-                  title="Profile Views"
-                >
-                  <Eye className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={() => navigate("/settings")}
-                  className="flex items-center justify-center w-10 h-10 rounded-full border border-border bg-card hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all"
-                  title="Settings"
-                >
-                  <Settings className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={onLogout}
-                  className="flex items-center justify-center w-10 h-10 rounded-full border border-border bg-card hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all"
-                  title="Logout"
-                >
-                  <LogOut className="h-4 w-4" />
-                </button>
-              </div>
-
-              {/* Mobile right actions */}
-              <div className="flex md:hidden items-center gap-2">
-                <NotificationBell userId={user.id} />
-                <button
-                  onClick={() => setShowFilterDialog(true)}
-                  className="flex items-center justify-center w-10 h-10 rounded-full border border-border bg-card text-muted-foreground hover:text-foreground"
-                  aria-label="Filters"
-                >
-                  <Filter className="h-5 w-5" />
-                </button>
-                <MobileNav
-                  isAuthenticated
-                  onLogout={onLogout}
-                  links={[
-                    { to: "/profile-views", label: "Profile Views", icon: <Eye className="h-5 w-5" />, onClick: () => navigate("/profile-views") },
-                    { to: "/matches", label: "Matches", icon: <Heart className="h-5 w-5" />, onClick: () => navigate("/matches") },
-                    { to: "/messages", label: "Messages", icon: <MessageCircle className="h-5 w-5" />, onClick: () => navigate("/messages") },
-                    { to: "/profile", label: "Profile", icon: <UserIcon className="h-5 w-5" />, onClick: () => navigate("/profile") },
-                    { to: "/faq", label: "FAQ", icon: <HelpCircle className="h-5 w-5" />, onClick: () => navigate("/faq") },
-                    { to: "/settings", label: "Settings", icon: <Settings className="h-5 w-5" />, onClick: () => navigate("/settings") },
-                  ]}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      <AppHeader 
+        userId={user.id} 
+        onLogout={onLogout} 
+        onFilterClick={() => setShowFilterDialog(true)} 
+      />
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-6 pb-24 md:pb-8">
