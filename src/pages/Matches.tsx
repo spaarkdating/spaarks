@@ -5,17 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Heart, ArrowLeft, Settings, LogOut, MessageCircle, MapPin } from "lucide-react";
-import logo from "@/assets/spaark-logo.png";
+import { Heart, MessageCircle, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
-import { MobileNav } from "@/components/navigation/MobileNav";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/navigation/PullToRefreshIndicator";
 import { ProfileView } from "@/components/profile/ProfileView";
 import { PhotoCarousel } from "@/components/profile/PhotoCarousel";
 import ReportProfileDialog from "@/components/profile/ReportProfileDialog";
 import { recordProfileView } from "@/lib/profileViews";
+import { AppHeader } from "@/components/navigation/AppHeader";
 
 const Matches = () => {
   const [user, setUser] = useState<any>(null);
@@ -258,48 +257,13 @@ const Matches = () => {
   if (!user) return null;
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-gradient-to-br from-background via-muted to-background">
+    <div ref={containerRef} className="min-h-screen bg-background">
       <PullToRefreshIndicator
         pullDistance={pullDistance}
         isRefreshing={isRefreshing}
         shouldTrigger={shouldTrigger}
       />
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-3 md:py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2 md:gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")} className="h-9 w-9 md:h-10 md:w-10">
-              <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
-            </Button>
-            <div className="flex items-center gap-2 group cursor-pointer">
-              <div className="bg-white/90 p-1.5 rounded-lg shadow-md">
-                <img 
-                  src={logo} 
-                  alt="Spaark Logo" 
-                  className="h-6 w-6 md:h-7 md:w-7 object-contain"
-                />
-              </div>
-              <span className="text-xl md:text-2xl font-bold text-white">
-                Matches
-              </span>
-            </div>
-          </div>
-          <div className="hidden md:flex gap-2">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/settings")}>
-              <Settings className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon" onClick={handleLogout}>
-              <LogOut className="h-5 w-5" />
-            </Button>
-          </div>
-          <MobileNav
-            isAuthenticated
-            onLogout={handleLogout}
-            links={[
-              { to: "/settings", label: "Settings", icon: <Settings className="h-5 w-5" />, onClick: () => navigate("/settings") },
-            ]}
-          />
-        </div>
-      </header>
+      <AppHeader userId={user.id} onLogout={handleLogout} title="Matches" />
 
       <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 pb-24 md:pb-8">
         {isLoading ? (
