@@ -84,17 +84,17 @@ const Landing = () => {
 
       {/* Navigation - Bumble Style */}
       <header className="fixed top-0 left-0 right-0 z-50 px-4 py-4">
-        <nav className="max-w-7xl mx-auto flex items-center justify-between">
+        <nav className="max-w-7xl mx-auto grid grid-cols-[auto_1fr_auto] items-center gap-4">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 group">
+          <Link to="/" className="flex items-center gap-3 group justify-self-start">
             <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center shadow-lg">
               <img src={logo} alt="Spaark" className="h-7 w-7 object-contain" />
             </div>
-            <span className="text-2xl font-display font-bold text-foreground">Spaark</span>
+            <span className="text-2xl font-display font-bold text-foreground hidden sm:block">Spaark</span>
           </Link>
 
           {/* Center Nav - Desktop */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center justify-center gap-8">
             <Link to="/about-us" className="text-foreground/80 hover:text-foreground font-medium transition-colors">
               About
             </Link>
@@ -110,21 +110,21 @@ const Landing = () => {
           </div>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-end gap-3 justify-self-end">
             <ThemeToggle />
             <Link to="/auth" className="hidden sm:block">
               <span className="text-foreground/80 hover:text-foreground font-medium transition-colors cursor-pointer">
                 Sign in
               </span>
             </Link>
-            <Link to="/auth">
+            <Link to="/auth" className="hidden sm:block">
               <Button className="bg-foreground text-background hover:bg-foreground/90 rounded-full px-6 font-semibold">
                 Join
               </Button>
             </Link>
 
             {/* Mobile Menu */}
-            <button className="md:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+            <button className="md:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label="Open menu">
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
@@ -317,7 +317,7 @@ const Landing = () => {
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8 max-w-5xl mx-auto">
             {[
               {
                 step: "01",
@@ -337,17 +337,20 @@ const Landing = () => {
             ].map((item, idx) => (
               <motion.div
                 key={item.step}
-                className="relative text-center"
+                className={
+                  "relative text-center " +
+                  (idx === 2 ? "col-span-2 md:col-span-1" : "")
+                }
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.15 }}
               >
-                <div className="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6 relative">
-                  <span className="text-3xl font-display font-bold text-primary">{item.step}</span>
+                <div className="w-18 h-18 sm:w-20 sm:h-20 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-5 sm:mb-6 relative">
+                  <span className="text-2xl sm:text-3xl font-display font-bold text-primary">{item.step}</span>
                 </div>
-                <h3 className="font-display text-xl font-bold text-foreground mb-3">{item.title}</h3>
-                <p className="text-muted-foreground">{item.desc}</p>
+                <h3 className="font-display text-base sm:text-xl font-bold text-foreground mb-2 sm:mb-3">{item.title}</h3>
+                <p className="text-muted-foreground text-sm sm:text-base">{item.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -366,7 +369,7 @@ const Landing = () => {
             <h2 className="font-display text-4xl sm:text-5xl font-bold text-foreground mb-4">Why Spaark?</h2>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 max-w-4xl mx-auto">
             {[
               { title: "Verified profiles", desc: "Every user is ID verified. No fakes, no catfish." },
               { title: "Quality matches", desc: "Our algorithm focuses on compatibility, not just looks." },
@@ -377,14 +380,14 @@ const Landing = () => {
             ].map((feature, idx) => (
               <motion.div
                 key={feature.title}
-                className="bg-card rounded-2xl p-5 border border-border/50"
+                className="bg-card rounded-2xl p-4 sm:p-5 border border-border/50"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
               >
-                <h3 className="font-display text-base sm:text-lg font-bold text-foreground mb-1">{feature.title}</h3>
-                <p className="text-muted-foreground text-sm">{feature.desc}</p>
+                <h3 className="font-display text-sm sm:text-lg font-bold text-foreground mb-1">{feature.title}</h3>
+                <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed">{feature.desc}</p>
               </motion.div>
             ))}
           </div>
