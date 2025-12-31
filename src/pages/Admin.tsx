@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, ArrowLeft, LogOut, Crown, UserCog, Headset, IdCard, CreditCard, Settings, IndianRupee } from "lucide-react";
+import { Shield, ArrowLeft, LogOut, Crown, UserCog, Headset, IdCard, CreditCard, Settings, IndianRupee, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import UserManagement from "@/components/admin/UserManagement";
@@ -21,6 +21,7 @@ import { PaymentRequests } from "@/components/admin/PaymentRequests";
 import PaymentSettings from "@/components/admin/PaymentSettings";
 import Revenue from "@/components/admin/Revenue";
 import DangerZone from "@/components/admin/DangerZone";
+import SubscriptionPlansManagement from "@/components/admin/SubscriptionPlansManagement";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminRole } from "@/hooks/useAdminRole";
 
@@ -117,6 +118,7 @@ const Admin = () => {
             {canManageUsers && <TabsTrigger value="users">Users</TabsTrigger>}
             {isModerator && <TabsTrigger value="payments">Payments</TabsTrigger>}
             {isSuperAdmin && <TabsTrigger value="payment-settings">Payment Settings</TabsTrigger>}
+            {isSuperAdmin && <TabsTrigger value="subscription-plans">Subscription Plans</TabsTrigger>}
             {isModerator && <TabsTrigger value="idcards">ID Cards</TabsTrigger>}
             {canManageTickets && <TabsTrigger value="tickets">Support</TabsTrigger>}
             {canManageReports && <TabsTrigger value="reports">Reports</TabsTrigger>}
@@ -146,6 +148,10 @@ const Admin = () => {
 
           {isSuperAdmin && (
             <TabsContent value="payment-settings"><PaymentSettings /></TabsContent>
+          )}
+
+          {isSuperAdmin && (
+            <TabsContent value="subscription-plans"><SubscriptionPlansManagement /></TabsContent>
           )}
 
           {isModerator && (
