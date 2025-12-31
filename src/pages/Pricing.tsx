@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, Crown, Sparkles, Zap, Star } from 'lucide-react';
+import { Check, Crown, Sparkles, Zap, Star, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,104 +9,69 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useToast } from '@/hooks/use-toast';
 import { SEO } from '@/components/SEO';
 import { Header } from '@/components/navigation/Header';
+import { generatePlanFeatures, SubscriptionPlanData } from '@/lib/planFeatures';
 
-interface Plan {
+interface DisplayPlan extends SubscriptionPlanData {
   id: string;
-  name: string;
-  display_name: string;
-  price_inr: number;
   features: string[];
   icon: React.ReactNode;
   popular?: boolean;
 }
 
-const plans: Plan[] = [
-  {
-    id: 'free',
-    name: 'free',
-    display_name: 'Free',
-    price_inr: 0,
-    icon: <Star className="h-6 w-6" />,
-    features: [
-      '10 swipes per day',
-      'Up to 5 active matches',
-      'Text only messaging',
-      '10 messages per match',
-      'Cannot see profile viewers',
-    ],
-  },
-  {
-    id: 'plus',
-    name: 'plus',
-    display_name: 'Plus',
-    price_inr: 149,
-    icon: <Zap className="h-6 w-6" />,
-    features: [
-      '30 swipes per day',
-      'Up to 15 active matches',
-      'Unlimited text messaging',
-      'See last 3 profile viewers',
-      '1 image per chat per day',
-    ],
-  },
-  {
-    id: 'pro',
-    name: 'pro',
-    display_name: 'Pro',
-    price_inr: 249,
-    icon: <Sparkles className="h-6 w-6" />,
-    popular: true,
-    features: [
-      'Unlimited swipes',
-      'Unlimited active matches',
-      'Text + Voice messaging',
-      'See last 10 profile viewers',
-      '5 images per chat per day',
-      '1 video per chat (15s)',
-      '2 audio messages per day',
-    ],
-  },
-  {
-    id: 'elite',
-    name: 'elite',
-    display_name: 'Elite',
-    price_inr: 399,
-    icon: <Crown className="h-6 w-6" />,
-    features: [
-      'Unlimited swipes',
-      'Unlimited active matches',
-      'Text + Voice + Video messaging',
-      'See all profile viewers + timestamps',
-      'Unlimited images',
-      'Unlimited videos (30s)',
-      'Unlimited audio messages',
-      'Priority support',
-    ],
-  },
-];
+const planIcons: Record<string, React.ReactNode> = {
+  free: <Star className="h-6 w-6" />,
+  plus: <Zap className="h-6 w-6" />,
+  pro: <Sparkles className="h-6 w-6" />,
+  elite: <Crown className="h-6 w-6" />,
+};
 
 export default function Pricing() {
   const navigate = useNavigate();
-  const { subscription, loading } = useSubscription();
+  const { subscription, loading: subscriptionLoading } = useSubscription();
   const { toast } = useToast();
   const [processingPlan, setProcessingPlan] = useState<string | null>(null);
   const [isFoundingMember, setIsFoundingMember] = useState(false);
   const [foundingMemberCount, setFoundingMemberCount] = useState(0);
+  const [plans, setPlans] = useState<DisplayPlan[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    fetchPlans();
     checkFoundingMemberStatus();
   }, []);
 
+  const fetchPlans = async () => {
+    const { data, error } = await supabase
+      .from('subscription_plans')
+      .select('*')
+      .order('price_inr', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching plans:', error);
+      toast({
+        title: 'Error loading plans',
+        description: 'Please refresh the page to try again.',
+        variant: 'destructive',
+      });
+    } else if (data) {
+      const displayPlans: DisplayPlan[] = data.map((plan) => ({
+        ...plan,
+        features: generatePlanFeatures(plan as SubscriptionPlanData),
+        icon: planIcons[plan.name] || <Star className="h-6 w-6" />,
+        popular: plan.name === 'pro',
+      }));
+      setPlans(displayPlans);
+    }
+    setLoading(false);
+  };
+
   const checkFoundingMemberStatus = async () => {
-    // Get current founding member count first (always runs)
     const { count } = await supabase
       .from('founding_members')
       .select('*', { count: 'exact', head: true });
     
-    console.log('Founding member count:', count);
     setFoundingMemberCount(count || 0);
 
-    // Check if current user is a founding member
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const { data } = await supabase
@@ -119,12 +84,10 @@ export default function Pricing() {
     }
   };
 
-  const handleSubscribe = async (plan: Plan) => {
+  const handleSubscribe = async (plan: DisplayPlan) => {
     if (plan.name === "free") return;
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       toast({
         title: "Please log in",
@@ -138,12 +101,17 @@ export default function Pricing() {
     navigate(`/checkout?plan=${plan.name}`);
   };
 
-  const getDisplayPrice = (plan: Plan) => {
-    if (isFoundingMember && plan.price_inr > 0) {
-      return plan.price_inr; // Price is already locked for founding members
-    }
-    return plan.price_inr;
-  };
+  if (loading) {
+    return (
+      <>
+        <SEO title="Pricing - Spaark" description="Choose the perfect plan for your dating journey." />
+        <Header />
+        <div className="min-h-screen bg-background pt-20 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -181,7 +149,6 @@ export default function Pricing() {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {plans.map((plan) => {
               const isCurrentPlan = subscription?.plan === plan.name;
-              const displayPrice = getDisplayPrice(plan);
               
               return (
                 <Card
@@ -204,7 +171,7 @@ export default function Pricing() {
                     </div>
                     <CardTitle className="text-xl">{plan.display_name}</CardTitle>
                     <CardDescription>
-                      <span className="text-3xl font-bold text-foreground">₹{displayPrice}</span>
+                      <span className="text-3xl font-bold text-foreground">₹{plan.price_inr}</span>
                       {plan.price_inr > 0 && <span className="text-muted-foreground">/month</span>}
                     </CardDescription>
                   </CardHeader>
@@ -222,7 +189,7 @@ export default function Pricing() {
                     <Button
                       className="w-full"
                       variant={plan.popular ? "default" : "outline"}
-                      disabled={isCurrentPlan || loading || processingPlan === plan.name}
+                      disabled={isCurrentPlan || subscriptionLoading || processingPlan === plan.name}
                       onClick={() => handleSubscribe(plan)}
                     >
                       {processingPlan === plan.name

@@ -1,42 +1,71 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Check, Crown, Sparkles, Zap, Star } from 'lucide-react';
+import { Check, Crown, Sparkles, Zap, Star, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
+import { generateShortFeatures, SubscriptionPlanData } from '@/lib/planFeatures';
 
-const plans = [
-  {
-    name: 'Free',
-    price: 0,
-    icon: <Star className="h-6 w-6" />,
-    features: ['10 swipes/day', '5 active matches', 'Text messaging', '10 messages/match'],
-    gradient: 'from-slate-500/10 to-slate-600/10',
-  },
-  {
-    name: 'Plus',
-    price: 149,
-    icon: <Zap className="h-6 w-6" />,
-    features: ['30 swipes/day', '15 active matches', 'Unlimited text', 'See 3 profile viewers', '1 image/chat/day'],
-    gradient: 'from-blue-500/10 to-cyan-500/10',
-  },
-  {
-    name: 'Pro',
-    price: 249,
-    icon: <Sparkles className="h-6 w-6" />,
-    popular: true,
-    features: ['Unlimited swipes', 'Unlimited matches', 'Voice messaging', 'See 10 viewers', '5 images + 1 video/day'],
-    gradient: 'from-primary/10 to-accent/10',
-  },
-  {
-    name: 'Elite',
-    price: 399,
-    icon: <Crown className="h-6 w-6" />,
-    features: ['Everything in Pro', 'Video messaging', 'All viewers + timestamps', 'Unlimited media', 'Priority support'],
-    gradient: 'from-amber-500/10 to-orange-500/10',
-  },
-];
+interface DisplayPlan extends SubscriptionPlanData {
+  id: string;
+  features: string[];
+  icon: React.ReactNode;
+  popular?: boolean;
+  gradient: string;
+}
+
+const planIcons: Record<string, React.ReactNode> = {
+  free: <Star className="h-6 w-6" />,
+  plus: <Zap className="h-6 w-6" />,
+  pro: <Sparkles className="h-6 w-6" />,
+  elite: <Crown className="h-6 w-6" />,
+};
+
+const planGradients: Record<string, string> = {
+  free: 'from-slate-500/10 to-slate-600/10',
+  plus: 'from-blue-500/10 to-cyan-500/10',
+  pro: 'from-primary/10 to-accent/10',
+  elite: 'from-amber-500/10 to-orange-500/10',
+};
 
 export const PricingSection = () => {
+  const [plans, setPlans] = useState<DisplayPlan[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchPlans();
+  }, []);
+
+  const fetchPlans = async () => {
+    const { data, error } = await supabase
+      .from('subscription_plans')
+      .select('*')
+      .order('price_inr', { ascending: true });
+
+    if (!error && data) {
+      const displayPlans: DisplayPlan[] = data.map((plan) => ({
+        ...plan,
+        features: generateShortFeatures(plan as SubscriptionPlanData),
+        icon: planIcons[plan.name] || <Star className="h-6 w-6" />,
+        popular: plan.name === 'pro',
+        gradient: planGradients[plan.name] || 'from-slate-500/10 to-slate-600/10',
+      }));
+      setPlans(displayPlans);
+    }
+    setLoading(false);
+  };
+
+  if (loading) {
+    return (
+      <section className="py-24 bg-card/30">
+        <div className="container mx-auto px-4 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="py-24 bg-card/30">
       <div className="container mx-auto px-4">
@@ -57,7 +86,7 @@ export const PricingSection = () => {
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
           {plans.map((plan, idx) => (
             <motion.div
-              key={plan.name}
+              key={plan.id}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -88,10 +117,10 @@ export const PricingSection = () => {
                   >
                     {plan.icon}
                   </div>
-                  <CardTitle className="font-display text-xl">{plan.name}</CardTitle>
+                  <CardTitle className="font-display text-xl">{plan.display_name}</CardTitle>
                   <CardDescription className="mt-2">
-                    <span className="text-3xl font-bold text-foreground font-display">₹{plan.price}</span>
-                    {plan.price > 0 && <span className="text-muted-foreground">/mo</span>}
+                    <span className="text-3xl font-bold text-foreground font-display">₹{plan.price_inr}</span>
+                    {plan.price_inr > 0 && <span className="text-muted-foreground">/mo</span>}
                   </CardDescription>
                 </CardHeader>
 
