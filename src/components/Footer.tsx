@@ -115,7 +115,7 @@ export const Footer = () => {
                   to="/contact"
                   className="text-xs sm:text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
-                  Contact Us
+                  Enquiry
                 </Link>
               </li>
               <li>
