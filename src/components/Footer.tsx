@@ -112,10 +112,10 @@ export const Footer = () => {
               </li>
               <li>
                 <Link
-                  to="/support"
+                  to="/contact"
                   className="text-xs sm:text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
-                  Help Center
+                  Contact Us
                 </Link>
               </li>
               <li>
@@ -125,6 +125,14 @@ export const Footer = () => {
                 >
                   Safety Tips
                 </Link>
+              </li>
+              <li>
+                <a
+                  href="mailto:spaarkdating@spaarkdating.com"
+                  className="text-xs sm:text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  spaarkdating@spaarkdating.com
+                </a>
               </li>
             </ul>
           </motion.div>

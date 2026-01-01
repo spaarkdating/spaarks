@@ -22,6 +22,7 @@ import Admin from "./pages/Admin";
 import AdminRegister from "./pages/AdminRegister";
 import FAQ from "./pages/FAQ";
 import AboutUs from "./pages/AboutUs";
+import Contact from "./pages/Contact";
 
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
@@ -63,6 +64,7 @@ const AnimatedRoutes = () => {
         <Route path="/support" element={<PageTransition><Support /></PageTransition>} />
         <Route path="/faq" element={<PageTransition><FAQ /></PageTransition>} />
         <Route path="/about" element={<PageTransition><AboutUs /></PageTransition>} />
+        <Route path="/contact" element={<PageTransition><Contact /></PageTransition>} />
         <Route path="/privacy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
         <Route path="/terms" element={<PageTransition><TermsOfService /></PageTransition>} />
         <Route path="/safety" element={<PageTransition><SafetyTips /></PageTransition>} />

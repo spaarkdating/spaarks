@@ -89,8 +89,8 @@ const Landing = () => {
         <nav className="max-w-7xl mx-auto grid grid-cols-[auto_1fr_auto] items-center gap-4">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group justify-self-start">
-            <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center shadow-lg">
-              <img src={logo} alt="Spaark" className="h-7 w-7 object-contain" />
+            <div className="w-12 h-12 bg-white/90 rounded-xl flex items-center justify-center shadow-lg">
+              <img src={logo} alt="Spaark" className="h-8 w-8 object-contain" />
             </div>
             <span className="text-2xl font-display font-bold text-foreground hidden sm:block">Spaark</span>
           </Link>
