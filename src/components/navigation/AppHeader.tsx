@@ -31,8 +31,8 @@ export function AppHeader({ userId, onLogout, onFilterClick, title }: AppHeaderP
         <div className="flex items-center justify-between h-14 md:h-16">
           {/* Left: Logo */}
           <Link to="/dashboard" className="flex items-center gap-2">
-            <div className="w-10 h-10 md:w-11 md:h-11 bg-primary rounded-full flex items-center justify-center shadow-md shadow-primary/20">
-              <img src={logo} alt="Spaark" className="h-5 w-5 md:h-6 md:w-6 object-contain" />
+            <div className="w-10 h-10 md:w-11 md:h-11 bg-white/90 rounded-xl flex items-center justify-center shadow-md">
+              <img src={logo} alt="Spaark" className="h-7 w-7 md:h-8 md:w-8 object-contain" />
             </div>
             <span className="text-lg md:text-xl font-display font-bold text-foreground hidden sm:block">
               {title || "Spaark"}
