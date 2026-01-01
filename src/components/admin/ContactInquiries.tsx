@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
-import { Mail, User, Clock, Send } from "lucide-react";
+import { Mail, User, Clock, Send, Loader2 } from "lucide-react";
 
 interface ContactInquiry {
   id: string;
@@ -30,6 +30,7 @@ const ContactInquiries = ({ adminRole }: ContactInquiriesProps) => {
   const [reply, setReply] = useState("");
   const [newStatus, setNewStatus] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isSending, setIsSending] = useState(false);
   const { toast } = useToast();
 
   const fetchInquiries = async () => {
@@ -81,6 +82,42 @@ const ContactInquiries = ({ adminRole }: ContactInquiriesProps) => {
       setReply("");
       setSelectedInquiry(null);
       fetchInquiries();
+    }
+  };
+
+  const handleSendEmailReply = async () => {
+    if (!selectedInquiry || !reply.trim()) return;
+
+    setIsSending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("send-inquiry-reply", {
+        body: {
+          to_email: selectedInquiry.email,
+          to_name: selectedInquiry.name,
+          subject: selectedInquiry.subject,
+          original_message: selectedInquiry.message,
+          admin_reply: reply,
+        },
+      });
+
+      if (error) throw error;
+
+      // Also update the inquiry in the database
+      await handleUpdateInquiry();
+
+      toast({
+        title: "Email sent!",
+        description: `Reply sent to ${selectedInquiry.email}`,
+      });
+    } catch (error: any) {
+      console.error("Error sending email:", error);
+      toast({
+        title: "Failed to send email",
+        description: error.message || "Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -221,29 +258,35 @@ const ContactInquiries = ({ adminRole }: ContactInquiriesProps) => {
               <Textarea
                 value={reply}
                 onChange={(e) => setReply(e.target.value)}
-                placeholder="Type your response to send via email..."
+                placeholder="Type your response to send to the user..."
                 rows={6}
               />
-              <p className="text-xs text-muted-foreground">
-                Note: The reply will be stored here. To send it, email the user directly at {selectedInquiry.email}
-              </p>
             </div>
 
             <div className="flex gap-2">
               <Button
                 onClick={handleUpdateInquiry}
-                className="flex-1 bg-gradient-to-r from-primary to-secondary"
+                variant="outline"
+                className="flex-1"
               >
-                <Send className="h-4 w-4 mr-2" />
-                Update Inquiry
+                Save Only
               </Button>
               <Button
-                variant="outline"
-                onClick={() => window.open(`mailto:${selectedInquiry.email}?subject=Re: ${encodeURIComponent(selectedInquiry.subject)}&body=${encodeURIComponent(reply)}`)}
-                disabled={!reply}
+                onClick={handleSendEmailReply}
+                disabled={!reply.trim() || isSending}
+                className="flex-1 bg-gradient-to-r from-primary to-secondary"
               >
-                <Mail className="h-4 w-4 mr-2" />
-                Send Email
+                {isSending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4 mr-2" />
+                    Send Email Reply
+                  </>
+                )}
               </Button>
             </div>
           </CardContent>
