@@ -97,7 +97,7 @@ const Landing = () => {
 
           {/* Center Nav - Desktop */}
           <div className="hidden md:flex items-center justify-center gap-8">
-            <Link to="/about-us" className="text-foreground/80 hover:text-foreground font-medium transition-colors">
+            <Link to="/about" className="text-foreground/80 hover:text-foreground font-medium transition-colors">
               About
             </Link>
             <Link to="/safety" className="text-foreground/80 hover:text-foreground font-medium transition-colors">
@@ -143,7 +143,7 @@ const Landing = () => {
             >
               <div className="p-4 space-y-3">
                 <Link
-                  to="/about-us"
+                  to="/about"
                   className="block py-2 text-foreground font-medium"
                   onClick={() => setMobileMenuOpen(false)}
                 >
