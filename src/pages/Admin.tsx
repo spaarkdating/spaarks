@@ -22,6 +22,7 @@ import PaymentSettings from "@/components/admin/PaymentSettings";
 import Revenue from "@/components/admin/Revenue";
 import DangerZone from "@/components/admin/DangerZone";
 import SubscriptionPlansManagement from "@/components/admin/SubscriptionPlansManagement";
+import ContactInquiries from "@/components/admin/ContactInquiries";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminRole } from "@/hooks/useAdminRole";
 
@@ -121,6 +122,7 @@ const Admin = () => {
             {isSuperAdmin && <TabsTrigger value="subscription-plans">Subscription Plans</TabsTrigger>}
             {isModerator && <TabsTrigger value="idcards">ID Cards</TabsTrigger>}
             {canManageTickets && <TabsTrigger value="tickets">Support</TabsTrigger>}
+            {canManageTickets && <TabsTrigger value="inquiries">Contact Inquiries</TabsTrigger>}
             {canManageReports && <TabsTrigger value="reports">Reports</TabsTrigger>}
             {isModerator && <TabsTrigger value="testimonials">Testimonials</TabsTrigger>}
             {canManageCoupons && <TabsTrigger value="coupons">Coupons</TabsTrigger>}
@@ -160,6 +162,10 @@ const Admin = () => {
 
           {canManageTickets && (
             <TabsContent value="tickets"><SupportTickets adminRole={role as any} /></TabsContent>
+          )}
+
+          {canManageTickets && (
+            <TabsContent value="inquiries"><ContactInquiries adminRole={role as any} /></TabsContent>
           )}
 
           {canManageReports && (

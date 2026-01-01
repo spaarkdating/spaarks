@@ -52,12 +52,12 @@ const Contact = () => {
     setIsSubmitting(true);
 
     try {
-      // Insert into support_tickets table for guest users
-      const { error } = await supabase.from("support_tickets").insert({
-        user_id: "00000000-0000-0000-0000-000000000000", // Guest user placeholder
-        subject: `[Guest Inquiry] ${result.data.subject}`,
-        message: `From: ${result.data.name}\nEmail: ${result.data.email}\n\n${result.data.message}`,
-        priority: "medium",
+      // Insert into contact_inquiries table for guest users
+      const { error } = await (supabase as any).from("contact_inquiries").insert({
+        name: result.data.name,
+        email: result.data.email,
+        subject: result.data.subject,
+        message: result.data.message,
         status: "open",
       });
 
