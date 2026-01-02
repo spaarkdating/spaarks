@@ -978,6 +978,7 @@ export type Database = {
         Row: {
           account_status: string | null
           bio: string | null
+          college: string | null
           created_at: string | null
           date_of_birth: string | null
           dating_mode: string | null
@@ -1009,6 +1010,7 @@ export type Database = {
         Insert: {
           account_status?: string | null
           bio?: string | null
+          college?: string | null
           created_at?: string | null
           date_of_birth?: string | null
           dating_mode?: string | null
@@ -1040,6 +1042,7 @@ export type Database = {
         Update: {
           account_status?: string | null
           bio?: string | null
+          college?: string | null
           created_at?: string | null
           date_of_birth?: string | null
           dating_mode?: string | null

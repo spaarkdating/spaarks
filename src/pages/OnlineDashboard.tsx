@@ -49,6 +49,7 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
     min_age: 18,
     max_age: 99,
     location: "",
+    college: "",
   });
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -87,6 +88,7 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
         min_age: profile.min_age || 18,
         max_age: profile.max_age || 99,
         location: "",
+        college: "",
       });
     }
   };
@@ -165,6 +167,11 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
 
       if (locationFilter && locationFilter.trim()) {
         query = query.ilike("location", `%${locationFilter.trim()}%`);
+      }
+
+      // Filter by college if provided
+      if (tempFilters.college && tempFilters.college.trim()) {
+        query = query.ilike("college", `%${tempFilters.college.trim()}%`);
       }
 
       const { data: potentialMatches } = await query
@@ -638,6 +645,15 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
                 placeholder="City name..."
                 value={tempFilters.location}
                 onChange={(e) => setTempFilters({ ...tempFilters, location: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>College/University (optional)</Label>
+              <Input
+                placeholder="Filter by college..."
+                value={tempFilters.college}
+                onChange={(e) => setTempFilters({ ...tempFilters, college: e.target.value })}
               />
             </div>
           </div>
