@@ -12,6 +12,7 @@ interface Profile {
   bio: string;
   date_of_birth: string;
   location: string;
+  college?: string;
   photos: { photo_url: string }[];
   interests: { interest: { name: string } }[];
   email_verified?: boolean;
@@ -173,12 +174,20 @@ export const SwipeCard = ({ profile, onSwipe, style, compatibilityScore, onProfi
             )}
           </div>
 
-          {profile.location && (
-            <div className="flex items-center gap-1 text-muted-foreground mb-3">
-              <MapPin className="h-4 w-4" />
-              <span className="text-sm">{profile.location}</span>
-            </div>
-          )}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground mb-3">
+            {profile.location && (
+              <div className="flex items-center gap-1">
+                <MapPin className="h-4 w-4" />
+                <span className="text-sm">{profile.location}</span>
+              </div>
+            )}
+            {profile.college && (
+              <div className="flex items-center gap-1">
+                <Briefcase className="h-4 w-4" />
+                <span className="text-sm">{profile.college}</span>
+              </div>
+            )}
+          </div>
 
           <p className="text-sm text-foreground/80 mb-4 leading-relaxed">{profile.bio}</p>
 
