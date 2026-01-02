@@ -26,6 +26,7 @@ export const ProfileEdit = ({ profile, photos, interests, userId, onSave, onCanc
     display_name: profile.display_name || "",
     bio: profile.bio || "",
     location: profile.location || "",
+    college: profile.college || "",
     gender: profile.gender || "",
     looking_for: profile.looking_for || "",
     height: profile.height || "",
@@ -56,6 +57,7 @@ export const ProfileEdit = ({ profile, photos, interests, userId, onSave, onCanc
           display_name: formData.display_name,
           bio: formData.bio,
           location: formData.location,
+          college: formData.college,
           gender: formData.gender,
           looking_for: formData.looking_for,
           height: formData.height,
@@ -161,6 +163,16 @@ export const ProfileEdit = ({ profile, photos, interests, userId, onSave, onCanc
                   value={formData.location}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                   placeholder="City, Country"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="college">College/University (optional)</Label>
+                <Input
+                  id="college"
+                  value={formData.college}
+                  onChange={(e) => setFormData({ ...formData, college: e.target.value })}
+                  placeholder="e.g., IIT Delhi, MIT, Stanford"
                 />
               </div>
 
