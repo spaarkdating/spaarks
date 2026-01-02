@@ -200,6 +200,16 @@ export const BasicInfoStep = ({ data, updateData }: BasicInfoStepProps) => {
       </div>
 
       <div className="space-y-2">
+        <Label htmlFor="college">College/University (optional)</Label>
+        <Input
+          id="college"
+          value={data.college || ""}
+          onChange={(e) => updateData({ college: e.target.value })}
+          placeholder="e.g., IIT Delhi, MIT, Stanford"
+        />
+      </div>
+
+      <div className="space-y-2">
         <Label htmlFor="education">Education (optional)</Label>
         <Select value={data.education || ""} onValueChange={(value) => updateData({ education: value })}>
           <SelectTrigger>

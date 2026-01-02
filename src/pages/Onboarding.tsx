@@ -176,6 +176,7 @@ const Onboarding = () => {
           location: formData.location,
           looking_for: formData.lookingFor,
           dating_mode: formData.datingMode || "online",
+          college: formData.college || null,
         } as any)
         .eq("id", userId);
 
