@@ -65,10 +65,23 @@ const Contact = () => {
 
       toast({
         title: "Message sent!",
-        description: "We'll get back to you as soon as possible.",
+        description: "We'll get back to you as soon as possible. You can check your inquiry status anytime.",
       });
 
       setFormData({ name: "", email: "", subject: "", message: "" });
+      
+      // Show link to check status
+      setTimeout(() => {
+        toast({
+          title: "Track your inquiry",
+          description: "Visit the Inquiry Status page to check for updates.",
+          action: (
+            <Link to="/inquiry-status" className="underline text-primary">
+              Check Status
+            </Link>
+          ),
+        });
+      }, 2000);
     } catch (error: any) {
       console.error("Error submitting contact form:", error);
       toast({
@@ -161,6 +174,18 @@ const Contact = () => {
                 </div>
               </CardContent>
             </Card>
+
+            <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
+              <h4 className="font-semibold text-foreground mb-2">Already submitted an inquiry?</h4>
+              <p className="text-sm text-muted-foreground mb-3">
+                Check the status of your inquiry and view admin replies.
+              </p>
+              <Link to="/inquiry-status">
+                <Button variant="outline" size="sm" className="w-full">
+                  Check Inquiry Status
+                </Button>
+              </Link>
+            </div>
 
             <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
               <h4 className="font-semibold text-foreground mb-2">Already a member?</h4>
