@@ -200,12 +200,13 @@ export const BasicInfoStep = ({ data, updateData }: BasicInfoStepProps) => {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="college">College/University (optional)</Label>
+        <Label htmlFor="college">College/University <span className="text-destructive">*</span></Label>
         <Input
           id="college"
           value={data.college || ""}
           onChange={(e) => updateData({ college: e.target.value })}
           placeholder="e.g., IIT Delhi, MIT, Stanford"
+          required
         />
       </div>
 

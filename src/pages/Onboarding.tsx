@@ -89,10 +89,10 @@ const Onboarding = () => {
     }
 
     if (currentStep === 3) {
-      if (!formData.displayName || !formData.bio || !formData.dateOfBirth || !formData.gender) {
+      if (!formData.displayName || !formData.bio || !formData.dateOfBirth || !formData.gender || !formData.college) {
         toast({
           title: "Required fields",
-          description: "Please fill in all fields before continuing.",
+          description: "Please fill in all required fields including your college/university.",
           variant: "destructive",
         });
         return;
@@ -137,10 +137,10 @@ const Onboarding = () => {
 
     // Validate required fields
     if (!formData.displayName || !formData.bio || !formData.dateOfBirth || 
-        !formData.gender || !formData.lookingFor || !formData.location) {
+        !formData.gender || !formData.lookingFor || !formData.location || !formData.college) {
       toast({
         title: "Missing information",
-        description: "Please fill in all required fields before completing your profile.",
+        description: "Please fill in all required fields including your college/university.",
         variant: "destructive",
       });
       return;

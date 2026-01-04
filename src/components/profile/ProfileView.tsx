@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Calendar, Heart, CheckCircle, Instagram, Twitter, Linkedin } from "lucide-react";
+import { MapPin, Calendar, Heart, CheckCircle, Instagram, Twitter, Linkedin, GraduationCap } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { FoundingMemberBadge } from "./FoundingMemberBadge";
@@ -101,6 +101,13 @@ export const ProfileView = ({ profile, photos, interests, emailVerified = false,
               <div className="flex items-center gap-2 text-muted-foreground">
                 <MapPin className="h-4 w-4" />
                 <span>{profile.location}</span>
+              </div>
+            )}
+
+            {profile.college && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <GraduationCap className="h-4 w-4" />
+                <span>{profile.college}</span>
               </div>
             )}
 
