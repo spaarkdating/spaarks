@@ -13,13 +13,13 @@ Color Scheme:
 
 @layer base {
   :root {
-    --background: 15 30% 82%;
+    --background: 32 100% 97%;
     --foreground: 340 62% 20%;
 
-    --card: 20 35% 78%;
+    --card: 32 80% 95%;
     --card-foreground: 340 62% 20%;
 
-    --popover: 15 30% 82%;
+    --popover: 32 100% 97%;
     --popover-foreground: 340 62% 20%;
 
     --primary: 340 62% 26%;
@@ -29,24 +29,24 @@ Color Scheme:
     --primary-light: 340 55% 40%;
     --primary-dark: 340 70% 18%;
 
-    --secondary: 0 63% 86%;
+    --secondary: 0 63% 92%;
     --secondary-foreground: 340 62% 20%;
     
-    --secondary-glow: 0 70% 80%;
+    --secondary-glow: 0 70% 88%;
 
-    --muted: 20 30% 75%;
+    --muted: 32 40% 92%;
     --muted-foreground: 340 30% 45%;
 
-    --accent: 0 63% 86%;
+    --accent: 0 63% 92%;
     --accent-foreground: 340 62% 20%;
     
-    --accent-glow: 0 70% 80%;
+    --accent-glow: 0 70% 88%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 340 25% 72%;
-    --input: 20 30% 78%;
+    --border: 340 25% 85%;
+    --input: 32 50% 94%;
     --ring: 340 62% 26%;
 
     --radius: 1.25rem;
