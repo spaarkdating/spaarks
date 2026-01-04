@@ -136,47 +136,66 @@ const Landing = () => {
         <AnimatePresence>
           {mobileMenuOpen && (
             <motion.div
-              className="md:hidden absolute top-full left-4 right-4 bg-card rounded-2xl shadow-xl border border-border mt-2 overflow-hidden"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
+              className="md:hidden absolute top-full left-4 right-4 bg-card/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-border/50 mt-3 overflow-hidden"
+              initial={{ opacity: 0, y: -20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.98 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
             >
-              <div className="p-4 space-y-3">
-                <Link
-                  to="/about"
-                  className="block py-2 text-foreground font-medium"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  About
-                </Link>
-                <Link
-                  to="/safety"
-                  className="block py-2 text-foreground font-medium"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Safety
-                </Link>
-                <Link
-                  to="/testimonials"
-                  className="block py-2 text-foreground font-medium"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Stories
-                </Link>
-                <Link
-                  to="/support"
-                  className="block py-2 text-foreground font-medium"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Support
-                </Link>
-                <Link
-                  to="/auth"
-                  className="block py-2 text-foreground font-medium"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Sign in
-                </Link>
+              <div className="p-5 space-y-1">
+                {[
+                  { to: "/about", label: "About" },
+                  { to: "/safety", label: "Safety" },
+                  { to: "/testimonials", label: "Stories" },
+                  { to: "/support", label: "Support" },
+                ].map((item, idx) => (
+                  <motion.div
+                    key={item.to}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                  >
+                    <Link
+                      to={item.to}
+                      className="block py-3 px-4 text-foreground font-medium rounded-xl hover:bg-primary/10 transition-all duration-200"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {item.label}
+                    </Link>
+                  </motion.div>
+                ))}
+                
+                <div className="border-t border-border/50 my-3 pt-3">
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    <Link
+                      to="/auth"
+                      className="block py-3 px-4 text-foreground font-medium rounded-xl hover:bg-primary/10 transition-all duration-200"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Sign in
+                    </Link>
+                  </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.25 }}
+                    className="mt-2"
+                  >
+                    <Link
+                      to="/auth"
+                      className="block"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl h-12 font-semibold">
+                        Join Spaark
+                      </Button>
+                    </Link>
+                  </motion.div>
+                </div>
               </div>
             </motion.div>
           )}
@@ -185,9 +204,13 @@ const Landing = () => {
 
       {/* Hero Section - Bumble Style with Watermark */}
       <section className="relative min-h-screen flex items-center overflow-hidden pt-20">
-        {/* Giant Watermark Text */}
+        {/* Subtle gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.03] via-transparent to-secondary/[0.05] pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/50 pointer-events-none" />
+        
+        {/* Giant Watermark Text - More visible */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
-          <span className="text-[20vw] sm:text-[25vw] font-display font-black text-primary/[0.07] whitespace-nowrap tracking-tight">
+          <span className="text-[25vw] sm:text-[30vw] font-display font-black text-primary/[0.08] dark:text-primary/[0.12] whitespace-nowrap tracking-tight drop-shadow-sm">
             Spaark
           </span>
         </div>
