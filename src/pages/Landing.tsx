@@ -134,7 +134,7 @@ const Landing = () => {
                   <Menu className="h-6 w-6" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] bg-card/95 backdrop-blur-xl border-l border-border/50 p-0">
+              <SheetContent side="right" className="w-[300px] bg-card/95 backdrop-blur-xl border-l border-border/50 p-0 [&>button]:hidden">
                 <div className="flex flex-col h-full">
                   {/* Header */}
                   <div className="flex items-center gap-3 p-6 border-b border-border/50">
