@@ -2,13 +2,15 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Settings as SettingsIcon, LogOut, Edit } from "lucide-react";
+import { ArrowLeft, Settings as SettingsIcon, LogOut, Edit, Eye } from "lucide-react";
 import logo from "@/assets/spaark-logo.png";
 import { useToast } from "@/hooks/use-toast";
 import { ProfileView } from "@/components/profile/ProfileView";
 import { ProfileEdit } from "@/components/profile/ProfileEdit";
 import ProfileCompletion from "@/components/profile/ProfileCompletion";
 import { MobileNav } from "@/components/navigation/MobileNav";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { PhotoCarousel } from "@/components/profile/PhotoCarousel";
 
 const Profile = () => {
   const [user, setUser] = useState<any>(null);
@@ -18,6 +20,9 @@ const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [emailVerified, setEmailVerified] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [carouselStartIndex, setCarouselStartIndex] = useState(0);
+  const [showPhotoCarousel, setShowPhotoCarousel] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -108,13 +113,22 @@ const Profile = () => {
           </div>
           <div className="hidden md:flex gap-2">
             {!isEditing && (
-              <Button
-                variant="outline"
-                onClick={() => setIsEditing(true)}
-              >
-                <Edit className="h-4 w-4 mr-2" />
-                Edit
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowPreview(true)}
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  Preview
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsEditing(true)}
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </Button>
+              </>
             )}
             <Button variant="ghost" size="icon" onClick={() => navigate("/settings")}>
               <SettingsIcon className="h-5 w-5" />
@@ -125,14 +139,24 @@ const Profile = () => {
           </div>
           <div className="flex md:hidden gap-2 items-center">
             {!isEditing && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsEditing(true)}
-                className="h-9"
-              >
-                <Edit className="h-4 w-4" />
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowPreview(true)}
+                  className="h-9"
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsEditing(true)}
+                  className="h-9"
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+              </>
             )}
             <MobileNav
               isAuthenticated
@@ -174,6 +198,38 @@ const Profile = () => {
           </div>
         )}
       </div>
+
+      {/* Self Preview Dialog */}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto p-0">
+          <DialogHeader className="p-4 pb-0 sticky top-0 bg-background z-10">
+            <DialogTitle className="text-center">How Others See You</DialogTitle>
+          </DialogHeader>
+          <div className="p-4 pt-2">
+            <ProfileView
+              profile={profile}
+              photos={photos}
+              interests={interests}
+              emailVerified={emailVerified}
+              onPhotoClick={(index) => {
+                setCarouselStartIndex(index);
+                setShowPhotoCarousel(true);
+              }}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Photo Carousel Dialog */}
+      <Dialog open={showPhotoCarousel} onOpenChange={setShowPhotoCarousel}>
+        <DialogContent className="max-w-3xl p-0 bg-black/95">
+          <PhotoCarousel
+            photos={photos}
+            initialIndex={carouselStartIndex}
+            onClose={() => setShowPhotoCarousel(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
