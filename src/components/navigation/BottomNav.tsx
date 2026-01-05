@@ -24,10 +24,9 @@ export function BottomNav() {
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-lg border-t border-border safe-area-pb">
       <div className="flex justify-around items-center h-16 px-2 max-w-md mx-auto">
-        {navItems.map((item, idx) => {
+        {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.to);
-          const isFirst = idx === 0;
 
           return (
             <button
@@ -36,15 +35,13 @@ export function BottomNav() {
               aria-label={item.label}
               className={cn(
                 "flex flex-col items-center justify-center transition-all gap-0.5",
-                isFirst && active
+                active
                   ? "w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-md shadow-primary/30"
-                  : active
-                    ? "w-12 h-12 rounded-full bg-primary/10 text-primary"
-                    : "w-12 h-12 text-muted-foreground hover:text-foreground"
+                  : "w-12 h-12 text-muted-foreground hover:text-foreground"
               )}
             >
               <Icon className={cn("h-5 w-5", active && "fill-current")} />
-              {!(isFirst && active) && (
+              {!active && (
                 <span className="text-[10px] font-medium">{item.label}</span>
               )}
             </button>
