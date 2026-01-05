@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Menu, X } from "lucide-react";
+import { ArrowRight, Menu, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import logo from "@/assets/spaark-logo.png";
@@ -11,6 +11,8 @@ import { ChatbotWidget } from "@/components/landing/ChatbotWidget";
 import { NewsletterSignup } from "@/components/landing/NewsletterSignup";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { SEO, JsonLd, getOrganizationSchema, getDatingServiceSchema } from "@/components/SEO";
+import { ScrollReveal } from "@/components/landing/ScrollReveal";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 // Real people photos
 import person1 from "@/assets/person-1.jpg";
@@ -125,81 +127,73 @@ const Landing = () => {
               </Button>
             </Link>
 
-            {/* Mobile Menu */}
-            <button className="md:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label="Open menu">
-              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
-          </div>
-        </nav>
-
-        {/* Mobile Menu Dropdown */}
-        <AnimatePresence>
-          {mobileMenuOpen && (
-            <motion.div
-              className="md:hidden absolute top-full left-4 right-4 bg-card/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-border/50 mt-3 overflow-hidden"
-              initial={{ opacity: 0, y: -20, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -10, scale: 0.98 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-            >
-              <div className="p-5 space-y-1">
-                {[
-                  { to: "/about", label: "About" },
-                  { to: "/safety", label: "Safety" },
-                  { to: "/testimonials", label: "Stories" },
-                  { to: "/support", label: "Support" },
-                ].map((item, idx) => (
-                  <motion.div
-                    key={item.to}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: idx * 0.05 }}
+            {/* Mobile Menu - Using Sheet like other pages */}
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden hover:bg-primary/10 transition-colors duration-200">
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[300px] bg-card/95 backdrop-blur-xl border-l border-border/50 p-0">
+                <div className="flex flex-col h-full">
+                  {/* Header */}
+                  <div className="flex items-center gap-3 p-6 border-b border-border/50">
+                    <div className="bg-background p-2 rounded-xl shadow-md">
+                      <img src={logo} alt="Spaark Logo" className="h-8 w-8 object-contain" />
+                    </div>
+                    <span className="text-xl font-display font-bold text-foreground">Spaark</span>
+                  </div>
+                  
+                  {/* Navigation Links */}
+                  <motion.nav 
+                    className="flex flex-col gap-1 p-4 flex-1"
+                    initial="hidden"
+                    animate="show"
+                    variants={{
+                      hidden: { opacity: 0 },
+                      show: { opacity: 1, transition: { staggerChildren: 0.05, delayChildren: 0.1 } },
+                    }}
                   >
-                    <Link
-                      to={item.to}
-                      className="block py-3 px-4 text-foreground font-medium rounded-xl hover:bg-primary/10 transition-all duration-200"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      {item.label}
+                    {[
+                      { to: "/about", label: "About" },
+                      { to: "/safety", label: "Safety" },
+                      { to: "/testimonials", label: "Stories" },
+                      { to: "/support", label: "Support" },
+                    ].map((item) => (
+                      <motion.div
+                        key={item.to}
+                        variants={{ hidden: { opacity: 0, x: -20 }, show: { opacity: 1, x: 0 } }}
+                      >
+                        <Link
+                          to={item.to}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="flex items-center justify-between gap-3 px-4 py-4 rounded-xl hover:bg-primary/10 transition-all duration-200 group"
+                        >
+                          <span className="text-base font-medium text-foreground">{item.label}</span>
+                          <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                        </Link>
+                      </motion.div>
+                    ))}
+                  </motion.nav>
+                  
+                  {/* Footer Actions */}
+                  <div className="p-4 border-t border-border/50 space-y-2">
+                    <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="ghost" className="w-full justify-start gap-3 px-4 py-4 h-auto text-base font-medium rounded-xl">
+                        Sign in
+                      </Button>
                     </Link>
-                  </motion.div>
-                ))}
-                
-                <div className="border-t border-border/50 my-3 pt-3">
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.2 }}
-                  >
-                    <Link
-                      to="/auth"
-                      className="block py-3 px-4 text-foreground font-medium rounded-xl hover:bg-primary/10 transition-all duration-200"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Sign in
-                    </Link>
-                  </motion.div>
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.25 }}
-                    className="mt-2"
-                  >
-                    <Link
-                      to="/auth"
-                      className="block"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
+                    <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
                       <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl h-12 font-semibold">
                         Join Spaark
                       </Button>
                     </Link>
-                  </motion.div>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              </SheetContent>
+            </Sheet>
+          </div>
+        </nav>
       </header>
 
       {/* Hero Section - Bumble Style with Watermark */}
@@ -330,17 +324,14 @@ const Landing = () => {
       {/* How It Works */}
       <section className="py-24 bg-card/30">
         <div className="container mx-auto px-4">
-          <motion.div
-            className="text-center mb-16"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="font-display text-4xl sm:text-5xl font-bold text-foreground mb-4">How Spaark works</h2>
-            <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-              Simple, safe, and designed for real connections.
-            </p>
-          </motion.div>
+          <ScrollReveal>
+            <div className="text-center mb-16">
+              <h2 className="font-display text-4xl sm:text-5xl font-bold text-foreground mb-4">How Spaark works</h2>
+              <p className="text-muted-foreground text-lg max-w-xl mx-auto">
+                Simple, safe, and designed for real connections.
+              </p>
+            </div>
+          </ScrollReveal>
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8 max-w-5xl mx-auto">
             {[
@@ -360,13 +351,10 @@ const Landing = () => {
                 desc: "Take it offline. Meet up, connect, and see where it goes.",
               },
             ].map((item, idx) => (
-              <motion.div
+              <ScrollReveal
                 key={item.step}
+                delay={idx * 0.15}
                 className={"relative text-center " + (idx === 2 ? "col-span-2 md:col-span-1" : "")}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.15 }}
               >
                 <div className="w-18 h-18 sm:w-20 sm:h-20 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-5 sm:mb-6 relative">
                   <span className="text-2xl sm:text-3xl font-display font-bold text-primary">{item.step}</span>
@@ -375,7 +363,7 @@ const Landing = () => {
                   {item.title}
                 </h3>
                 <p className="text-muted-foreground text-sm sm:text-base">{item.desc}</p>
-              </motion.div>
+              </ScrollReveal>
             ))}
           </div>
         </div>
@@ -384,14 +372,11 @@ const Landing = () => {
       {/* Features Grid */}
       <section className="py-24">
         <div className="container mx-auto px-4">
-          <motion.div
-            className="text-center mb-16"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="font-display text-4xl sm:text-5xl font-bold text-foreground mb-4">Why Spaark?</h2>
-          </motion.div>
+          <ScrollReveal>
+            <div className="text-center mb-16">
+              <h2 className="font-display text-4xl sm:text-5xl font-bold text-foreground mb-4">Why Spaark?</h2>
+            </div>
+          </ScrollReveal>
 
           <div className="grid grid-cols-2 gap-3 sm:gap-4 max-w-4xl mx-auto">
             {[
@@ -402,17 +387,16 @@ const Landing = () => {
               { title: "Smart filters", desc: "Find exactly who you're looking for with detailed filters." },
               { title: "Real connections", desc: "Built for meaningful relationships, not endless swiping." },
             ].map((feature, idx) => (
-              <motion.div
+              <ScrollReveal
                 key={feature.title}
-                className="bg-card rounded-2xl p-4 sm:p-5 border border-border/50"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.1 }}
+                delay={idx * 0.08}
+                direction={idx % 2 === 0 ? "left" : "right"}
               >
-                <h3 className="font-display text-sm sm:text-lg font-bold text-foreground mb-1">{feature.title}</h3>
-                <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed">{feature.desc}</p>
-              </motion.div>
+                <div className="bg-card rounded-2xl p-4 sm:p-5 border border-border/50 h-full">
+                  <h3 className="font-display text-sm sm:text-lg font-bold text-foreground mb-1">{feature.title}</h3>
+                  <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed">{feature.desc}</p>
+                </div>
+              </ScrollReveal>
             ))}
           </div>
         </div>
@@ -422,19 +406,16 @@ const Landing = () => {
       {testimonials.length > 0 && (
         <section className="py-16 sm:py-24 bg-card/30 overflow-hidden">
           <div className="container mx-auto px-4">
-            <motion.div
-              className="text-center mb-10 sm:mb-16"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            >
-              <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">
-                Real love stories
-              </h2>
-              <p className="text-muted-foreground text-base sm:text-lg max-w-xl mx-auto">
-                Couples who found each other on Spaark.
-              </p>
-            </motion.div>
+            <ScrollReveal>
+              <div className="text-center mb-10 sm:mb-16">
+                <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+                  Real love stories
+                </h2>
+                <p className="text-muted-foreground text-base sm:text-lg max-w-xl mx-auto">
+                  Couples who found each other on Spaark.
+                </p>
+              </div>
+            </ScrollReveal>
 
             <div className="relative">
               <motion.div
@@ -504,7 +485,7 @@ const Landing = () => {
       {/* CTA */}
       <section className="py-24 bg-primary">
         <div className="container mx-auto px-4 text-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+          <ScrollReveal>
             <h2 className="font-display text-4xl sm:text-5xl font-bold text-primary-foreground mb-6">
               Ready to find your person?
             </h2>
@@ -517,7 +498,7 @@ const Landing = () => {
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
-          </motion.div>
+          </ScrollReveal>
         </div>
       </section>
 
