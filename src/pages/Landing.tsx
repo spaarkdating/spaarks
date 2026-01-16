@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Menu, ChevronRight } from "lucide-react";
+import { ArrowRight, Menu, ChevronRight, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import logo from "@/assets/spaark-logo.png";
@@ -134,14 +134,24 @@ const Landing = () => {
                   <Menu className="h-6 w-6" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] bg-card/95 backdrop-blur-xl border-l border-border/50 p-0 [&>button]:hidden">
+              <SheetContent side="right" className="w-[300px] bg-background border-l border-border/30 p-0 [&>button]:hidden">
                 <div className="flex flex-col h-full">
-                  {/* Header */}
-                  <div className="flex items-center gap-3 p-6 border-b border-border/50">
-                    <div className="bg-background p-2 rounded-xl shadow-md">
-                      <img src={logo} alt="Spaark Logo" className="h-8 w-8 object-contain" />
+                  {/* Header with close button */}
+                  <div className="flex items-center justify-between p-6 border-b border-border/30">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-muted p-2 rounded-xl">
+                        <img src={logo} alt="Spaark Logo" className="h-8 w-8 object-contain" />
+                      </div>
+                      <span className="text-xl font-display font-bold text-foreground">Spaark</span>
                     </div>
-                    <span className="text-xl font-display font-bold text-foreground">Spaark</span>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="h-8 w-8 rounded-full hover:bg-muted"
+                    >
+                      <X className="h-5 w-5" />
+                    </Button>
                   </div>
                   
                   {/* Navigation Links */}
