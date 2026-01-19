@@ -96,8 +96,8 @@ verify_jwt = false
 [functions.send-inquiry-reply]
 verify_jwt = true
 
-[functions.instamojo-checkout]
+[functions.razorpay-create-order]
 verify_jwt = false
 
-[functions.instamojo-webhook]
+[functions.razorpay-verify-payment]
 verify_jwt = false

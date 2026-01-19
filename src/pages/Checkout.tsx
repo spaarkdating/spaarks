@@ -129,8 +129,8 @@ export default function Checkout() {
   const [existingRequest, setExistingRequest] = useState<any>(null);
   const [paymentSettings, setPaymentSettings] = useState<PaymentSettings | null>(null);
   
-  // Instamojo payment state
-  const [isProcessingInstamojo, setIsProcessingInstamojo] = useState(false);
+  // Razorpay payment state
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   // Plan tier order for upgrade/downgrade check
   const planTiers: Record<string, number> = {
@@ -393,8 +393,8 @@ export default function Checkout() {
     }
   };
 
-  // Handle Instamojo payment
-  const handleInstamojoPayment = async () => {
+  // Handle Razorpay UPI payment
+  const handleRazorpayPayment = async () => {
     if (!user) {
       toast({
         title: "Login required",
@@ -415,13 +415,14 @@ export default function Checkout() {
       return;
     }
 
-    setIsProcessingInstamojo(true);
+    setIsProcessingPayment(true);
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("No active session");
 
-      const response = await supabase.functions.invoke("instamojo-checkout", {
+      // Create Razorpay order
+      const response = await supabase.functions.invoke("razorpay-create-order", {
         body: {
           plan_type: planId,
           amount: finalPrice,
@@ -431,19 +432,85 @@ export default function Checkout() {
       });
 
       if (response.error) throw response.error;
-      if (!response.data?.success) throw new Error(response.data?.error || "Payment initiation failed");
+      if (!response.data?.success) throw new Error(response.data?.error || "Failed to create order");
 
-      // Redirect to Instamojo payment page
-      window.location.href = response.data.longurl;
+      const { order_id, key_id, user_email, user_name } = response.data;
+
+      // Load Razorpay script if not already loaded
+      if (!(window as any).Razorpay) {
+        await new Promise<void>((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = "https://checkout.razorpay.com/v1/checkout.js";
+          script.onload = () => resolve();
+          script.onerror = () => reject(new Error("Failed to load Razorpay"));
+          document.body.appendChild(script);
+        });
+      }
+
+      // Open Razorpay checkout
+      const options = {
+        key: key_id,
+        amount: finalPrice * 100,
+        currency: "INR",
+        name: "Spaark",
+        description: `${plan.name} Plan Subscription`,
+        order_id: order_id,
+        prefill: {
+          email: user_email,
+          name: user_name,
+        },
+        theme: {
+          color: "#6D1A36",
+        },
+        handler: async (response: any) => {
+          // Verify payment
+          try {
+            const verifyResponse = await supabase.functions.invoke("razorpay-verify-payment", {
+              body: {
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                plan_type: planId,
+                amount: finalPrice,
+                coupon_id: appliedCoupon?.coupon_id,
+                discount_amount: discount,
+              },
+            });
+
+            if (verifyResponse.error || !verifyResponse.data?.success) {
+              throw new Error(verifyResponse.data?.error || "Payment verification failed");
+            }
+
+            toast({
+              title: "Payment Successful! 🎉",
+              description: "Your subscription has been activated.",
+            });
+            navigate("/checkout/success?method=razorpay");
+          } catch (error: any) {
+            toast({
+              title: "Verification Failed",
+              description: error.message || "Please contact support.",
+              variant: "destructive",
+            });
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            setIsProcessingPayment(false);
+          },
+        },
+      };
+
+      const razorpay = new (window as any).Razorpay(options);
+      razorpay.open();
     } catch (error: any) {
-      console.error("Instamojo error:", error);
+      console.error("Razorpay error:", error);
       toast({
         title: "Payment initiation failed",
         description: error.message || "Unable to start payment. Please try manual payment.",
         variant: "destructive",
       });
-    } finally {
-      setIsProcessingInstamojo(false);
+      setIsProcessingPayment(false);
     }
   };
 
@@ -675,7 +742,7 @@ export default function Checkout() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-lg">
                       <CreditCard className="h-5 w-5 text-primary" />
-                      Pay Instantly with Instamojo
+                    Pay via UPI
                     </CardTitle>
                     <CardDescription>
                       Secure payment via UPI, Cards, Net Banking & Wallets
@@ -685,7 +752,7 @@ export default function Checkout() {
                     <div className="bg-muted/50 p-4 rounded-lg space-y-3">
                       <div className="flex items-center gap-3 text-sm">
                         <Shield className="h-4 w-4 text-green-600" />
-                        <span>Secured by Instamojo - India's trusted payment gateway</span>
+                        <span>Secured by Razorpay - India's trusted payment gateway</span>
                       </div>
                       <div className="flex items-center gap-3 text-sm">
                         <CheckCircle className="h-4 w-4 text-green-600" />
@@ -704,24 +771,24 @@ export default function Checkout() {
 
                     <Button
                       className="w-full bg-gradient-to-r from-primary to-accent text-lg py-6"
-                      onClick={handleInstamojoPayment}
-                      disabled={isProcessingInstamojo}
+                      onClick={handleRazorpayPayment}
+                      disabled={isProcessingPayment}
                     >
-                      {isProcessingInstamojo ? (
+                      {isProcessingPayment ? (
                         <>
                           <Loader2 className="h-5 w-5 mr-2 animate-spin" />
                           Initiating Payment...
                         </>
                       ) : (
                         <>
-                          <ExternalLink className="h-5 w-5 mr-2" />
-                          Pay Now with Instamojo
+                          <CreditCard className="h-5 w-5 mr-2" />
+                          Pay Now via UPI
                         </>
                       )}
                     </Button>
 
                     <p className="text-xs text-center text-muted-foreground">
-                      You'll be redirected to Instamojo's secure payment page
+                      Secure payment powered by Razorpay
                     </p>
                   </CardContent>
                 </Card>
