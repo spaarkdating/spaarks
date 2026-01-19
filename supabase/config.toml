@@ -95,3 +95,9 @@ verify_jwt = false
 
 [functions.send-inquiry-reply]
 verify_jwt = true
+
+[functions.instamojo-checkout]
+verify_jwt = false
+
+[functions.instamojo-webhook]
+verify_jwt = false
