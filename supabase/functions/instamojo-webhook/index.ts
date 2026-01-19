@@ -27,6 +27,7 @@ serve(async (req) => {
     const paymentRequestId = formData.get("payment_request_id") as string;
     const status = formData.get("status") as string;
     const amount = formData.get("amount") as string;
+    const mac = formData.get("mac") as string; // Message Authentication Code
 
     console.log("Instamojo webhook received:", { paymentId, paymentRequestId, status, amount });
 
