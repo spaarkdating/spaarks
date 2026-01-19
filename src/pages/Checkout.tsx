@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/navigation/Header";
@@ -27,8 +26,6 @@ import {
   Building2,
   QrCode,
   AlertCircle,
-  CreditCard,
-  ExternalLink,
 } from "lucide-react";
 
 interface Plan {
@@ -128,9 +125,6 @@ export default function Checkout() {
   const [copiedUpi, setCopiedUpi] = useState(false);
   const [existingRequest, setExistingRequest] = useState<any>(null);
   const [paymentSettings, setPaymentSettings] = useState<PaymentSettings | null>(null);
-  
-  // Razorpay payment state
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   // Plan tier order for upgrade/downgrade check
   const planTiers: Record<string, number> = {
@@ -393,126 +387,6 @@ export default function Checkout() {
     }
   };
 
-  // Handle Razorpay UPI payment
-  const handleRazorpayPayment = async () => {
-    if (!user) {
-      toast({
-        title: "Login required",
-        description: "Please login to continue.",
-        variant: "destructive",
-      });
-      navigate("/auth");
-      return;
-    }
-
-    // Check if this is a downgrade
-    if (currentPlan && planTiers[currentPlan] >= planTiers[planId]) {
-      toast({
-        title: "Downgrade not allowed",
-        description: `You are already on the ${currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)} plan.`,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsProcessingPayment(true);
-
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("No active session");
-
-      // Create Razorpay order
-      const response = await supabase.functions.invoke("razorpay-create-order", {
-        body: {
-          plan_type: planId,
-          amount: finalPrice,
-          coupon_id: appliedCoupon?.coupon_id,
-          discount_amount: discount,
-        },
-      });
-
-      if (response.error) throw response.error;
-      if (!response.data?.success) throw new Error(response.data?.error || "Failed to create order");
-
-      const { order_id, key_id, user_email, user_name } = response.data;
-
-      // Load Razorpay script if not already loaded
-      if (!(window as any).Razorpay) {
-        await new Promise<void>((resolve, reject) => {
-          const script = document.createElement("script");
-          script.src = "https://checkout.razorpay.com/v1/checkout.js";
-          script.onload = () => resolve();
-          script.onerror = () => reject(new Error("Failed to load Razorpay"));
-          document.body.appendChild(script);
-        });
-      }
-
-      // Open Razorpay checkout
-      const options = {
-        key: key_id,
-        amount: finalPrice * 100,
-        currency: "INR",
-        name: "Spaark",
-        description: `${plan.name} Plan Subscription`,
-        order_id: order_id,
-        prefill: {
-          email: user_email,
-          name: user_name,
-        },
-        theme: {
-          color: "#6D1A36",
-        },
-        handler: async (response: any) => {
-          // Verify payment
-          try {
-            const verifyResponse = await supabase.functions.invoke("razorpay-verify-payment", {
-              body: {
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-                plan_type: planId,
-                amount: finalPrice,
-                coupon_id: appliedCoupon?.coupon_id,
-                discount_amount: discount,
-              },
-            });
-
-            if (verifyResponse.error || !verifyResponse.data?.success) {
-              throw new Error(verifyResponse.data?.error || "Payment verification failed");
-            }
-
-            toast({
-              title: "Payment Successful! 🎉",
-              description: "Your subscription has been activated.",
-            });
-            navigate("/checkout/success?method=razorpay");
-          } catch (error: any) {
-            toast({
-              title: "Verification Failed",
-              description: error.message || "Please contact support.",
-              variant: "destructive",
-            });
-          }
-        },
-        modal: {
-          ondismiss: () => {
-            setIsProcessingPayment(false);
-          },
-        },
-      };
-
-      const razorpay = new (window as any).Razorpay(options);
-      razorpay.open();
-    } catch (error: any) {
-      console.error("Razorpay error:", error);
-      toast({
-        title: "Payment initiation failed",
-        description: error.message || "Unable to start payment. Please try manual payment.",
-        variant: "destructive",
-      });
-      setIsProcessingPayment(false);
-    }
-  };
 
   const PlanIcon = plan.icon;
   const discount = calculateDiscount();
@@ -724,247 +598,172 @@ export default function Checkout() {
 
           {/* Payment Section */}
           <div className="space-y-6">
-            <Tabs defaultValue="instant" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="instant" className="flex items-center gap-2">
-                  <CreditCard className="h-4 w-4" />
-                  Instant Payment
-                </TabsTrigger>
-                <TabsTrigger value="manual" className="flex items-center gap-2">
-                  <Smartphone className="h-4 w-4" />
-                  Manual Payment
-                </TabsTrigger>
-              </TabsList>
-
-              {/* Instant Payment Tab - Instamojo */}
-              <TabsContent value="instant" className="mt-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <CreditCard className="h-5 w-5 text-primary" />
-                    Pay via UPI
-                    </CardTitle>
-                    <CardDescription>
-                      Secure payment via UPI, Cards, Net Banking & Wallets
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="bg-muted/50 p-4 rounded-lg space-y-3">
-                      <div className="flex items-center gap-3 text-sm">
-                        <Shield className="h-4 w-4 text-green-600" />
-                        <span>Secured by Razorpay - India's trusted payment gateway</span>
-                      </div>
-                      <div className="flex items-center gap-3 text-sm">
-                        <CheckCircle className="h-4 w-4 text-green-600" />
-                        <span>Instant activation - no manual verification needed</span>
-                      </div>
-                      <div className="flex items-center gap-3 text-sm">
-                        <Smartphone className="h-4 w-4 text-primary" />
-                        <span>Pay via UPI, Credit/Debit Cards, Net Banking, Wallets</span>
-                      </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Smartphone className="h-5 w-5 text-primary" />
+                  Pay via UPI
+                </CardTitle>
+                <CardDescription>Pay using any UPI app (GPay, PhonePe, Paytm, etc.)</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {paymentSettings?.upi_qr_url && (
+                  <div className="flex justify-center">
+                    <div className="w-48 h-48 border rounded-lg overflow-hidden bg-white p-2">
+                      <img
+                        src={paymentSettings.upi_qr_url}
+                        alt="UPI QR Code"
+                        className="w-full h-full object-contain"
+                      />
                     </div>
-
-                    <div className="text-center py-4">
-                      <p className="text-3xl font-bold text-primary">₹{finalPrice}</p>
-                      <p className="text-sm text-muted-foreground">One-time payment for 30 days</p>
+                  </div>
+                )}
+                <div className="bg-muted p-4 rounded-lg text-center">
+                  {!paymentSettings?.upi_qr_url && (
+                    <QrCode className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
+                  )}
+                  <p className="text-sm text-muted-foreground mb-2">
+                    {paymentSettings?.upi_qr_url ? "Or use UPI ID" : "Scan or use UPI ID"}
+                  </p>
+                  {paymentSettings?.upi_id && (
+                    <div className="flex items-center justify-center gap-2">
+                      <code className="bg-background px-3 py-2 rounded text-lg font-mono">{paymentSettings.upi_id}</code>
+                      <Button variant="outline" size="sm" onClick={() => copyToClipboard(paymentSettings.upi_id!)}>
+                        {copiedUpi ? <CheckCircle className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                      </Button>
                     </div>
+                  )}
+                  <p className="text-lg font-bold text-primary mt-2">₹{finalPrice}</p>
+                </div>
+                
+                <div className="bg-muted/50 p-4 rounded-lg space-y-2">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Shield className="h-4 w-4 text-green-600" />
+                    <span>Secure manual verification within 24 hours</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>Upload screenshot for faster verification</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-                    <Button
-                      className="w-full bg-gradient-to-r from-primary to-accent text-lg py-6"
-                      onClick={handleRazorpayPayment}
-                      disabled={isProcessingPayment}
-                    >
-                      {isProcessingPayment ? (
-                        <>
-                          <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                          Initiating Payment...
-                        </>
-                      ) : (
-                        <>
-                          <CreditCard className="h-5 w-5 mr-2" />
-                          Pay Now via UPI
-                        </>
-                      )}
-                    </Button>
-
-                    <p className="text-xs text-center text-muted-foreground">
-                      Secure payment powered by Razorpay
+            {/* Bank Transfer */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Building2 className="h-5 w-5 text-primary" />
+                  Bank Transfer (Alternative)
+                </CardTitle>
+                <CardDescription>Transfer directly to our bank account</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-muted p-4 rounded-lg space-y-2 text-sm">
+                  {paymentSettings?.bank_name && (
+                    <p>
+                      <strong>Bank:</strong> {paymentSettings.bank_name}
                     </p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+                  )}
+                  {paymentSettings?.account_name && (
+                    <p>
+                      <strong>Account Name:</strong> {paymentSettings.account_name}
+                    </p>
+                  )}
+                  {paymentSettings?.account_number && (
+                    <p>
+                      <strong>Account Number:</strong> {paymentSettings.account_number}
+                    </p>
+                  )}
+                  {paymentSettings?.ifsc_code && (
+                    <p>
+                      <strong>IFSC Code:</strong> {paymentSettings.ifsc_code}
+                    </p>
+                  )}
+                  <p className="text-primary font-bold pt-2">Amount: ₹{finalPrice}</p>
+                </div>
+              </CardContent>
+            </Card>
 
-              {/* Manual Payment Tab */}
-              <TabsContent value="manual" className="mt-4 space-y-6">
-                {/* UPI Payment */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <Smartphone className="h-5 w-5 text-primary" />
-                      Pay via UPI
-                    </CardTitle>
-                    <CardDescription>Pay using any UPI app (GPay, PhonePe, Paytm, etc.)</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {paymentSettings?.upi_qr_url && (
-                      <div className="flex justify-center">
-                        <div className="w-48 h-48 border rounded-lg overflow-hidden bg-white p-2">
-                          <img
-                            src={paymentSettings.upi_qr_url}
-                            alt="UPI QR Code"
-                            className="w-full h-full object-contain"
-                          />
+            {/* Submit Payment Proof */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Upload className="h-5 w-5 text-primary" />
+                  Confirm Payment
+                </CardTitle>
+                <CardDescription>After payment, submit your transaction details for verification</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="transactionId">Transaction ID / UTR Number *</Label>
+                  <Input
+                    id="transactionId"
+                    placeholder="Enter transaction ID"
+                    value={transactionId}
+                    onChange={(e) => setTransactionId(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="upiReference">UPI Reference Number (Optional)</Label>
+                  <Input
+                    id="upiReference"
+                    placeholder="Enter UPI reference"
+                    value={upiReference}
+                    onChange={(e) => setUpiReference(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="paymentProof">Payment Screenshot (Recommended)</Label>
+                  <div className="border-2 border-dashed rounded-lg p-4 text-center">
+                    <input
+                      type="file"
+                      id="paymentProof"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+                    <label htmlFor="paymentProof" className="cursor-pointer">
+                      {paymentProof ? (
+                        <div className="flex items-center justify-center gap-2 text-green-600">
+                          <CheckCircle className="h-5 w-5" />
+                          <span>{paymentProof.name}</span>
                         </div>
-                      </div>
-                    )}
-                    <div className="bg-muted p-4 rounded-lg text-center">
-                      {!paymentSettings?.upi_qr_url && (
-                        <QrCode className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
-                      )}
-                      <p className="text-sm text-muted-foreground mb-2">
-                        {paymentSettings?.upi_qr_url ? "Or use UPI ID" : "Scan or use UPI ID"}
-                      </p>
-                      {paymentSettings?.upi_id && (
-                        <div className="flex items-center justify-center gap-2">
-                          <code className="bg-background px-3 py-2 rounded text-lg font-mono">{paymentSettings.upi_id}</code>
-                          <Button variant="outline" size="sm" onClick={() => copyToClipboard(paymentSettings.upi_id!)}>
-                            {copiedUpi ? <CheckCircle className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
-                          </Button>
-                        </div>
-                      )}
-                      <p className="text-lg font-bold text-primary mt-2">₹{finalPrice}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Bank Transfer */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <Building2 className="h-5 w-5 text-primary" />
-                      Bank Transfer
-                    </CardTitle>
-                    <CardDescription>Transfer directly to our bank account</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="bg-muted p-4 rounded-lg space-y-2 text-sm">
-                      {paymentSettings?.bank_name && (
-                        <p>
-                          <strong>Bank:</strong> {paymentSettings.bank_name}
-                        </p>
-                      )}
-                      {paymentSettings?.account_name && (
-                        <p>
-                          <strong>Account Name:</strong> {paymentSettings.account_name}
-                        </p>
-                      )}
-                      {paymentSettings?.account_number && (
-                        <p>
-                          <strong>Account Number:</strong> {paymentSettings.account_number}
-                        </p>
-                      )}
-                      {paymentSettings?.ifsc_code && (
-                        <p>
-                          <strong>IFSC Code:</strong> {paymentSettings.ifsc_code}
-                        </p>
-                      )}
-                      <p className="text-primary font-bold pt-2">Amount: ₹{finalPrice}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Submit Payment Proof */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <Upload className="h-5 w-5 text-primary" />
-                      Confirm Payment
-                    </CardTitle>
-                    <CardDescription>After payment, submit your transaction details</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="transactionId">Transaction ID / UTR Number</Label>
-                      <Input
-                        id="transactionId"
-                        placeholder="Enter transaction ID"
-                        value={transactionId}
-                        onChange={(e) => setTransactionId(e.target.value)}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="upiReference">UPI Reference Number (Optional)</Label>
-                      <Input
-                        id="upiReference"
-                        placeholder="Enter UPI reference"
-                        value={upiReference}
-                        onChange={(e) => setUpiReference(e.target.value)}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="paymentProof">Payment Screenshot (Optional)</Label>
-                      <Input
-                        id="paymentProof"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileChange}
-                        className="cursor-pointer"
-                      />
-                      {paymentProof && (
-                        <p className="text-sm text-muted-foreground flex items-center gap-1">
-                          <CheckCircle className="h-3 w-3 text-green-600" />
-                          {paymentProof.name}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Shield className="h-4 w-4" />
-                      Your payment will be verified within 24 hours
-                    </div>
-
-                    <Button
-                      className="w-full bg-gradient-to-r from-primary to-secondary text-lg py-6"
-                      onClick={handleSubmitPayment}
-                      disabled={isSubmitting}
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                          Submitting...
-                        </>
                       ) : (
-                        <>
-                          <CheckCircle className="h-5 w-5 mr-2" />
-                          Submit Payment for Review
-                        </>
+                        <div className="space-y-2">
+                          <Upload className="h-8 w-8 mx-auto text-muted-foreground" />
+                          <p className="text-sm text-muted-foreground">Click to upload payment screenshot</p>
+                        </div>
                       )}
-                    </Button>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
+                    </label>
+                  </div>
+                </div>
 
-            <p className="text-xs text-center text-muted-foreground">
-              By proceeding, you agree to our{" "}
-              <Link to="/payment-terms" className="text-primary hover:underline">
-                Payment Terms
-              </Link>
-              ,{" "}
-              <Link to="/refund-policy" className="text-primary hover:underline">
-                Refund Policy
-              </Link>
-              ,{" "}
-              <Link to="/terms" className="text-primary hover:underline">
-                Terms of Service
-              </Link>{" "}
-              and{" "}
-              <Link to="/privacy" className="text-primary hover:underline">
-                Privacy Policy
-              </Link>
-            </p>
+                <Button
+                  className="w-full"
+                  onClick={handleSubmitPayment}
+                  disabled={isSubmitting || (!transactionId.trim() && !upiReference.trim())}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Submit for Verification
+                    </>
+                  )}
+                </Button>
+
+                <p className="text-xs text-center text-muted-foreground">
+                  Your subscription will be activated within 24 hours after verification
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </main>
