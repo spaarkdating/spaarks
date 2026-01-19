@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { format, formatDistanceToNow, differenceInHours } from "date-fns";
@@ -25,7 +24,9 @@ import {
   ShieldCheck,
   Zap,
   AlertTriangle,
-  BadgeCheck
+  BadgeCheck,
+  Search,
+  Wifi
 } from "lucide-react";
 import {
   Dialog,
@@ -43,6 +44,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Progress } from "@/components/ui/progress";
 
 interface PaymentRequest {
   id: string;
@@ -157,9 +159,10 @@ export function PaymentRequests() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkProcessing, setBulkProcessing] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
-  const [showAutoApprove, setShowAutoApprove] = useState(false);
   const [autoApproveThreshold, setAutoApproveThreshold] = useState(75);
   const [showVerificationDetails, setShowVerificationDetails] = useState<string | null>(null);
+  const [verifyingUTR, setVerifyingUTR] = useState<string | null>(null);
+  const [utrVerificationResults, setUtrVerificationResults] = useState<Record<string, any>>({});
 
   const fetchRequests = useCallback(async () => {
     setLoading(true);
@@ -222,6 +225,63 @@ export function PaymentRequests() {
       supabase.removeChannel(channel);
     };
   }, [fetchRequests]);
+
+  // UTR Verification function
+  const verifyUTR = async (request: PaymentRequest) => {
+    const utr = request.upi_reference || request.transaction_id;
+    if (!utr) {
+      toast({
+        title: "No UTR found",
+        description: "This payment request doesn't have a UTR/Transaction ID to verify.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setVerifyingUTR(request.id);
+    try {
+      const { data, error } = await supabase.functions.invoke("verify-utr", {
+        body: {
+          utr: utr,
+          amount: request.amount,
+          paymentRequestId: request.id,
+        },
+      });
+
+      if (error) throw error;
+
+      setUtrVerificationResults(prev => ({
+        ...prev,
+        [request.id]: data,
+      }));
+
+      if (data.verified) {
+        toast({
+          title: "✓ UTR Verified",
+          description: data.message,
+        });
+      } else if (data.status === "manual_required") {
+        toast({
+          title: "Manual verification required",
+          description: `UTR format valid (${data.utrType}). Confidence: ${data.confidence}%`,
+        });
+      } else {
+        toast({
+          title: "Verification incomplete",
+          description: data.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Verification failed",
+        description: error.message || "Failed to verify UTR",
+        variant: "destructive",
+      });
+    } finally {
+      setVerifyingUTR(null);
+    }
+  };
 
   const sendPaymentNotification = async (
     email: string,
@@ -839,6 +899,45 @@ export function PaymentRequests() {
                           </div>
                         </div>
 
+                        {/* UTR Verification Result */}
+                        {utrVerificationResults[request.id] && (
+                          <div className={`mt-3 p-3 rounded-lg border ${
+                            utrVerificationResults[request.id].verified 
+                              ? "bg-green-500/10 border-green-500/30" 
+                              : utrVerificationResults[request.id].status === "manual_required"
+                              ? "bg-amber-500/10 border-amber-500/30"
+                              : "bg-red-500/10 border-red-500/30"
+                          }`}>
+                            <div className="flex items-center gap-2 mb-2">
+                              {utrVerificationResults[request.id].verified ? (
+                                <ShieldCheck className="h-4 w-4 text-green-600" />
+                              ) : utrVerificationResults[request.id].status === "manual_required" ? (
+                                <Wifi className="h-4 w-4 text-amber-600" />
+                              ) : (
+                                <AlertCircle className="h-4 w-4 text-red-600" />
+                              )}
+                              <span className="text-sm font-medium">
+                                Bank API Verification: {utrVerificationResults[request.id].status}
+                              </span>
+                              <Badge variant="outline" className="ml-auto">
+                                {utrVerificationResults[request.id].confidence}% confidence
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              {utrVerificationResults[request.id].message}
+                            </p>
+                            {utrVerificationResults[request.id].utrType && (
+                              <p className="text-xs mt-1">
+                                UTR Type: <Badge variant="secondary" className="text-xs">{utrVerificationResults[request.id].utrType}</Badge>
+                              </p>
+                            )}
+                            <Progress 
+                              value={utrVerificationResults[request.id].confidence} 
+                              className="h-1.5 mt-2"
+                            />
+                          </div>
+                        )}
+
                         {request.admin_notes && (
                           <div className="bg-muted p-2 rounded text-xs mt-3">
                             <strong>Notes:</strong> {request.admin_notes}
@@ -889,6 +988,21 @@ export function PaymentRequests() {
                                   <ExternalLink className="h-4 w-4 mr-1" />
                                   Full Image
                                 </a>
+                              </Button>
+                            )}
+                            {(request.upi_reference || request.transaction_id) && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => verifyUTR(request)}
+                                disabled={verifyingUTR === request.id}
+                              >
+                                {verifyingUTR === request.id ? (
+                                  <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                                ) : (
+                                  <Search className="h-4 w-4 mr-1" />
+                                )}
+                                Verify UTR
                               </Button>
                             )}
                           </div>
