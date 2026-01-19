@@ -76,9 +76,8 @@ serve(async (req) => {
     const name = profile?.display_name || "Spaark User";
 
     // Create Instamojo payment request using v1.1 API
-    // IMPORTANT: Use test.instamojo.com for sandbox/test credentials, www.instamojo.com for production
-    // If using test credentials from test.instamojo.com, use the sandbox URL
-    const instamojoUrl = "https://test.instamojo.com/api/1.1/payment-requests/";
+    // Production endpoint - ensure your API Key and Auth Token are from www.instamojo.com/integrations
+    const instamojoUrl = "https://www.instamojo.com/api/1.1/payment-requests/";
     
     const origin = req.headers.get("origin") || "https://spaarks.lovable.app";
     const redirectUrl = `${origin}/checkout/success?method=instamojo`;
