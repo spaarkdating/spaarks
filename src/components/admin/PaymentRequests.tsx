@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { format, formatDistanceToNow } from "date-fns";
+import { format, formatDistanceToNow, differenceInHours } from "date-fns";
 import { 
   CreditCard, 
   Check, 
@@ -19,7 +20,12 @@ import {
   IndianRupee,
   CheckCheck,
   Eye,
-  AlertCircle
+  AlertCircle,
+  Sparkles,
+  ShieldCheck,
+  Zap,
+  AlertTriangle,
+  BadgeCheck
 } from "lucide-react";
 import {
   Dialog,
@@ -31,6 +37,12 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface PaymentRequest {
   id: string;
@@ -49,6 +61,88 @@ interface PaymentRequest {
   };
 }
 
+interface VerificationScore {
+  score: number;
+  level: "high" | "medium" | "low";
+  reasons: string[];
+}
+
+// UTR patterns for different UPI apps
+const UTR_PATTERNS = [
+  /^[0-9]{12}$/, // Standard 12-digit UTR
+  /^[A-Z]{4}[0-9]{8,14}$/, // Bank UTR format (e.g., AXIS20231215123456)
+  /^[0-9]{16,22}$/, // Extended UTR
+  /^[A-Za-z0-9]{8,25}$/, // Generic alphanumeric reference
+];
+
+const validateUTR = (utr: string | null): boolean => {
+  if (!utr) return false;
+  const cleanUtr = utr.trim().replace(/\s/g, "");
+  return UTR_PATTERNS.some(pattern => pattern.test(cleanUtr));
+};
+
+const calculateVerificationScore = (request: PaymentRequest): VerificationScore => {
+  let score = 0;
+  const reasons: string[] = [];
+
+  // Check if payment proof is provided (+30)
+  if (request.payment_proof_url) {
+    score += 30;
+    reasons.push("✓ Payment proof uploaded");
+  } else {
+    reasons.push("✗ No payment proof");
+  }
+
+  // Check if UTR/Transaction ID is valid (+25)
+  const hasValidUTR = validateUTR(request.upi_reference) || validateUTR(request.transaction_id);
+  if (hasValidUTR) {
+    score += 25;
+    reasons.push("✓ Valid UTR/Transaction ID format");
+  } else if (request.upi_reference || request.transaction_id) {
+    score += 10;
+    reasons.push("~ Reference provided but format uncertain");
+  } else {
+    reasons.push("✗ No transaction reference");
+  }
+
+  // Check payment timing - recent payments are more trustworthy (+20)
+  const hoursAgo = differenceInHours(new Date(), new Date(request.created_at));
+  if (hoursAgo < 1) {
+    score += 20;
+    reasons.push("✓ Very recent submission (<1 hour)");
+  } else if (hoursAgo < 24) {
+    score += 15;
+    reasons.push("✓ Recent submission (<24 hours)");
+  } else if (hoursAgo < 72) {
+    score += 10;
+    reasons.push("~ Submitted 1-3 days ago");
+  } else {
+    reasons.push("~ Older submission (>3 days)");
+  }
+
+  // Check if amount matches standard plan prices (+25)
+  const standardPrices = [149, 249, 399]; // Plus, Pro, Elite
+  if (standardPrices.includes(request.amount)) {
+    score += 25;
+    reasons.push("✓ Amount matches plan price");
+  } else {
+    score += 5;
+    reasons.push("~ Custom amount (possibly with discount)");
+  }
+
+  // Determine level
+  let level: "high" | "medium" | "low";
+  if (score >= 75) {
+    level = "high";
+  } else if (score >= 50) {
+    level = "medium";
+  } else {
+    level = "low";
+  }
+
+  return { score, level, reasons };
+};
+
 export function PaymentRequests() {
   const { toast } = useToast();
   const [requests, setRequests] = useState<PaymentRequest[]>([]);
@@ -63,6 +157,9 @@ export function PaymentRequests() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkProcessing, setBulkProcessing] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
+  const [showAutoApprove, setShowAutoApprove] = useState(false);
+  const [autoApproveThreshold, setAutoApproveThreshold] = useState(75);
+  const [showVerificationDetails, setShowVerificationDetails] = useState<string | null>(null);
 
   const fetchRequests = useCallback(async () => {
     setLoading(true);
@@ -246,6 +343,44 @@ export function PaymentRequests() {
     }
   };
 
+  const handleAutoApproveHighConfidence = async () => {
+    const highConfidenceRequests = requests.filter(r => {
+      if (r.status !== "pending") return false;
+      const verification = calculateVerificationScore(r);
+      return verification.score >= autoApproveThreshold;
+    });
+
+    if (highConfidenceRequests.length === 0) {
+      toast({
+        title: "No eligible payments",
+        description: `No pending payments meet the ${autoApproveThreshold}% confidence threshold`,
+      });
+      return;
+    }
+
+    setBulkProcessing(true);
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const request of highConfidenceRequests) {
+      try {
+        await processApproval(request, `Auto-approved (${calculateVerificationScore(request).score}% confidence)`);
+        successCount++;
+      } catch (error) {
+        failCount++;
+        console.error("Failed to auto-approve:", request.id, error);
+      }
+    }
+
+    toast({
+      title: "Auto-Approval Complete",
+      description: `${successCount} payments approved${failCount > 0 ? `, ${failCount} failed` : ""}`,
+    });
+
+    setBulkProcessing(false);
+    fetchRequests();
+  };
+
   const handleBulkApprove = async () => {
     if (selectedIds.size === 0) return;
     
@@ -370,16 +505,52 @@ export function PaymentRequests() {
     }
   };
 
+  const getVerificationBadge = (verification: VerificationScore) => {
+    if (verification.level === "high") {
+      return (
+        <Badge className="bg-green-500/20 text-green-600 border-green-500/30">
+          <ShieldCheck className="h-3 w-3 mr-1" />
+          {verification.score}% Verified
+        </Badge>
+      );
+    } else if (verification.level === "medium") {
+      return (
+        <Badge className="bg-amber-500/20 text-amber-600 border-amber-500/30">
+          <AlertTriangle className="h-3 w-3 mr-1" />
+          {verification.score}% Review
+        </Badge>
+      );
+    } else {
+      return (
+        <Badge variant="destructive" className="bg-red-500/20 text-red-600 border-red-500/30">
+          <AlertCircle className="h-3 w-3 mr-1" />
+          {verification.score}% Low
+        </Badge>
+      );
+    }
+  };
+
   const pendingRequests = requests.filter(r => r.status === "pending");
+  const highConfidenceCount = pendingRequests.filter(r => 
+    calculateVerificationScore(r).score >= autoApproveThreshold
+  ).length;
+
+  // Sort pending requests by verification score (highest first)
+  const sortedRequests = [...requests].sort((a, b) => {
+    if (a.status === "pending" && b.status === "pending") {
+      return calculateVerificationScore(b).score - calculateVerificationScore(a).score;
+    }
+    return 0;
+  });
 
   return (
     <Card>
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <CardTitle className="flex items-center gap-2">
               <CreditCard className="h-5 w-5" />
-              Payment Requests
+              Payment Verification
               {pendingCount > 0 && (
                 <Badge variant="destructive" className="ml-2 animate-pulse">
                   {pendingCount} pending
@@ -387,14 +558,67 @@ export function PaymentRequests() {
               )}
             </CardTitle>
             <CardDescription>
-              Review and approve manual payment submissions
+              Semi-automated payment verification with confidence scoring
             </CardDescription>
           </div>
-          <Button variant="outline" size="sm" onClick={fetchRequests} disabled={loading}>
-            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={fetchRequests} disabled={loading}>
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          </div>
         </div>
+        
+        {/* Auto-Approve Section */}
+        {filter === "pending" && pendingRequests.length > 0 && (
+          <div className="mt-4 p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-lg">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-500/20 rounded-full">
+                  <Zap className="h-5 w-5 text-green-600" />
+                </div>
+                <div>
+                  <h4 className="font-medium flex items-center gap-2">
+                    Smart Auto-Approve
+                    <Badge variant="outline" className="text-xs">Beta</Badge>
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    {highConfidenceCount} payment{highConfidenceCount !== 1 ? 's' : ''} meet {autoApproveThreshold}%+ confidence threshold
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="threshold" className="text-sm whitespace-nowrap">Threshold:</Label>
+                  <select
+                    id="threshold"
+                    value={autoApproveThreshold}
+                    onChange={(e) => setAutoApproveThreshold(Number(e.target.value))}
+                    className="h-8 px-2 rounded border bg-background text-sm"
+                  >
+                    <option value={90}>90%</option>
+                    <option value={80}>80%</option>
+                    <option value={75}>75%</option>
+                    <option value={70}>70%</option>
+                  </select>
+                </div>
+                <Button
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700"
+                  onClick={handleAutoApproveHighConfidence}
+                  disabled={bulkProcessing || highConfidenceCount === 0}
+                >
+                  {bulkProcessing ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <Sparkles className="h-4 w-4 mr-2" />
+                  )}
+                  Auto-Approve ({highConfidenceCount})
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
         
         <div className="flex flex-wrap items-center gap-2 mt-4">
           {(["pending", "approved", "rejected", "all"] as const).map((f) => (
@@ -455,146 +679,225 @@ export function PaymentRequests() {
         ) : (
           <ScrollArea className="max-h-[600px]">
             <div className="space-y-3">
-              {requests.map((request) => (
-                <div
-                  key={request.id}
-                  className={`border rounded-lg p-4 transition-all ${
-                    selectedIds.has(request.id) ? 'ring-2 ring-primary bg-primary/5' : ''
-                  } ${request.status === "pending" ? 'border-amber-500/30 bg-amber-500/5' : ''}`}
-                >
-                  <div className="flex items-start gap-3">
-                    {request.status === "pending" && (
-                      <Checkbox
-                        checked={selectedIds.has(request.id)}
-                        onCheckedChange={() => toggleSelect(request.id)}
-                        className="mt-1"
-                      />
-                    )}
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="space-y-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <User className="h-4 w-4 text-muted-foreground shrink-0" />
-                            <span className="font-medium truncate">
-                              {request.profiles?.display_name || "Unknown User"}
-                            </span>
-                            {getStatusBadge(request.status)}
-                            <span className="text-xs text-muted-foreground flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {formatDistanceToNow(new Date(request.created_at), { addSuffix: true })}
-                            </span>
-                          </div>
-                          <p className="text-sm text-muted-foreground truncate">
-                            {request.profiles?.email}
-                          </p>
-                        </div>
-                        
-                        <div className="text-right shrink-0">
-                          <Badge variant="outline" className="text-lg font-bold">
-                            <IndianRupee className="h-4 w-4" />
-                            {request.amount}
-                          </Badge>
-                          <p className="text-sm text-muted-foreground mt-1 capitalize">
-                            {request.plan_type} Plan
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3 text-sm">
-                        <div>
-                          <p className="text-muted-foreground text-xs">Transaction ID</p>
-                          <p className="font-mono text-xs truncate">{request.transaction_id || "—"}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground text-xs">UPI Reference</p>
-                          <p className="font-mono text-xs truncate">{request.upi_reference || "—"}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground text-xs">Submitted</p>
-                          <p className="text-xs">
-                            {format(new Date(request.created_at), "MMM d, h:mm a")}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground text-xs">Payment Proof</p>
-                          {request.payment_proof_url ? (
-                            <Button
-                              variant="link"
-                              size="sm"
-                              className="h-auto p-0 text-xs"
-                              onClick={() => {
-                                setProofUrl(request.payment_proof_url);
-                                setShowProofDialog(true);
-                              }}
-                            >
-                              <Eye className="h-3 w-3 mr-1" />
-                              View Proof
-                            </Button>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">Not provided</span>
-                          )}
-                        </div>
-                      </div>
-
-                      {request.admin_notes && (
-                        <div className="bg-muted p-2 rounded text-xs mt-3">
-                          <strong>Notes:</strong> {request.admin_notes}
-                        </div>
-                      )}
-
+              {sortedRequests.map((request) => {
+                const verification = calculateVerificationScore(request);
+                return (
+                  <div
+                    key={request.id}
+                    className={`border rounded-lg p-4 transition-all ${
+                      selectedIds.has(request.id) ? 'ring-2 ring-primary bg-primary/5' : ''
+                    } ${request.status === "pending" ? 'border-amber-500/30 bg-amber-500/5' : ''}`}
+                  >
+                    <div className="flex items-start gap-3">
                       {request.status === "pending" && (
-                        <div className="flex gap-2 mt-3">
-                          <Button
-                            size="sm"
-                            onClick={() => handleQuickApprove(request)}
-                            disabled={processingIds.has(request.id)}
-                            className="bg-green-600 hover:bg-green-700"
-                          >
-                            {processingIds.has(request.id) ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <>
-                                <Check className="h-4 w-4 mr-1" />
-                                Quick Approve
-                              </>
-                            )}
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedRequest(request);
-                              setAdminNotes("");
-                              setShowRejectDialog(true);
-                            }}
-                            disabled={processingIds.has(request.id)}
-                          >
-                            <X className="h-4 w-4 mr-1" />
-                            Reject
-                          </Button>
-                          {request.payment_proof_url && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              asChild
-                            >
-                              <a
-                                href={request.payment_proof_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                <ExternalLink className="h-4 w-4 mr-1" />
-                                Open Full
-                              </a>
-                            </Button>
-                          )}
-                        </div>
+                        <Checkbox
+                          checked={selectedIds.has(request.id)}
+                          onCheckedChange={() => toggleSelect(request.id)}
+                          className="mt-1"
+                        />
                       )}
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="space-y-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <User className="h-4 w-4 text-muted-foreground shrink-0" />
+                              <span className="font-medium truncate">
+                                {request.profiles?.display_name || "Unknown User"}
+                              </span>
+                              {getStatusBadge(request.status)}
+                              {request.status === "pending" && (
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <button
+                                        onClick={() => setShowVerificationDetails(
+                                          showVerificationDetails === request.id ? null : request.id
+                                        )}
+                                        className="hover:opacity-80"
+                                      >
+                                        {getVerificationBadge(verification)}
+                                      </button>
+                                    </TooltipTrigger>
+                                    <TooltipContent className="max-w-xs">
+                                      <p className="font-medium mb-1">Verification Score: {verification.score}%</p>
+                                      <ul className="text-xs space-y-0.5">
+                                        {verification.reasons.map((reason, i) => (
+                                          <li key={i}>{reason}</li>
+                                        ))}
+                                      </ul>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              )}
+                              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                {formatDistanceToNow(new Date(request.created_at), { addSuffix: true })}
+                              </span>
+                            </div>
+                            <p className="text-sm text-muted-foreground truncate">
+                              {request.profiles?.email}
+                            </p>
+                          </div>
+                          
+                          <div className="text-right shrink-0">
+                            <Badge variant="outline" className="text-lg font-bold">
+                              <IndianRupee className="h-4 w-4" />
+                              {request.amount}
+                            </Badge>
+                            <p className="text-sm text-muted-foreground mt-1 capitalize">
+                              {request.plan_type} Plan
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Verification Details Expandable */}
+                        {showVerificationDetails === request.id && (
+                          <div className="mt-3 p-3 bg-muted/50 rounded-lg">
+                            <h5 className="text-sm font-medium mb-2 flex items-center gap-2">
+                              <BadgeCheck className="h-4 w-4" />
+                              Verification Analysis
+                            </h5>
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              {verification.reasons.map((reason, i) => (
+                                <div key={i} className="flex items-center gap-1">
+                                  {reason.startsWith("✓") ? (
+                                    <Check className="h-3 w-3 text-green-500" />
+                                  ) : reason.startsWith("✗") ? (
+                                    <X className="h-3 w-3 text-red-500" />
+                                  ) : (
+                                    <AlertCircle className="h-3 w-3 text-amber-500" />
+                                  )}
+                                  <span>{reason.replace(/^[✓✗~]\s*/, "")}</span>
+                                </div>
+                              ))}
+                            </div>
+                            <div className="mt-2 pt-2 border-t">
+                              <div className="flex items-center gap-2">
+                                <div className="flex-1 bg-muted rounded-full h-2">
+                                  <div 
+                                    className={`h-full rounded-full transition-all ${
+                                      verification.level === "high" ? "bg-green-500" :
+                                      verification.level === "medium" ? "bg-amber-500" : "bg-red-500"
+                                    }`}
+                                    style={{ width: `${verification.score}%` }}
+                                  />
+                                </div>
+                                <span className="text-xs font-medium">{verification.score}%</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3 text-sm">
+                          <div>
+                            <p className="text-muted-foreground text-xs">Transaction ID</p>
+                            <p className={`font-mono text-xs truncate ${
+                              validateUTR(request.transaction_id) ? "text-green-600" : ""
+                            }`}>
+                              {request.transaction_id || "—"}
+                              {validateUTR(request.transaction_id) && (
+                                <Check className="h-3 w-3 inline ml-1 text-green-500" />
+                              )}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground text-xs">UPI Reference</p>
+                            <p className={`font-mono text-xs truncate ${
+                              validateUTR(request.upi_reference) ? "text-green-600" : ""
+                            }`}>
+                              {request.upi_reference || "—"}
+                              {validateUTR(request.upi_reference) && (
+                                <Check className="h-3 w-3 inline ml-1 text-green-500" />
+                              )}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground text-xs">Submitted</p>
+                            <p className="text-xs">
+                              {format(new Date(request.created_at), "MMM d, h:mm a")}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground text-xs">Payment Proof</p>
+                            {request.payment_proof_url ? (
+                              <Button
+                                variant="link"
+                                size="sm"
+                                className="h-auto p-0 text-xs"
+                                onClick={() => {
+                                  setProofUrl(request.payment_proof_url);
+                                  setShowProofDialog(true);
+                                }}
+                              >
+                                <Eye className="h-3 w-3 mr-1" />
+                                View Proof
+                              </Button>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">Not provided</span>
+                            )}
+                          </div>
+                        </div>
+
+                        {request.admin_notes && (
+                          <div className="bg-muted p-2 rounded text-xs mt-3">
+                            <strong>Notes:</strong> {request.admin_notes}
+                          </div>
+                        )}
+
+                        {request.status === "pending" && (
+                          <div className="flex gap-2 mt-3">
+                            <Button
+                              size="sm"
+                              onClick={() => handleQuickApprove(request)}
+                              disabled={processingIds.has(request.id)}
+                              className="bg-green-600 hover:bg-green-700"
+                            >
+                              {processingIds.has(request.id) ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <>
+                                  <Check className="h-4 w-4 mr-1" />
+                                  Approve
+                                </>
+                              )}
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedRequest(request);
+                                setAdminNotes("");
+                                setShowRejectDialog(true);
+                              }}
+                              disabled={processingIds.has(request.id)}
+                            >
+                              <X className="h-4 w-4 mr-1" />
+                              Reject
+                            </Button>
+                            {request.payment_proof_url && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                asChild
+                              >
+                                <a
+                                  href={request.payment_proof_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  <ExternalLink className="h-4 w-4 mr-1" />
+                                  Full Image
+                                </a>
+                              </Button>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </ScrollArea>
         )}
@@ -697,3 +1000,5 @@ export function PaymentRequests() {
     </Card>
   );
 }
+
+export default PaymentRequests;
