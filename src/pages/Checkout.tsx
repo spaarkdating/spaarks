@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,21 +10,16 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/navigation/Header";
 import SEO from "@/components/SEO";
+import { DynamicUPIPayment } from "@/components/checkout/DynamicUPIPayment";
 import {
   Check,
   Tag,
   Loader2,
-  Shield,
-  Upload,
-  Copy,
-  CheckCircle,
   Sparkles,
   Crown,
   Zap,
   Star,
-  Smartphone,
   Building2,
-  QrCode,
   AlertCircle,
 } from "lucide-react";
 
@@ -118,11 +113,7 @@ export default function Checkout() {
   const [user, setUser] = useState<any>(null);
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);
 
-  // Payment proof state (for manual payment)
-  const [transactionId, setTransactionId] = useState("");
-  const [upiReference, setUpiReference] = useState("");
-  const [paymentProof, setPaymentProof] = useState<File | null>(null);
-  const [copiedUpi, setCopiedUpi] = useState(false);
+  // Payment state
   const [existingRequest, setExistingRequest] = useState<any>(null);
   const [paymentSettings, setPaymentSettings] = useState<PaymentSettings | null>(null);
 
@@ -278,119 +269,14 @@ export default function Checkout() {
     return Math.round(discount);
   };
 
-  const getFinalPrice = () => {
-    return Math.max(0, plan.price - calculateDiscount());
-  };
-
-  const copyToClipboard = async (text: string) => {
-    await navigator.clipboard.writeText(text);
-    setCopiedUpi(true);
-    setTimeout(() => setCopiedUpi(false), 2000);
-    toast({
-      title: "Copied!",
-      description: "UPI ID copied to clipboard",
-    });
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast({
-          title: "File too large",
-          description: "Please upload a file smaller than 5MB",
-          variant: "destructive",
-        });
-        return;
-      }
-      setPaymentProof(file);
-    }
-  };
-
-  const handleSubmitPayment = async () => {
-    if (!user) {
-      toast({
-        title: "Login required",
-        description: "Please login to continue.",
-        variant: "destructive",
-      });
-      navigate("/auth");
-      return;
-    }
-
-    // Check if this is a downgrade (not allowed)
-    if (currentPlan && planTiers[currentPlan] >= planTiers[planId]) {
-      toast({
-        title: "Downgrade not allowed",
-        description: `You are already on the ${currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)} plan. You can only upgrade to a higher tier plan.`,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!transactionId.trim() && !upiReference.trim()) {
-      toast({
-        title: "Transaction details required",
-        description: "Please enter your transaction ID or UPI reference number.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      let proofUrl = null;
-
-      // Upload payment proof if provided
-      if (paymentProof) {
-        const fileExt = paymentProof.name.split(".").pop();
-        const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-
-        const { error: uploadError } = await supabase.storage.from("payment-proofs").upload(fileName, paymentProof);
-
-        if (uploadError) throw uploadError;
-
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from("payment-proofs").getPublicUrl(fileName);
-
-        proofUrl = publicUrl;
-      }
-
-      // Create payment request
-      const { error } = await supabase.from("payment_requests").insert({
-        user_id: user.id,
-        plan_type: planId,
-        amount: getFinalPrice(),
-        payment_proof_url: proofUrl,
-        transaction_id: transactionId.trim() || null,
-        upi_reference: upiReference.trim() || null,
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Payment submitted!",
-        description: "Your payment is under review. We'll activate your subscription within 24 hours.",
-      });
-
-      navigate("/checkout/success?method=manual");
-    } catch (error: any) {
-      toast({
-        title: "Submission failed",
-        description: error.message || "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handlePaymentSubmitted = () => {
+    navigate("/checkout/success?method=manual");
   };
 
 
   const PlanIcon = plan.icon;
   const discount = calculateDiscount();
-  const finalPrice = getFinalPrice();
+  const finalPrice = Math.max(0, plan.price - discount);
 
   // Show pending request message
   if (existingRequest) {
@@ -596,174 +482,63 @@ export default function Checkout() {
             </CardContent>
           </Card>
 
-          {/* Payment Section */}
+          {/* Payment Section - Dynamic UPI with auto-verification */}
           <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Smartphone className="h-5 w-5 text-primary" />
-                  Pay via UPI
-                </CardTitle>
-                <CardDescription>Pay using any UPI app (GPay, PhonePe, Paytm, etc.)</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {paymentSettings?.upi_qr_url && (
-                  <div className="flex justify-center">
-                    <div className="w-48 h-48 border rounded-lg overflow-hidden bg-white p-2">
-                      <img
-                        src={paymentSettings.upi_qr_url}
-                        alt="UPI QR Code"
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
+            {user ? (
+              <DynamicUPIPayment
+                amount={finalPrice}
+                planId={planId}
+                userId={user.id}
+                onPaymentSubmitted={handlePaymentSubmitted}
+                paymentSettings={paymentSettings}
+              />
+            ) : (
+              <Card>
+                <CardContent className="py-8 text-center">
+                  <AlertCircle className="h-12 w-12 mx-auto text-yellow-500 mb-4" />
+                  <p className="text-muted-foreground mb-4">Please login to continue with payment</p>
+                  <Button onClick={() => navigate("/auth")}>Login to Pay</Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Bank Transfer Alternative */}
+            {(paymentSettings?.bank_name || paymentSettings?.account_number) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Building2 className="h-5 w-5 text-primary" />
+                    Bank Transfer (Alternative)
+                  </CardTitle>
+                  <CardDescription>Transfer directly to our bank account</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-muted p-4 rounded-lg space-y-2 text-sm">
+                    {paymentSettings?.bank_name && (
+                      <p>
+                        <strong>Bank:</strong> {paymentSettings.bank_name}
+                      </p>
+                    )}
+                    {paymentSettings?.account_name && (
+                      <p>
+                        <strong>Account Name:</strong> {paymentSettings.account_name}
+                      </p>
+                    )}
+                    {paymentSettings?.account_number && (
+                      <p>
+                        <strong>Account Number:</strong> {paymentSettings.account_number}
+                      </p>
+                    )}
+                    {paymentSettings?.ifsc_code && (
+                      <p>
+                        <strong>IFSC Code:</strong> {paymentSettings.ifsc_code}
+                      </p>
+                    )}
+                    <p className="text-primary font-bold pt-2">Amount: ₹{finalPrice}</p>
                   </div>
-                )}
-                <div className="bg-muted p-4 rounded-lg text-center">
-                  {!paymentSettings?.upi_qr_url && (
-                    <QrCode className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
-                  )}
-                  <p className="text-sm text-muted-foreground mb-2">
-                    {paymentSettings?.upi_qr_url ? "Or use UPI ID" : "Scan or use UPI ID"}
-                  </p>
-                  {paymentSettings?.upi_id && (
-                    <div className="flex items-center justify-center gap-2">
-                      <code className="bg-background px-3 py-2 rounded text-lg font-mono">{paymentSettings.upi_id}</code>
-                      <Button variant="outline" size="sm" onClick={() => copyToClipboard(paymentSettings.upi_id!)}>
-                        {copiedUpi ? <CheckCircle className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                  )}
-                  <p className="text-lg font-bold text-primary mt-2">₹{finalPrice}</p>
-                </div>
-                
-                <div className="bg-muted/50 p-4 rounded-lg space-y-2">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Shield className="h-4 w-4 text-green-600" />
-                    <span>Secure manual verification within 24 hours</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Upload screenshot for faster verification</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Bank Transfer */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Building2 className="h-5 w-5 text-primary" />
-                  Bank Transfer (Alternative)
-                </CardTitle>
-                <CardDescription>Transfer directly to our bank account</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-muted p-4 rounded-lg space-y-2 text-sm">
-                  {paymentSettings?.bank_name && (
-                    <p>
-                      <strong>Bank:</strong> {paymentSettings.bank_name}
-                    </p>
-                  )}
-                  {paymentSettings?.account_name && (
-                    <p>
-                      <strong>Account Name:</strong> {paymentSettings.account_name}
-                    </p>
-                  )}
-                  {paymentSettings?.account_number && (
-                    <p>
-                      <strong>Account Number:</strong> {paymentSettings.account_number}
-                    </p>
-                  )}
-                  {paymentSettings?.ifsc_code && (
-                    <p>
-                      <strong>IFSC Code:</strong> {paymentSettings.ifsc_code}
-                    </p>
-                  )}
-                  <p className="text-primary font-bold pt-2">Amount: ₹{finalPrice}</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Submit Payment Proof */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Upload className="h-5 w-5 text-primary" />
-                  Confirm Payment
-                </CardTitle>
-                <CardDescription>After payment, submit your transaction details for verification</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="transactionId">Transaction ID / UTR Number *</Label>
-                  <Input
-                    id="transactionId"
-                    placeholder="Enter transaction ID"
-                    value={transactionId}
-                    onChange={(e) => setTransactionId(e.target.value)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="upiReference">UPI Reference Number (Optional)</Label>
-                  <Input
-                    id="upiReference"
-                    placeholder="Enter UPI reference"
-                    value={upiReference}
-                    onChange={(e) => setUpiReference(e.target.value)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="paymentProof">Payment Screenshot (Recommended)</Label>
-                  <div className="border-2 border-dashed rounded-lg p-4 text-center">
-                    <input
-                      type="file"
-                      id="paymentProof"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="hidden"
-                    />
-                    <label htmlFor="paymentProof" className="cursor-pointer">
-                      {paymentProof ? (
-                        <div className="flex items-center justify-center gap-2 text-green-600">
-                          <CheckCircle className="h-5 w-5" />
-                          <span>{paymentProof.name}</span>
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          <Upload className="h-8 w-8 mx-auto text-muted-foreground" />
-                          <p className="text-sm text-muted-foreground">Click to upload payment screenshot</p>
-                        </div>
-                      )}
-                    </label>
-                  </div>
-                </div>
-
-                <Button
-                  className="w-full"
-                  onClick={handleSubmitPayment}
-                  disabled={isSubmitting || (!transactionId.trim() && !upiReference.trim())}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Submitting...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Submit for Verification
-                    </>
-                  )}
-                </Button>
-
-                <p className="text-xs text-center text-muted-foreground">
-                  Your subscription will be activated within 24 hours after verification
-                </p>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </main>
