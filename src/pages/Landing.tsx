@@ -206,131 +206,150 @@ const Landing = () => {
         </nav>
       </header>
 
-      {/* Hero Section - Mobile-First Premium Design */}
-      <section className="relative min-h-[100svh] flex items-center overflow-hidden pt-20 pb-8">
-        {/* Subtle gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.03] via-transparent to-secondary/[0.05] pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/50 pointer-events-none" />
-        
-        {/* Giant Watermark Text - More visible */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
-          <span className="text-[20vw] sm:text-[25vw] lg:text-[30vw] font-display font-black text-primary/[0.06] dark:text-primary/[0.10] whitespace-nowrap tracking-tight">
+      {/* Hero Section - Bumble-Inspired Design */}
+      <section className="relative min-h-[100svh] overflow-hidden bg-gradient-to-b from-secondary/40 via-secondary/20 to-background">
+        {/* Giant Brand Text - Bumble Style */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
+          <motion.span 
+            className="text-[28vw] sm:text-[22vw] font-display font-black text-foreground/[0.08] dark:text-foreground/[0.06] whitespace-nowrap tracking-tighter"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8 }}
+          >
             Spaark
-          </span>
+          </motion.span>
         </div>
 
-        <div className="container mx-auto px-4 relative z-10">
-          {/* Mobile: Flex column with text first, Desktop: Grid side by side */}
-          <div className="flex flex-col lg:grid lg:grid-cols-2 gap-6 lg:gap-16 items-center justify-center min-h-[calc(100svh-120px)] lg:min-h-[80vh]">
-            
-            {/* Text Content - Always first on mobile */}
+        {/* Main Content Container */}
+        <div className="relative z-10 min-h-[100svh] flex flex-col">
+          {/* Top spacing for navbar */}
+          <div className="h-20" />
+          
+          {/* Cards Section - Center of screen */}
+          <div className="flex-1 flex items-center justify-center px-4 py-8">
             <motion.div
-              className="text-center lg:text-left w-full"
-              initial={{ opacity: 0, y: 20 }}
+              className="relative"
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <h1 className="font-display text-4xl sm:text-5xl lg:text-7xl xl:text-8xl font-bold text-foreground mb-4 lg:mb-6 leading-[0.95] tracking-tight">
-                Make the
-                <br />
-                <span className="text-primary">first move</span>
-              </h1>
-
-              <p className="text-muted-foreground text-base sm:text-lg lg:text-xl mb-6 lg:mb-8 max-w-lg mx-auto lg:mx-0">
-                Start something epic. Meet new people, build genuine connections, and find your person on Spaark.
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
-                <Link to="/auth">
-                  <Button className="bg-foreground text-background hover:bg-foreground/90 rounded-full h-12 lg:h-14 px-6 lg:px-8 text-base lg:text-lg font-semibold group w-full sm:w-auto">
-                    Get Started
-                    <ArrowRight className="w-4 h-4 lg:w-5 lg:h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-              </div>
-            </motion.div>
-
-            {/* Profile Card - Below text on mobile, side on desktop */}
-            <motion.div
-              className="relative flex justify-center w-full"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.15 }}
-            >
-              {/* Smaller card on mobile, larger on desktop */}
-              <div className="relative w-[200px] h-[280px] sm:w-[260px] sm:h-[360px] lg:w-[320px] lg:h-[480px]" style={{ perspective: "1000px" }}>
-                {/* Background Cards Stack */}
-                {[2, 1, 0].map((offset) => (
+              {/* Stacked Cards Container */}
+              <div className="relative w-[260px] h-[360px] sm:w-[300px] sm:h-[420px] lg:w-[380px] lg:h-[520px]">
+                {/* Background stacked cards */}
+                {[2, 1].map((offset) => (
                   <motion.div
                     key={`stack-${offset}`}
-                    className="absolute inset-0 rounded-2xl lg:rounded-3xl bg-card border border-border shadow-lg lg:shadow-xl"
+                    className="absolute rounded-3xl bg-card/80 backdrop-blur-sm border border-border/50 shadow-xl overflow-hidden"
                     style={{
-                      transform: `translateX(${offset * 10}px) translateY(${offset * 6}px) rotateY(-5deg) rotateX(2deg)`,
+                      width: '100%',
+                      height: '100%',
+                      right: `${offset * 20}px`,
+                      top: `${offset * 12}px`,
                       zIndex: 3 - offset,
                     }}
-                    initial={{ opacity: 0, x: 30 }}
-                    animate={{ opacity: 0.3 + 0.2 * (3 - offset), x: offset * 10 }}
-                    transition={{ delay: 0.25 + offset * 0.08 }}
-                  />
+                    initial={{ opacity: 0, x: 50 }}
+                    animate={{ opacity: 0.6 - offset * 0.15 }}
+                    transition={{ delay: 0.4 + offset * 0.1, duration: 0.5 }}
+                  >
+                    <img
+                      src={profiles[(activeCard + offset) % profiles.length].image}
+                      alt=""
+                      className="w-full h-full object-cover opacity-70"
+                    />
+                  </motion.div>
                 ))}
 
                 {/* Main Active Card */}
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeCard}
-                    className="absolute inset-0 rounded-2xl lg:rounded-3xl overflow-hidden shadow-xl lg:shadow-2xl"
-                    style={{
-                      transform: "rotateY(-5deg) rotateX(2deg)",
-                      zIndex: 10,
-                    }}
-                    initial={{ opacity: 0, x: 60, rotateY: 10 }}
-                    animate={{ opacity: 1, x: 0, rotateY: -5 }}
-                    exit={{ opacity: 0, x: -60, rotateY: -20 }}
-                    transition={{ duration: 0.4 }}
+                    className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl border-2 border-white/20"
+                    style={{ zIndex: 10 }}
+                    initial={{ opacity: 0, x: 80, rotate: 5 }}
+                    animate={{ opacity: 1, x: 0, rotate: 0 }}
+                    exit={{ opacity: 0, x: -80, rotate: -5 }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
                   >
                     <img
                       src={profiles[activeCard].image}
                       alt={profiles[activeCard].name}
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
-                    {/* Profile Info - Bottom Left */}
-                    <div className="absolute bottom-4 left-4 right-4 lg:bottom-6 lg:left-6 lg:right-6">
-                      <h3 className="text-white font-display text-xl sm:text-2xl lg:text-3xl font-bold mb-1">
+                    {/* Profile Info */}
+                    <div className="absolute bottom-6 left-6 right-6">
+                      <h3 className="text-white font-display text-2xl sm:text-3xl lg:text-4xl font-bold">
                         {profiles[activeCard].name}, {profiles[activeCard].age}
                       </h3>
-                      <div className="flex flex-wrap gap-1.5 lg:gap-2 mt-2 lg:mt-3">
+                      <div className="flex flex-wrap gap-2 mt-3">
                         {profiles[activeCard].tags.map((tag, idx) => (
                           <span
                             key={idx}
-                            className="bg-white/20 backdrop-blur-sm text-white text-xs lg:text-sm px-2 lg:px-3 py-0.5 lg:py-1 rounded-full"
+                            className="bg-white/25 backdrop-blur-sm text-white text-sm px-3 py-1 rounded-full font-medium"
                           >
                             {tag}
                           </span>
                         ))}
                       </div>
                     </div>
+
+                    {/* Card Dots */}
+                    <div className="absolute bottom-6 right-6 flex gap-1.5">
+                      {profiles.slice(0, 4).map((_, idx) => (
+                        <div
+                          key={idx}
+                          className={`w-2 h-2 rounded-full transition-all ${
+                            idx === activeCard % 4 ? "bg-white" : "bg-white/40"
+                          }`}
+                        />
+                      ))}
+                    </div>
                   </motion.div>
                 </AnimatePresence>
+              </div>
 
-                {/* Card Indicators */}
-                <div className="absolute -bottom-8 lg:-bottom-12 left-1/2 -translate-x-1/2 flex gap-1.5 lg:gap-2">
-                  {profiles.map((_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setActiveCard(idx)}
-                      className={`h-1.5 lg:h-2 rounded-full transition-all duration-300 ${
-                        idx === activeCard
-                          ? "bg-primary w-6 lg:w-8"
-                          : "bg-muted-foreground/30 w-1.5 lg:w-2 hover:bg-muted-foreground/50"
-                      }`}
-                    />
-                  ))}
-                </div>
+              {/* Card Navigation Dots */}
+              <div className="flex justify-center gap-2 mt-8">
+                {profiles.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setActiveCard(idx)}
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      idx === activeCard
+                        ? "bg-primary w-8"
+                        : "bg-foreground/20 w-2 hover:bg-foreground/40"
+                    }`}
+                  />
+                ))}
               </div>
             </motion.div>
           </div>
+
+          {/* Bottom Content - Tagline and CTA */}
+          <motion.div
+            className="px-4 pb-12 sm:pb-16 text-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+          >
+            <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4 leading-tight">
+              We exist to bring people
+              <br />
+              <span className="text-primary">closer to love.</span>
+            </h1>
+            
+            <p className="text-muted-foreground text-base sm:text-lg mb-8 max-w-md mx-auto">
+              Find meaningful connections that ignite confidence and joy.
+            </p>
+
+            <Link to="/auth">
+              <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full h-14 px-10 text-lg font-semibold shadow-lg hover:shadow-xl transition-all group">
+                Get Started
+                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+          </motion.div>
         </div>
       </section>
 
