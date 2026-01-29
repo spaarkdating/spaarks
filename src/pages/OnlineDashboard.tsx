@@ -337,11 +337,16 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
     try {
       const action = isLike ? (direction === "super" ? "super" : "like") : "pass";
 
-      const { error } = await (supabase as any).from("matches").insert({
+      // Use upsert to handle re-swiping after undo (prevents duplicate key errors)
+      const { error } = await (supabase as any).from("matches").upsert({
         user_id: user.id,
         liked_user_id: likedProfile.id,
         is_match: false,
         action,
+        created_at: new Date().toISOString(),
+      }, { 
+        onConflict: 'user_id,liked_user_id',
+        ignoreDuplicates: false 
       });
 
       if (error) throw error;
