@@ -207,25 +207,25 @@ const Landing = () => {
       </header>
 
       {/* Hero Section - Premium Side-by-Side Layout */}
-      <section className="relative min-h-screen flex items-center overflow-hidden pt-24 pb-16">
+      <section className="relative flex items-center overflow-hidden pt-20 sm:pt-24 pb-8 sm:pb-12 lg:pb-16 min-h-[calc(100vh-80px)] sm:min-h-screen">
         {/* Premium gradient background layers */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.04] via-background to-secondary/[0.06] pointer-events-none" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/30 pointer-events-none" />
         
-        {/* Decorative gradient orbs */}
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-secondary/10 rounded-full blur-3xl pointer-events-none" />
+        {/* Decorative gradient orbs - smaller on mobile */}
+        <div className="absolute top-1/3 left-0 w-48 sm:w-72 lg:w-96 h-48 sm:h-72 lg:h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-1/3 right-0 w-40 sm:w-64 lg:w-80 h-40 sm:h-64 lg:h-80 bg-secondary/10 rounded-full blur-3xl pointer-events-none" />
         
-        {/* Giant Watermark Text */}
+        {/* Giant Watermark Text - positioned better */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
-          <span className="text-[20vw] sm:text-[25vw] lg:text-[30vw] font-display font-black text-primary/[0.06] dark:text-primary/[0.10] whitespace-nowrap tracking-tight">
+          <span className="text-[28vw] sm:text-[25vw] lg:text-[30vw] font-display font-black text-primary/[0.05] dark:text-primary/[0.08] whitespace-nowrap tracking-tight">
             Spaark
           </span>
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
           {/* Mobile & Tablet: Side by Side | Desktop: Two Column */}
-          <div className="flex flex-row items-center gap-4 sm:gap-6 lg:gap-16 min-h-[70vh] lg:min-h-[80vh]">
+          <div className="flex flex-row items-center justify-between gap-3 sm:gap-6 lg:gap-16">
             
             {/* Left Content */}
             <motion.div
