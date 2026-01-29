@@ -189,7 +189,7 @@ const Landing = () => {
       </header>
 
       {/* Hero Section - Light Theme with Watermark */}
-      <section className="relative min-h-[100svh] flex items-center overflow-hidden pt-16 sm:pt-20 pb-8 sm:pb-0">
+      <section className="relative flex items-center overflow-hidden pt-20 sm:pt-24 pb-6 sm:pb-12 sm:min-h-screen">
         {/* Subtle gradient background */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.03] via-transparent to-secondary/[0.05] pointer-events-none" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/50 pointer-events-none" />
@@ -203,7 +203,7 @@ const Landing = () => {
 
         <div className="container mx-auto px-3 sm:px-4 relative z-10">
           {/* Side-by-side on all screens */}
-          <div className="grid grid-cols-[1fr_auto] sm:grid-cols-2 gap-3 sm:gap-8 lg:gap-16 items-center min-h-[calc(100svh-100px)] sm:min-h-[80vh]">
+          <div className="grid grid-cols-[1fr_auto] sm:grid-cols-2 gap-3 sm:gap-8 lg:gap-16 items-center">
             {/* Left Content */}
             <motion.div
               className="text-left py-4 sm:py-0"
