@@ -82,6 +82,42 @@ export type Database = {
         }
         Relationships: []
       }
+      bank_statement_uploads: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_url: string
+          id: string
+          payments_matched: number | null
+          processed_at: string | null
+          status: string
+          transactions_found: number | null
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_url: string
+          id?: string
+          payments_matched?: number | null
+          processed_at?: string | null
+          status?: string
+          transactions_found?: number | null
+          uploaded_by: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_url?: string
+          id?: string
+          payments_matched?: number | null
+          processed_at?: string | null
+          status?: string
+          transactions_found?: number | null
+          uploaded_by?: string
+        }
+        Relationships: []
+      }
       blocked_emails: {
         Row: {
           deleted_at: string
@@ -640,6 +676,7 @@ export type Database = {
           created_at: string
           id: string
           payment_proof_url: string | null
+          payment_reference: string | null
           plan_type: string
           reviewed_at: string | null
           reviewed_by: string | null
@@ -655,6 +692,7 @@ export type Database = {
           created_at?: string
           id?: string
           payment_proof_url?: string | null
+          payment_reference?: string | null
           plan_type: string
           reviewed_at?: string | null
           reviewed_by?: string | null
@@ -670,6 +708,7 @@ export type Database = {
           created_at?: string
           id?: string
           payment_proof_url?: string | null
+          payment_reference?: string | null
           plan_type?: string
           reviewed_at?: string | null
           reviewed_by?: string | null

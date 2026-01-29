@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, ArrowLeft, LogOut, Crown, UserCog, Headset, IdCard, CreditCard, Settings, IndianRupee, Package } from "lucide-react";
+import { Shield, ArrowLeft, LogOut, Crown, UserCog, Headset, IdCard, CreditCard, Settings, IndianRupee, Package, FileSpreadsheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import UserManagement from "@/components/admin/UserManagement";
@@ -19,6 +19,7 @@ import { CouponManagement } from "@/components/admin/CouponManagement";
 import { IdCardVerification } from "@/components/admin/IdCardVerification";
 import { PaymentRequests } from "@/components/admin/PaymentRequests";
 import PaymentSettings from "@/components/admin/PaymentSettings";
+import { BankStatementProcessor } from "@/components/admin/BankStatementProcessor";
 import Revenue from "@/components/admin/Revenue";
 import DangerZone from "@/components/admin/DangerZone";
 import SubscriptionPlansManagement from "@/components/admin/SubscriptionPlansManagement";
@@ -149,7 +150,12 @@ const Admin = () => {
           )}
 
           {isSuperAdmin && (
-            <TabsContent value="payment-settings"><PaymentSettings /></TabsContent>
+            <TabsContent value="payment-settings">
+              <div className="space-y-6">
+                <PaymentSettings />
+                <BankStatementProcessor />
+              </div>
+            </TabsContent>
           )}
 
           {isSuperAdmin && (
