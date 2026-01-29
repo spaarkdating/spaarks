@@ -2,6 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -12,7 +14,8 @@ import {
   Loader2, 
   RefreshCw,
   AlertCircle,
-  Clock
+  Clock,
+  CreditCard
 } from 'lucide-react';
 
 interface DynamicUPIPaymentProps {
@@ -46,6 +49,7 @@ export const DynamicUPIPayment = ({
 }: DynamicUPIPaymentProps) => {
   const { toast } = useToast();
   const [paymentReference, setPaymentReference] = useState(() => generatePaymentReference());
+  const [transactionId, setTransactionId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copiedUpi, setCopiedUpi] = useState(false);
   const [copiedRef, setCopiedRef] = useState(false);
@@ -126,25 +130,34 @@ export const DynamicUPIPayment = ({
   };
 
   const handleConfirmPayment = async () => {
+    if (!transactionId.trim()) {
+      toast({
+        title: 'Transaction ID required',
+        description: 'Please enter your UPI transaction ID / UTR number after making the payment.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      // Create payment request - no manual entry needed
-      // Auto-verification will match by payment_reference and amount
+      // Create payment request with transaction ID for manual verification
       const { error } = await supabase.from('payment_requests').insert({
         user_id: userId,
         plan_type: planId,
         amount: amount,
         upi_reference: paymentReference,
         payment_reference: paymentReference,
-        admin_notes: `Awaiting auto-verification. Reference: ${paymentReference}, Amount: ₹${amount}`,
+        transaction_id: transactionId.trim(),
+        admin_notes: `Transaction ID: ${transactionId.trim()}, Reference: ${paymentReference}, Amount: ₹${amount}`,
       });
 
       if (error) throw error;
 
       toast({
-        title: 'Payment registered!',
-        description: 'Your payment will be auto-verified within minutes once we receive it.',
+        title: 'Payment submitted!',
+        description: 'Your payment will be verified by our team within 24 hours.',
       });
 
       onPaymentSubmitted();
@@ -185,20 +198,24 @@ export const DynamicUPIPayment = ({
           <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg p-4 space-y-3">
             <h4 className="font-semibold text-primary flex items-center gap-2">
               <Shield className="h-4 w-4" />
-              How Auto-Verification Works
+              How to Pay
             </h4>
             <ol className="text-sm space-y-2 text-muted-foreground">
               <li className="flex gap-2">
                 <Badge variant="outline" className="h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">1</Badge>
-                <span>Pay <strong>exact amount</strong>: ₹{amount}</span>
+                <span>Scan QR or pay to UPI ID below</span>
               </li>
               <li className="flex gap-2">
                 <Badge variant="outline" className="h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">2</Badge>
-                <span>Add <strong>reference code</strong> in payment note</span>
+                <span>Pay <strong>exact amount</strong>: ₹{amount}</span>
               </li>
               <li className="flex gap-2">
                 <Badge variant="outline" className="h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">3</Badge>
-                <span>Click "I've Made Payment" - we'll verify automatically!</span>
+                <span>Enter your <strong>Transaction ID / UTR</strong> below</span>
+              </li>
+              <li className="flex gap-2">
+                <Badge variant="outline" className="h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">4</Badge>
+                <span>Click "Submit Payment" - we'll verify within 24 hours!</span>
               </li>
             </ol>
           </div>
@@ -295,29 +312,47 @@ export const DynamicUPIPayment = ({
             </Button>
           )}
 
+          {/* Transaction ID Input */}
+          <div className="bg-yellow-50 dark:bg-yellow-950 border-2 border-yellow-300 dark:border-yellow-700 rounded-lg p-4 space-y-3">
+            <Label htmlFor="transaction-id" className="flex items-center gap-2 font-semibold text-yellow-700 dark:text-yellow-300">
+              <CreditCard className="h-4 w-4" />
+              Enter Transaction ID / UTR Number *
+            </Label>
+            <Input
+              id="transaction-id"
+              placeholder="e.g., 123456789012 or UPI Ref ID"
+              value={transactionId}
+              onChange={(e) => setTransactionId(e.target.value)}
+              className="font-mono text-lg"
+            />
+            <p className="text-xs text-yellow-600 dark:text-yellow-400">
+              You'll find this in your UPI app's payment confirmation or SMS from your bank.
+            </p>
+          </div>
+
           {/* Confirm Payment Button */}
           <Button
             className="w-full"
             size="lg"
             onClick={handleConfirmPayment}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !transactionId.trim()}
           >
             {isSubmitting ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Registering...
+                Submitting...
               </>
             ) : (
               <>
                 <CheckCircle className="h-4 w-4 mr-2" />
-                I've Made the Payment
+                Submit Payment for Verification
               </>
             )}
           </Button>
 
           <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 p-3 rounded-lg">
             <p className="text-xs text-center text-blue-700 dark:text-blue-300">
-              <strong>No manual entry needed!</strong> We auto-verify by matching the payment reference and amount from bank alerts.
+              <strong>Manual verification:</strong> Our team will verify your payment within 24 hours using the transaction ID you provided.
             </p>
           </div>
         </CardContent>
