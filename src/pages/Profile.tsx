@@ -11,9 +11,10 @@ import ProfileCompletion from "@/components/profile/ProfileCompletion";
 import { MobileNav } from "@/components/navigation/MobileNav";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PhotoCarousel } from "@/components/profile/PhotoCarousel";
+import { useVerificationGuard } from "@/hooks/useVerificationGuard";
 
 const Profile = () => {
-  const [user, setUser] = useState<any>(null);
+  const { isLoading: isVerifying, isVerified, user } = useVerificationGuard(true);
   const [profile, setProfile] = useState<any>(null);
   const [photos, setPhotos] = useState<any[]>([]);
   const [interests, setInterests] = useState<any[]>([]);
@@ -27,27 +28,11 @@ const Profile = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const initUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        navigate("/auth");
-        return;
-      }
-      setUser(user);
+    if (!isVerifying && isVerified && user) {
       setEmailVerified(!!user.email_confirmed_at);
       fetchProfile(user.id);
-    };
-
-    initUser();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
-        navigate("/auth");
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+    }
+  }, [isVerifying, isVerified, user]);
 
   const fetchProfile = async (userId: string) => {
     setIsLoading(true);
@@ -88,7 +73,8 @@ const Profile = () => {
     navigate("/");
   };
 
-  if (!user || isLoading) return null;
+  // Don't render until verification check is complete
+  if (isVerifying || !isVerified || !user || isLoading) return null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted to-background">

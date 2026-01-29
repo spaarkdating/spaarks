@@ -15,9 +15,10 @@ import { ThemeToggle } from "@/components/landing/ThemeToggle";
 import { SubscriptionManagement } from "@/components/settings/SubscriptionManagement";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useVerificationGuard } from "@/hooks/useVerificationGuard";
 
 const Settings = () => {
-  const [user, setUser] = useState<any>(null);
+  const { isLoading: isVerifying, isVerified, user } = useVerificationGuard(true);
   const [email, setEmail] = useState("");
   const [datingMode, setDatingMode] = useState<string>("online");
   const [minAge, setMinAge] = useState<number>(18);
@@ -27,13 +28,9 @@ const Settings = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        navigate("/auth");
-        return;
-      }
-      setUser(user);
+    const fetchSettings = async () => {
+      if (!user) return;
+      
       setEmail(user.email || "");
 
       // Fetch user profile for dating mode and age preferences
@@ -50,16 +47,10 @@ const Settings = () => {
       }
     };
 
-    getUser();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!session?.user) {
-        navigate("/auth");
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+    if (!isVerifying && isVerified && user) {
+      fetchSettings();
+    }
+  }, [isVerifying, isVerified, user]);
 
   const handleUpdateEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -153,7 +144,8 @@ const Settings = () => {
     navigate("/");
   };
 
-  if (!user) {
+  // Don't render until verification check is complete
+  if (isVerifying || !isVerified || !user) {
     return null;
   }
 
