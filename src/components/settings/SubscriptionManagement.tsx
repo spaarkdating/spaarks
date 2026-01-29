@@ -137,19 +137,19 @@ export const SubscriptionManagement = () => {
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="flex justify-between p-2 bg-muted/30 rounded">
                 <span>Daily Swipes</span>
-                <span className="font-medium">{limits.daily_swipes_limit || '∞'}</span>
+                <span className="font-medium">{limits.daily_swipes_limit === null ? '∞' : limits.daily_swipes_limit}</span>
               </div>
               <div className="flex justify-between p-2 bg-muted/30 rounded">
                 <span>Active Matches</span>
-                <span className="font-medium">{limits.active_matches_limit || '∞'}</span>
+                <span className="font-medium">{limits.active_matches_limit === null ? '∞' : limits.active_matches_limit}</span>
               </div>
               <div className="flex justify-between p-2 bg-muted/30 rounded">
                 <span>Messages/Match</span>
-                <span className="font-medium">{limits.messages_per_match_limit || '∞'}</span>
+                <span className="font-medium">{limits.messages_per_match_limit === null ? '∞' : limits.messages_per_match_limit}</span>
               </div>
               <div className="flex justify-between p-2 bg-muted/30 rounded">
                 <span>Profile Views</span>
-                <span className="font-medium">{limits.profile_views_limit || 'None'}</span>
+                <span className="font-medium">{limits.profile_views_limit === null ? '∞' : (limits.profile_views_limit === 0 ? 'None' : limits.profile_views_limit)}</span>
               </div>
               <div className="flex justify-between p-2 bg-muted/30 rounded">
                 <span>Voice Messages</span>
