@@ -189,13 +189,13 @@ const Landing = () => {
       </header>
 
       {/* Hero Section - Light Theme with Watermark */}
-      <section className="relative flex items-center overflow-hidden pt-24 pb-8 sm:pt-28 sm:pb-16 sm:min-h-screen">
+      <section className="relative isolate flex items-center overflow-hidden pt-24 pb-8 sm:pt-28 sm:pb-16 sm:min-h-screen">
         {/* Subtle gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.03] via-transparent to-secondary/[0.05] pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/50 pointer-events-none" />
+        <div className="absolute inset-0 -z-20 bg-gradient-to-br from-primary/[0.03] via-transparent to-secondary/[0.05] pointer-events-none" />
+        <div className="absolute inset-0 -z-20 bg-gradient-to-t from-background via-transparent to-background/50 pointer-events-none" />
         
         {/* Giant Watermark Text */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
+        <div className="absolute inset-0 -z-10 flex items-center justify-center pointer-events-none select-none overflow-hidden">
           <span className="text-[20vw] sm:text-[28vw] font-display font-black text-primary/[0.07] dark:text-primary/[0.10] whitespace-nowrap tracking-tight">
             Spaark
           </span>
