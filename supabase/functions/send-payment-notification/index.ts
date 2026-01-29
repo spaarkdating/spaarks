@@ -133,7 +133,7 @@ serve(async (req) => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "Spaark <noreply@spaark.in>",
+        from: "Spaark <noreply@spaarkdating.com>",
         to: [email],
         subject: subject,
         html: htmlContent,
