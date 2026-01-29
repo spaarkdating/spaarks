@@ -86,15 +86,15 @@ const Landing = () => {
 
       <ChatbotWidget />
 
-      {/* Navigation - Dark Theme Style */}
+      {/* Navigation */}
       <header className="fixed top-0 left-0 right-0 z-50 px-4 py-4">
         <nav className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-white/90 rounded-xl flex items-center justify-center shadow-lg">
+            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg">
               <img src={logo} alt="Spaark" className="h-8 w-8 object-contain" />
             </div>
-            <span className="text-2xl font-display font-bold text-white">Spaark</span>
+            <span className="text-2xl font-display font-bold text-foreground">Spaark</span>
           </Link>
 
           {/* Center Nav - Desktop */}
@@ -103,7 +103,7 @@ const Landing = () => {
               <Link
                 key={item}
                 to={`/${item.toLowerCase() === "stories" ? "testimonials" : item.toLowerCase()}`}
-                className="text-white/80 hover:text-white font-medium transition-colors"
+                className="text-foreground/80 hover:text-foreground font-medium transition-colors"
               >
                 {item}
               </Link>
@@ -114,12 +114,12 @@ const Landing = () => {
           <div className="flex items-center gap-3">
             <ThemeToggle />
             <Link to="/auth" className="hidden sm:block">
-              <span className="text-white/80 hover:text-white font-medium transition-colors cursor-pointer">
+              <span className="text-foreground/80 hover:text-foreground font-medium transition-colors cursor-pointer">
                 Sign in
               </span>
             </Link>
             <Link to="/auth" className="hidden sm:block">
-              <Button className="bg-white text-primary hover:bg-white/90 rounded-full px-6 font-semibold">
+              <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6 font-semibold">
                 Join
               </Button>
             </Link>
@@ -127,24 +127,24 @@ const Landing = () => {
             {/* Mobile Menu */}
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden text-white hover:bg-white/10">
+                <Button variant="ghost" size="icon" className="md:hidden hover:bg-primary/10">
                   <Menu className="h-6 w-6" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] bg-primary border-l border-white/10 p-0 [&>button]:hidden">
+              <SheetContent side="right" className="w-[300px] bg-background border-l border-border/30 p-0 [&>button]:hidden">
                 <div className="flex flex-col h-full">
-                  <div className="flex items-center justify-between p-6 border-b border-white/10">
+                  <div className="flex items-center justify-between p-6 border-b border-border/30">
                     <div className="flex items-center gap-3">
-                      <div className="bg-white/10 p-2 rounded-xl">
+                      <div className="bg-muted p-2 rounded-xl">
                         <img src={logo} alt="Spaark Logo" className="h-8 w-8 object-contain" />
                       </div>
-                      <span className="text-xl font-display font-bold text-white">Spaark</span>
+                      <span className="text-xl font-display font-bold text-foreground">Spaark</span>
                     </div>
                     <Button 
                       variant="ghost" 
                       size="icon" 
                       onClick={() => setMobileMenuOpen(false)}
-                      className="h-8 w-8 rounded-full text-white hover:bg-white/10"
+                      className="h-8 w-8 rounded-full hover:bg-muted"
                     >
                       <X className="h-5 w-5" />
                     </Button>
@@ -161,22 +161,22 @@ const Landing = () => {
                         key={item.to}
                         to={item.to}
                         onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center justify-between px-6 py-4 hover:bg-white/10 transition-colors group"
+                        className="flex items-center justify-between px-6 py-4 hover:bg-primary/10 transition-colors group"
                       >
-                        <span className="text-base font-medium text-white">{item.label}</span>
-                        <ChevronRight className="h-4 w-4 text-white/50 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                        <span className="text-base font-medium text-foreground">{item.label}</span>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
                       </Link>
                     ))}
                   </nav>
                   
-                  <div className="p-4 border-t border-white/10 space-y-2">
+                  <div className="p-4 border-t border-border/30 space-y-2">
                     <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
-                      <Button variant="ghost" className="w-full justify-start text-white hover:bg-white/10 px-4 py-4 h-auto text-base font-medium rounded-xl">
+                      <Button variant="ghost" className="w-full justify-start px-4 py-4 h-auto text-base font-medium rounded-xl">
                         Sign in
                       </Button>
                     </Link>
                     <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
-                      <Button className="w-full bg-white text-primary hover:bg-white/90 rounded-xl h-12 font-semibold">
+                      <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl h-12 font-semibold">
                         Join Spaark
                       </Button>
                     </Link>
@@ -188,37 +188,41 @@ const Landing = () => {
         </nav>
       </header>
 
-      {/* Hero Section - Dark Theme with Watermark */}
-      <section className="relative min-h-screen bg-primary overflow-hidden">
+      {/* Hero Section - Light Theme with Watermark */}
+      <section className="relative min-h-screen flex items-center overflow-hidden pt-20">
+        {/* Subtle gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.03] via-transparent to-secondary/[0.05] pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/50 pointer-events-none" />
+        
         {/* Giant Watermark Text */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
-          <span className="text-[30vw] sm:text-[25vw] font-display font-black text-white/[0.08] whitespace-nowrap tracking-tight">
+          <span className="text-[25vw] sm:text-[30vw] font-display font-black text-primary/[0.08] dark:text-primary/[0.12] whitespace-nowrap tracking-tight">
             Spaark
           </span>
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center min-h-screen pt-24 pb-16">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center min-h-[80vh]">
             {/* Left Content */}
             <motion.div
-              className="text-center lg:text-left"
+              className="text-center lg:text-left order-2 lg:order-1"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-white mb-6 leading-[0.95] tracking-tight">
+              <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-foreground mb-6 leading-[0.95] tracking-tight">
                 Make the
                 <br />
-                <span className="text-secondary">first move</span>
+                <span className="text-primary">first move</span>
               </h1>
 
-              <p className="text-white/70 text-lg sm:text-xl mb-8 max-w-lg mx-auto lg:mx-0">
+              <p className="text-muted-foreground text-lg sm:text-xl mb-8 max-w-lg mx-auto lg:mx-0">
                 Start something epic. Meet new people, build genuine connections, and find your person on Spaark.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link to="/auth">
-                  <Button className="bg-white text-primary hover:bg-white/90 rounded-full h-14 px-8 text-lg font-semibold group">
+                  <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full h-14 px-8 text-lg font-semibold group">
                     Get Started
                     <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Button>
@@ -228,45 +232,39 @@ const Landing = () => {
 
             {/* Right - Stacked Profile Cards */}
             <motion.div
-              className="relative flex justify-center lg:justify-end"
+              className="relative flex justify-center order-1 lg:order-2"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <div className="relative w-[280px] sm:w-[320px] h-[400px] sm:h-[480px]">
+              <div className="relative w-[280px] sm:w-[320px] h-[420px] sm:h-[480px]" style={{ perspective: "1000px" }}>
                 {/* Background Cards Stack */}
-                {[2, 1].map((offset) => (
+                {[2, 1, 0].map((offset) => (
                   <motion.div
                     key={`stack-${offset}`}
-                    className="absolute rounded-3xl bg-white/10 backdrop-blur-sm border border-white/20 shadow-xl overflow-hidden"
+                    className="absolute inset-0 rounded-3xl bg-card border border-border shadow-xl"
                     style={{
-                      width: '100%',
-                      height: '100%',
-                      right: `${offset * 20}px`,
-                      top: `${offset * 12}px`,
+                      transform: `translateX(${offset * 15}px) translateY(${offset * 10}px) rotateY(-5deg) rotateX(2deg)`,
                       zIndex: 3 - offset,
                     }}
                     initial={{ opacity: 0, x: 50 }}
-                    animate={{ opacity: 0.5 - offset * 0.15 }}
+                    animate={{ opacity: 0.3 + 0.2 * (3 - offset), x: offset * 15 }}
                     transition={{ delay: 0.3 + offset * 0.1 }}
-                  >
-                    <img
-                      src={profiles[(activeCard + offset) % profiles.length].image}
-                      alt=""
-                      className="w-full h-full object-cover opacity-60"
-                    />
-                  </motion.div>
+                  />
                 ))}
 
                 {/* Main Active Card */}
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeCard}
-                    className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl border-2 border-white/30"
-                    style={{ zIndex: 10 }}
+                    className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl"
+                    style={{
+                      transform: "rotateY(-5deg) rotateX(2deg)",
+                      zIndex: 10,
+                    }}
                     initial={{ opacity: 0, x: 100, rotateY: 10 }}
-                    animate={{ opacity: 1, x: 0, rotateY: 0 }}
-                    exit={{ opacity: 0, x: -100, rotateY: -10 }}
+                    animate={{ opacity: 1, x: 0, rotateY: -5 }}
+                    exit={{ opacity: 0, x: -100, rotateY: -20 }}
                     transition={{ duration: 0.5 }}
                   >
                     <img
@@ -276,7 +274,7 @@ const Landing = () => {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
-                    {/* Profile Info */}
+                    {/* Profile Info - Bottom Left */}
                     <div className="absolute bottom-6 left-6 right-6">
                       <h3 className="text-white font-display text-3xl font-bold mb-1">
                         {profiles[activeCard].name}, {profiles[activeCard].age}
@@ -303,8 +301,8 @@ const Landing = () => {
                       onClick={() => setActiveCard(idx)}
                       className={`h-2 rounded-full transition-all duration-300 ${
                         idx === activeCard
-                          ? "bg-secondary w-8"
-                          : "bg-white/30 w-2 hover:bg-white/50"
+                          ? "bg-primary w-8"
+                          : "bg-muted-foreground/30 w-2 hover:bg-muted-foreground/50"
                       }`}
                     />
                   ))}
