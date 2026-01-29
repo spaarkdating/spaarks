@@ -189,57 +189,55 @@ const Landing = () => {
       </header>
 
       {/* Hero Section - Light Theme with Watermark */}
-      <section className="relative min-h-screen flex items-center overflow-hidden pt-20">
+      <section className="relative min-h-[100svh] flex items-center overflow-hidden pt-16 sm:pt-20 pb-8 sm:pb-0">
         {/* Subtle gradient background */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.03] via-transparent to-secondary/[0.05] pointer-events-none" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/50 pointer-events-none" />
         
         {/* Giant Watermark Text */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
-          <span className="text-[25vw] sm:text-[30vw] font-display font-black text-primary/[0.08] dark:text-primary/[0.12] whitespace-nowrap tracking-tight">
+          <span className="text-[22vw] sm:text-[28vw] font-display font-black text-primary/[0.07] dark:text-primary/[0.10] whitespace-nowrap tracking-tight">
             Spaark
           </span>
         </div>
 
-        <div className="container mx-auto px-4 relative z-10">
-          {/* Mobile: keep text+card side-by-side (2 columns). Desktop: same. */}
-          <div className="grid grid-cols-2 gap-4 sm:gap-8 lg:gap-16 items-center min-h-[80vh]">
+        <div className="container mx-auto px-3 sm:px-4 relative z-10">
+          {/* Side-by-side on all screens */}
+          <div className="grid grid-cols-[1fr_auto] sm:grid-cols-2 gap-3 sm:gap-8 lg:gap-16 items-center min-h-[calc(100svh-100px)] sm:min-h-[80vh]">
             {/* Left Content */}
             <motion.div
-              className="text-left"
+              className="text-left py-4 sm:py-0"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <h1 className="font-display text-3xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-foreground mb-4 sm:mb-6 leading-[0.95] tracking-tight">
+              <h1 className="font-display text-[2rem] sm:text-5xl lg:text-7xl xl:text-8xl font-bold text-foreground mb-3 sm:mb-6 leading-[0.95] tracking-tight">
                 Make the
                 <br />
                 <span className="text-primary">first move</span>
               </h1>
 
-              <p className="text-muted-foreground text-sm sm:text-xl mb-5 sm:mb-8 max-w-lg">
+              <p className="text-muted-foreground text-xs sm:text-lg lg:text-xl mb-4 sm:mb-8 max-w-md leading-relaxed">
                 Start something epic. Meet new people, build genuine connections, and find your person on Spaark.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                <Link to="/auth">
-                  <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full h-11 sm:h-14 px-5 sm:px-8 text-sm sm:text-lg font-semibold group">
-                    Get Started
-                    <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-              </div>
+              <Link to="/auth">
+                <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full h-10 sm:h-14 px-5 sm:px-8 text-xs sm:text-lg font-semibold group">
+                  Get Started
+                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-1.5 sm:ml-2 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
             </motion.div>
 
             {/* Right - Stacked Profile Cards */}
             <motion.div
-              className="relative flex justify-end"
+              className="relative flex justify-end items-center"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              {/* Smaller on phone so it fits next to text */}
-              <div className="relative w-[160px] h-[240px] sm:w-[320px] sm:h-[480px]" style={{ perspective: "1000px" }}>
+              {/* Responsive card sizing */}
+              <div className="relative w-[140px] h-[200px] sm:w-[280px] sm:h-[400px] lg:w-[320px] lg:h-[480px]" style={{ perspective: "1000px" }}>
                 {/* Background Cards Stack */}
                 {[2, 1, 0].map((offset) => (
                   <motion.div
