@@ -202,27 +202,28 @@ const Landing = () => {
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center min-h-[80vh]">
+          {/* Mobile: keep text+card side-by-side (2 columns). Desktop: same. */}
+          <div className="grid grid-cols-2 gap-4 sm:gap-8 lg:gap-16 items-center min-h-[80vh]">
             {/* Left Content */}
             <motion.div
-              className="text-center lg:text-left order-2 lg:order-1"
+              className="text-left"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-foreground mb-6 leading-[0.95] tracking-tight">
+              <h1 className="font-display text-3xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-foreground mb-4 sm:mb-6 leading-[0.95] tracking-tight">
                 Make the
                 <br />
                 <span className="text-primary">first move</span>
               </h1>
 
-              <p className="text-muted-foreground text-lg sm:text-xl mb-8 max-w-lg mx-auto lg:mx-0">
+              <p className="text-muted-foreground text-sm sm:text-xl mb-5 sm:mb-8 max-w-lg">
                 Start something epic. Meet new people, build genuine connections, and find your person on Spaark.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <Link to="/auth">
-                  <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full h-14 px-8 text-lg font-semibold group">
+                  <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full h-11 sm:h-14 px-5 sm:px-8 text-sm sm:text-lg font-semibold group">
                     Get Started
                     <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Button>
@@ -232,12 +233,13 @@ const Landing = () => {
 
             {/* Right - Stacked Profile Cards */}
             <motion.div
-              className="relative flex justify-center order-1 lg:order-2"
+              className="relative flex justify-end"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <div className="relative w-[280px] sm:w-[320px] h-[420px] sm:h-[480px]" style={{ perspective: "1000px" }}>
+              {/* Smaller on phone so it fits next to text */}
+              <div className="relative w-[160px] h-[240px] sm:w-[320px] sm:h-[480px]" style={{ perspective: "1000px" }}>
                 {/* Background Cards Stack */}
                 {[2, 1, 0].map((offset) => (
                   <motion.div
