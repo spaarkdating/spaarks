@@ -214,6 +214,84 @@ export const BankEmailConfig = () => {
         </CardContent>
       </Card>
 
+      {/* Alternative: Make.com Setup */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-secondary text-secondary-foreground text-sm font-bold">
+              <Webhook className="h-3 w-3" />
+            </div>
+            Alternative: Make.com Setup
+          </CardTitle>
+          <CardDescription>
+            Prefer Make.com over Zapier? Follow these steps instead
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-3 text-sm">
+            <ol className="list-decimal list-inside space-y-3 text-muted-foreground">
+              <li>
+                Go to <a href="https://www.make.com/en/register" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">Make.com</a> and create a new Scenario
+              </li>
+              <li>
+                <strong>Trigger Module:</strong> Add "Gmail" → "Watch Emails" (or your email provider)
+              </li>
+              <li>
+                <strong>Filter:</strong> Set criteria:
+                <ul className="list-disc list-inside ml-4 mt-1 space-y-1">
+                  <li>From: <code className="bg-muted px-1 rounded text-xs">alerts@hdfcbank.com</code> (or your bank)</li>
+                  <li>Subject contains: <code className="bg-muted px-1 rounded text-xs">credited</code></li>
+                </ul>
+              </li>
+              <li>
+                <strong>Action Module:</strong> Add "HTTP" → "Make a request"
+              </li>
+              <li>
+                <strong>URL:</strong> Paste the Spaark webhook URL (same as Zapier)
+              </li>
+              <li>
+                <strong>Method:</strong> POST
+              </li>
+              <li>
+                <strong>Body type:</strong> Raw → JSON
+              </li>
+              <li>
+                <strong>Request content:</strong>
+                <pre className="bg-muted p-2 rounded text-xs mt-1 overflow-x-auto">
+{`{
+  "emailContent": "{{1.text}}",
+  "subject": "{{1.subject}}",
+  "from": "{{1.from.address}}"
+}`}
+                </pre>
+              </li>
+              <li>
+                <strong>Headers:</strong> Add <code className="bg-muted px-1 rounded text-xs">Content-Type: application/json</code>
+              </li>
+            </ol>
+          </div>
+
+          <Alert variant="default" className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+            <Mail className="h-4 w-4 text-blue-600" />
+            <AlertDescription className="text-blue-700 dark:text-blue-300">
+              <strong>Make.com Advantage:</strong> More generous free tier (1,000 operations/month) and visual scenario builder makes debugging easier.
+            </AlertDescription>
+          </Alert>
+
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.open("https://www.make.com/en/help/tutorials/getting-started-with-make", "_blank")}
+              className="gap-2"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Make.com Docs
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Step 2: Configure Zapier Webhook (Optional - for notifications) */}
       <Card>
         <CardHeader>
