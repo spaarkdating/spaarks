@@ -201,54 +201,54 @@ const Landing = () => {
           </span>
         </div>
 
-        <div className="container mx-auto px-3 sm:px-4 relative z-10">
+        <div className="container mx-auto px-4 sm:px-6 relative z-10">
           {/* Side-by-side on all screens */}
-          <div className="grid grid-cols-[1fr_auto] sm:grid-cols-2 gap-3 sm:gap-8 lg:gap-16 items-center">
+          <div className="grid grid-cols-2 gap-4 sm:gap-8 lg:gap-16 items-center">
             {/* Left Content */}
             <motion.div
-              className="text-left py-4 sm:py-0"
+              className="text-left py-4 sm:py-0 relative z-0"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <h1 className="font-display text-[2rem] sm:text-5xl lg:text-7xl xl:text-8xl font-bold text-foreground mb-3 sm:mb-6 leading-[0.95] tracking-tight">
+              <h1 className="font-display text-2xl sm:text-5xl lg:text-7xl xl:text-8xl font-bold text-foreground mb-3 sm:mb-6 leading-[0.95] tracking-tight">
                 Make the
                 <br />
                 <span className="text-primary">first move</span>
               </h1>
 
-              <p className="text-muted-foreground text-xs sm:text-lg lg:text-xl mb-4 sm:mb-8 max-w-md leading-relaxed">
+              <p className="text-muted-foreground text-[11px] sm:text-lg lg:text-xl mb-4 sm:mb-8 max-w-md leading-relaxed">
                 Start something epic. Meet new people, build genuine connections, and find your person on Spaark.
               </p>
 
               <Link to="/auth">
-                <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full h-10 sm:h-14 px-5 sm:px-8 text-xs sm:text-lg font-semibold group">
+                <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full h-9 sm:h-14 px-4 sm:px-8 text-xs sm:text-lg font-semibold group">
                   Get Started
-                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-1.5 sm:ml-2 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-3.5 h-3.5 sm:w-5 sm:h-5 ml-1 sm:ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
             </motion.div>
 
             {/* Right - Stacked Profile Cards */}
             <motion.div
-              className="relative flex justify-end items-center"
+              className="relative flex justify-end items-center z-10"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              {/* Responsive card sizing */}
-              <div className="relative w-[140px] h-[200px] sm:w-[280px] sm:h-[400px] lg:w-[320px] lg:h-[480px]" style={{ perspective: "1000px" }}>
-                {/* Background Cards Stack */}
-                {[2, 1, 0].map((offset) => (
+              {/* Responsive card sizing - no 3D transform on mobile to avoid overlap */}
+              <div className="relative w-[130px] h-[185px] sm:w-[280px] sm:h-[400px] lg:w-[320px] lg:h-[480px]">
+                {/* Background Cards Stack - simpler on mobile */}
+                {[2, 1].map((offset) => (
                   <motion.div
                     key={`stack-${offset}`}
-                    className="absolute inset-0 rounded-3xl bg-card border border-border shadow-xl"
+                    className="absolute inset-0 rounded-2xl sm:rounded-3xl bg-card border border-border shadow-lg sm:shadow-xl"
                     style={{
-                      transform: `translateX(${offset * 15}px) translateY(${offset * 10}px) rotateY(-5deg) rotateX(2deg)`,
+                      transform: `translateX(${offset * 8}px) translateY(${offset * 6}px)`,
                       zIndex: 3 - offset,
                     }}
-                    initial={{ opacity: 0, x: 50 }}
-                    animate={{ opacity: 0.3 + 0.2 * (3 - offset), x: offset * 15 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 0.4 - offset * 0.1 }}
                     transition={{ delay: 0.3 + offset * 0.1 }}
                   />
                 ))}
@@ -257,15 +257,12 @@ const Landing = () => {
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeCard}
-                    className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl"
-                    style={{
-                      transform: "rotateY(-5deg) rotateX(2deg)",
-                      zIndex: 10,
-                    }}
-                    initial={{ opacity: 0, x: 100, rotateY: 10 }}
-                    animate={{ opacity: 1, x: 0, rotateY: -5 }}
-                    exit={{ opacity: 0, x: -100, rotateY: -20 }}
-                    transition={{ duration: 0.5 }}
+                    className="absolute inset-0 rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl sm:shadow-2xl"
+                    style={{ zIndex: 10 }}
+                    initial={{ opacity: 0, x: 50 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -50 }}
+                    transition={{ duration: 0.4 }}
                   >
                     <img
                       src={profiles[activeCard].image}
