@@ -194,9 +194,9 @@ const Landing = () => {
         <div className="absolute inset-0 -z-20 bg-gradient-to-br from-primary/[0.03] via-transparent to-secondary/[0.05] pointer-events-none" />
         <div className="absolute inset-0 -z-20 bg-gradient-to-t from-background via-transparent to-background/50 pointer-events-none" />
         
-        {/* Giant Watermark Text */}
-        <div className="absolute inset-0 -z-10 flex items-center justify-center pointer-events-none select-none overflow-hidden">
-          <span className="text-[20vw] sm:text-[28vw] font-display font-black text-primary/[0.07] dark:text-primary/[0.10] whitespace-nowrap tracking-tight">
+        {/* Giant Watermark Text - hidden on mobile */}
+        <div className="absolute inset-0 -z-10 hidden sm:flex items-center justify-center pointer-events-none select-none overflow-hidden">
+          <span className="text-[28vw] font-display font-black text-primary/[0.07] dark:text-primary/[0.10] whitespace-nowrap tracking-tight">
             Spaark
           </span>
         </div>
