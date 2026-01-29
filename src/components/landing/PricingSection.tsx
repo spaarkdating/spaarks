@@ -83,7 +83,7 @@ export const PricingSection = () => {
           </p>
         </motion.div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 max-w-6xl mx-auto">
           {plans.map((plan, idx) => (
             <motion.div
               key={plan.id}
@@ -107,9 +107,9 @@ export const PricingSection = () => {
                   </div>
                 )}
 
-                <CardHeader className={`relative text-center pb-2 ${plan.popular ? 'pt-12' : 'pt-8'}`}>
+                <CardHeader className={`relative text-center pb-2 ${plan.popular ? 'pt-10 sm:pt-12' : 'pt-6 sm:pt-8'}`}>
                   <div
-                    className={`mx-auto mb-4 p-4 rounded-2xl ${
+                    className={`mx-auto mb-2 sm:mb-4 p-3 sm:p-4 rounded-xl sm:rounded-2xl ${
                       plan.popular 
                         ? 'bg-gradient-to-br from-primary to-primary-light text-primary-foreground shadow-lg' 
                         : 'bg-muted text-muted-foreground'
@@ -117,23 +117,23 @@ export const PricingSection = () => {
                   >
                     {plan.icon}
                   </div>
-                  <CardTitle className="font-display text-xl">{plan.display_name}</CardTitle>
-                  <CardDescription className="mt-2">
-                    <span className="text-3xl font-bold text-foreground font-display">₹{plan.price_inr}</span>
-                    {plan.price_inr > 0 && <span className="text-muted-foreground">/mo</span>}
+                  <CardTitle className="font-display text-base sm:text-xl">{plan.display_name}</CardTitle>
+                  <CardDescription className="mt-1 sm:mt-2">
+                    <span className="text-xl sm:text-3xl font-bold text-foreground font-display">₹{plan.price_inr}</span>
+                    {plan.price_inr > 0 && <span className="text-muted-foreground text-xs sm:text-base">/mo</span>}
                   </CardDescription>
                 </CardHeader>
 
-                <CardContent className="relative pb-8">
-                  <ul className="space-y-3 mb-6 text-sm">
+                <CardContent className="relative pb-4 sm:pb-8 px-3 sm:px-6">
+                  <ul className="space-y-2 sm:space-y-3 mb-4 sm:mb-6 text-xs sm:text-sm">
                     {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-start gap-3">
-                        <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
+                      <li key={i} className="flex items-start gap-2 sm:gap-3">
+                        <div className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
                           plan.popular ? 'bg-primary/20' : 'bg-muted'
                         }`}>
-                          <Check className={`h-3 w-3 ${plan.popular ? 'text-primary' : 'text-muted-foreground'}`} />
+                          <Check className={`h-2.5 w-2.5 sm:h-3 sm:w-3 ${plan.popular ? 'text-primary' : 'text-muted-foreground'}`} />
                         </div>
-                        <span className="text-muted-foreground">{feature}</span>
+                        <span className="text-muted-foreground leading-tight">{feature}</span>
                       </li>
                     ))}
                   </ul>
