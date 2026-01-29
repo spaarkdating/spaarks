@@ -1,8 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,9 +10,9 @@ import {
   CheckCircle, 
   Shield, 
   Loader2, 
-  Upload, 
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  Clock
 } from 'lucide-react';
 
 interface DynamicUPIPaymentProps {
@@ -51,8 +49,7 @@ export const DynamicUPIPayment = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copiedUpi, setCopiedUpi] = useState(false);
   const [copiedRef, setCopiedRef] = useState(false);
-  const [transactionId, setTransactionId] = useState('');
-  const [paymentProof, setPaymentProof] = useState<File | null>(null);
+  const [copiedAmount, setCopiedAmount] = useState(false);
   const [expiresAt, setExpiresAt] = useState<Date>(() => new Date(Date.now() + 15 * 60 * 1000));
   const [timeLeft, setTimeLeft] = useState('15:00');
 
@@ -101,18 +98,21 @@ export const DynamicUPIPayment = ({
     return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiLink)}`;
   }, [upiLink]);
 
-  const copyToClipboard = async (text: string, type: 'upi' | 'ref') => {
+  const copyToClipboard = async (text: string, type: 'upi' | 'ref' | 'amount') => {
     await navigator.clipboard.writeText(text);
     if (type === 'upi') {
       setCopiedUpi(true);
       setTimeout(() => setCopiedUpi(false), 2000);
-    } else {
+    } else if (type === 'ref') {
       setCopiedRef(true);
       setTimeout(() => setCopiedRef(false), 2000);
+    } else {
+      setCopiedAmount(true);
+      setTimeout(() => setCopiedAmount(false), 2000);
     }
     toast({
       title: 'Copied!',
-      description: type === 'upi' ? 'UPI ID copied' : 'Payment reference copied',
+      description: type === 'upi' ? 'UPI ID copied' : type === 'ref' ? 'Payment reference copied' : 'Amount copied',
     });
   };
 
@@ -125,70 +125,26 @@ export const DynamicUPIPayment = ({
     });
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast({
-          title: 'File too large',
-          description: 'Please upload a file smaller than 5MB',
-          variant: 'destructive',
-        });
-        return;
-      }
-      setPaymentProof(file);
-    }
-  };
-
-  const handleSubmitPayment = async () => {
-    if (!transactionId.trim()) {
-      toast({
-        title: 'Transaction ID required',
-        description: 'Please enter your UPI transaction ID / UTR number.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
+  const handleConfirmPayment = async () => {
     setIsSubmitting(true);
 
     try {
-      let proofUrl = null;
-
-      // Upload payment proof if provided
-      if (paymentProof) {
-        const fileExt = paymentProof.name.split('.').pop();
-        const fileName = `${userId}/${Date.now()}.${fileExt}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('payment-proofs')
-          .upload(fileName, paymentProof);
-
-        if (uploadError) throw uploadError;
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('payment-proofs')
-          .getPublicUrl(fileName);
-
-        proofUrl = publicUrl;
-      }
-
-      // Create payment request with unique reference
+      // Create payment request - no manual entry needed
+      // Auto-verification will match by payment_reference and amount
       const { error } = await supabase.from('payment_requests').insert({
         user_id: userId,
         plan_type: planId,
         amount: amount,
-        payment_proof_url: proofUrl,
-        transaction_id: transactionId.trim(),
-        upi_reference: paymentReference, // Store our unique reference
-        payment_reference: paymentReference, // Also in dedicated column
+        upi_reference: paymentReference,
+        payment_reference: paymentReference,
+        admin_notes: `Awaiting auto-verification. Reference: ${paymentReference}, Amount: ₹${amount}`,
       });
 
       if (error) throw error;
 
       toast({
-        title: 'Payment submitted!',
-        description: 'We\'ll verify your payment automatically within minutes.',
+        title: 'Payment registered!',
+        description: 'Your payment will be auto-verified within minutes once we receive it.',
       });
 
       onPaymentSubmitted();
@@ -222,12 +178,34 @@ export const DynamicUPIPayment = ({
             <Smartphone className="h-5 w-5 text-primary" />
             Pay ₹{amount} via UPI
           </CardTitle>
-          <CardDescription>Scan QR or use UPI ID - Include the reference in payment note</CardDescription>
+          <CardDescription>Scan QR or use UPI ID - Payment auto-verifies!</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Payment Instructions */}
+          <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg p-4 space-y-3">
+            <h4 className="font-semibold text-primary flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              How Auto-Verification Works
+            </h4>
+            <ol className="text-sm space-y-2 text-muted-foreground">
+              <li className="flex gap-2">
+                <Badge variant="outline" className="h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">1</Badge>
+                <span>Pay <strong>exact amount</strong>: ₹{amount}</span>
+              </li>
+              <li className="flex gap-2">
+                <Badge variant="outline" className="h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">2</Badge>
+                <span>Add <strong>reference code</strong> in payment note</span>
+              </li>
+              <li className="flex gap-2">
+                <Badge variant="outline" className="h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">3</Badge>
+                <span>Click "I've Made Payment" - we'll verify automatically!</span>
+              </li>
+            </ol>
+          </div>
+
           {/* Unique Payment Reference - CRITICAL */}
           <div className="bg-primary/10 border-2 border-primary rounded-lg p-4 text-center space-y-2">
-            <p className="text-sm font-medium text-primary">⚠️ IMPORTANT: Add this in payment note</p>
+            <p className="text-sm font-medium text-primary">⚠️ Add this in payment note/remarks</p>
             <div className="flex items-center justify-center gap-2">
               <code className="bg-background px-4 py-2 rounded-lg text-xl font-mono font-bold tracking-wider">
                 {paymentReference}
@@ -248,9 +226,25 @@ export const DynamicUPIPayment = ({
                 <RefreshCw className="h-4 w-4" />
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Reference expires in <span className="font-mono font-bold">{timeLeft}</span>
-            </p>
+            <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+              <Clock className="h-3 w-3" />
+              <span>Expires in <span className="font-mono font-bold">{timeLeft}</span></span>
+            </div>
+          </div>
+
+          {/* Amount to Pay */}
+          <div className="bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg p-4 text-center">
+            <p className="text-sm text-muted-foreground mb-1">Pay Exactly</p>
+            <div className="flex items-center justify-center gap-2">
+              <span className="text-3xl font-bold text-green-600 dark:text-green-400">₹{amount}</span>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => copyToClipboard(amount.toString(), 'amount')}
+              >
+                {copiedAmount ? <CheckCircle className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+              </Button>
+            </div>
           </div>
 
           {/* Dynamic QR Code */}
@@ -285,7 +279,6 @@ export const DynamicUPIPayment = ({
                 {copiedUpi ? <CheckCircle className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
               </Button>
             </div>
-            <p className="text-lg font-bold text-primary mt-2">Amount: ₹{amount}</p>
           </div>
 
           {/* Open UPI App Button (Mobile) */}
@@ -302,85 +295,31 @@ export const DynamicUPIPayment = ({
             </Button>
           )}
 
-          <div className="bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 p-4 rounded-lg space-y-2">
-            <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-300">
-              <Shield className="h-4 w-4" />
-              <span className="font-medium">Auto-verification enabled</span>
-            </div>
-            <p className="text-xs text-green-600 dark:text-green-400">
-              Payments with correct reference note are verified automatically from bank statements
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Submit Payment Proof */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Upload className="h-5 w-5 text-primary" />
-            Confirm Payment
-          </CardTitle>
-          <CardDescription>After payment, enter transaction details</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="transactionId">Transaction ID / UTR Number *</Label>
-            <Input
-              id="transactionId"
-              placeholder="Enter your UPI transaction ID"
-              value={transactionId}
-              onChange={(e) => setTransactionId(e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="paymentProof">Payment Screenshot (Optional but helps)</Label>
-            <div className="border-2 border-dashed rounded-lg p-4 text-center">
-              <input
-                type="file"
-                id="paymentProof"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-              <label htmlFor="paymentProof" className="cursor-pointer">
-                {paymentProof ? (
-                  <div className="flex items-center justify-center gap-2 text-green-600">
-                    <CheckCircle className="h-5 w-5" />
-                    <span>{paymentProof.name}</span>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <Upload className="h-8 w-8 mx-auto text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">Click to upload screenshot</p>
-                  </div>
-                )}
-              </label>
-            </div>
-          </div>
-
+          {/* Confirm Payment Button */}
           <Button
             className="w-full"
-            onClick={handleSubmitPayment}
-            disabled={isSubmitting || !transactionId.trim()}
+            size="lg"
+            onClick={handleConfirmPayment}
+            disabled={isSubmitting}
           >
             {isSubmitting ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Submitting...
+                Registering...
               </>
             ) : (
               <>
                 <CheckCircle className="h-4 w-4 mr-2" />
-                Submit for Auto-Verification
+                I've Made the Payment
               </>
             )}
           </Button>
 
-          <p className="text-xs text-center text-muted-foreground">
-            Payments are auto-verified when we process bank statements
-          </p>
+          <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 p-3 rounded-lg">
+            <p className="text-xs text-center text-blue-700 dark:text-blue-300">
+              <strong>No manual entry needed!</strong> We auto-verify by matching the payment reference and amount from bank alerts.
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>
