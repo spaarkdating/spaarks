@@ -15,9 +15,10 @@ import { PhotoCarousel } from "@/components/profile/PhotoCarousel";
 import ReportProfileDialog from "@/components/profile/ReportProfileDialog";
 import { recordProfileView } from "@/lib/profileViews";
 import { AppHeader } from "@/components/navigation/AppHeader";
+import { useVerificationGuard } from "@/hooks/useVerificationGuard";
 
 const Matches = () => {
-  const [user, setUser] = useState<any>(null);
+  const { isLoading: isVerifying, isVerified, user } = useVerificationGuard(true);
   const [matches, setMatches] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedProfile, setSelectedProfile] = useState<any>(null);
@@ -43,26 +44,10 @@ const Matches = () => {
   });
 
   useEffect(() => {
-    const initUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        navigate("/auth");
-        return;
-      }
-      setUser(user);
+    if (!isVerifying && isVerified && user) {
       fetchMatches(user.id);
-    };
-
-    initUser();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
-        navigate("/auth");
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+    }
+  }, [isVerifying, isVerified, user]);
 
   // Real-time updates for new matches
   useEffect(() => {
@@ -254,7 +239,8 @@ const Matches = () => {
     navigate("/");
   };
 
-  if (!user) return null;
+  // Don't render until verification check is complete
+  if (isVerifying || !isVerified || !user) return null;
 
   return (
     <div ref={containerRef} className="min-h-screen bg-background">

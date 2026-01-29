@@ -1,10 +1,15 @@
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Heart, MessageCircle, User, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { checkUserVerificationStatus } from "@/hooks/useVerificationGuard";
 
 export function BottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
+  const [isVerified, setIsVerified] = useState<boolean | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   const navItems = [
     { to: "/dashboard", label: "Discover", icon: Heart },
@@ -19,7 +24,46 @@ export function BottomNav() {
   const authenticatedRoutes = ["/dashboard", "/matches", "/messages", "/profile", "/settings", "/profile-views"];
   const shouldShow = authenticatedRoutes.some((route) => location.pathname.startsWith(route));
 
-  if (!shouldShow) return null;
+  // Check verification status
+  useEffect(() => {
+    const checkStatus = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        setIsVerified(false);
+        return;
+      }
+      
+      setUserId(session.user.id);
+      const { isVerified: verified } = await checkUserVerificationStatus(session.user.id);
+      setIsVerified(verified);
+    };
+
+    if (shouldShow) {
+      checkStatus();
+    }
+  }, [shouldShow, location.pathname]);
+
+  // Subscribe to auth changes
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        setUserId(session.user.id);
+        const { isVerified: verified } = await checkUserVerificationStatus(session.user.id);
+        setIsVerified(verified);
+      } else {
+        setIsVerified(false);
+        setUserId(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Don't show if not on authenticated route or if user is not verified
+  if (!shouldShow || isVerified === false) return null;
+  
+  // Still loading verification status - don't show to prevent flash
+  if (isVerified === null) return null;
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-lg border-t border-border safe-area-pb">
