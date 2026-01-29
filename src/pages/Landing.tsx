@@ -206,68 +206,71 @@ const Landing = () => {
         </nav>
       </header>
 
-      {/* Hero Section - Bumble Style with Watermark */}
-      <section className="relative min-h-screen flex items-center overflow-hidden pt-20">
+      {/* Hero Section - Mobile-First Premium Design */}
+      <section className="relative min-h-[100svh] flex items-center overflow-hidden pt-20 pb-8">
         {/* Subtle gradient background */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.03] via-transparent to-secondary/[0.05] pointer-events-none" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/50 pointer-events-none" />
         
         {/* Giant Watermark Text - More visible */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
-          <span className="text-[25vw] sm:text-[30vw] font-display font-black text-primary/[0.08] dark:text-primary/[0.12] whitespace-nowrap tracking-tight drop-shadow-sm">
+          <span className="text-[20vw] sm:text-[25vw] lg:text-[30vw] font-display font-black text-primary/[0.06] dark:text-primary/[0.10] whitespace-nowrap tracking-tight">
             Spaark
           </span>
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center min-h-[80vh]">
-            {/* Left Content */}
+          {/* Mobile: Flex column with text first, Desktop: Grid side by side */}
+          <div className="flex flex-col lg:grid lg:grid-cols-2 gap-6 lg:gap-16 items-center justify-center min-h-[calc(100svh-120px)] lg:min-h-[80vh]">
+            
+            {/* Text Content - Always first on mobile */}
             <motion.div
-              className="text-center lg:text-left order-2 lg:order-1"
-              initial={{ opacity: 0, y: 30 }}
+              className="text-center lg:text-left w-full"
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
+              transition={{ duration: 0.5 }}
             >
-              <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-foreground mb-6 leading-[0.95] tracking-tight">
+              <h1 className="font-display text-4xl sm:text-5xl lg:text-7xl xl:text-8xl font-bold text-foreground mb-4 lg:mb-6 leading-[0.95] tracking-tight">
                 Make the
                 <br />
                 <span className="text-primary">first move</span>
               </h1>
 
-              <p className="text-muted-foreground text-lg sm:text-xl mb-8 max-w-lg mx-auto lg:mx-0">
+              <p className="text-muted-foreground text-base sm:text-lg lg:text-xl mb-6 lg:mb-8 max-w-lg mx-auto lg:mx-0">
                 Start something epic. Meet new people, build genuine connections, and find your person on Spaark.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+              <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
                 <Link to="/auth">
-                  <Button className="bg-foreground text-background hover:bg-foreground/90 rounded-full h-14 px-8 text-lg font-semibold group">
+                  <Button className="bg-foreground text-background hover:bg-foreground/90 rounded-full h-12 lg:h-14 px-6 lg:px-8 text-base lg:text-lg font-semibold group w-full sm:w-auto">
                     Get Started
-                    <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight className="w-4 h-4 lg:w-5 lg:h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </Link>
               </div>
             </motion.div>
 
-            {/* Right - 3D Stacked Profile Cards */}
+            {/* Profile Card - Below text on mobile, side on desktop */}
             <motion.div
-              className="relative order-1 lg:order-2 flex justify-center"
-              initial={{ opacity: 0, scale: 0.9 }}
+              className="relative flex justify-center w-full"
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+              transition={{ duration: 0.5, delay: 0.15 }}
             >
-              <div className="relative w-[280px] sm:w-[320px] h-[420px] sm:h-[480px]" style={{ perspective: "1000px" }}>
+              {/* Smaller card on mobile, larger on desktop */}
+              <div className="relative w-[200px] h-[280px] sm:w-[260px] sm:h-[360px] lg:w-[320px] lg:h-[480px]" style={{ perspective: "1000px" }}>
                 {/* Background Cards Stack */}
                 {[2, 1, 0].map((offset) => (
                   <motion.div
                     key={`stack-${offset}`}
-                    className="absolute inset-0 rounded-3xl bg-card border border-border shadow-xl"
+                    className="absolute inset-0 rounded-2xl lg:rounded-3xl bg-card border border-border shadow-lg lg:shadow-xl"
                     style={{
-                      transform: `translateX(${offset * 15}px) translateY(${offset * 10}px) rotateY(-5deg) rotateX(2deg)`,
+                      transform: `translateX(${offset * 10}px) translateY(${offset * 6}px) rotateY(-5deg) rotateX(2deg)`,
                       zIndex: 3 - offset,
                     }}
-                    initial={{ opacity: 0, x: 50 }}
-                    animate={{ opacity: 0.3 + 0.2 * (3 - offset), x: offset * 15 }}
-                    transition={{ delay: 0.3 + offset * 0.1 }}
+                    initial={{ opacity: 0, x: 30 }}
+                    animate={{ opacity: 0.3 + 0.2 * (3 - offset), x: offset * 10 }}
+                    transition={{ delay: 0.25 + offset * 0.08 }}
                   />
                 ))}
 
@@ -275,15 +278,15 @@ const Landing = () => {
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeCard}
-                    className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl"
+                    className="absolute inset-0 rounded-2xl lg:rounded-3xl overflow-hidden shadow-xl lg:shadow-2xl"
                     style={{
                       transform: "rotateY(-5deg) rotateX(2deg)",
                       zIndex: 10,
                     }}
-                    initial={{ opacity: 0, x: 100, rotateY: 10 }}
+                    initial={{ opacity: 0, x: 60, rotateY: 10 }}
                     animate={{ opacity: 1, x: 0, rotateY: -5 }}
-                    exit={{ opacity: 0, x: -100, rotateY: -20 }}
-                    transition={{ duration: 0.5 }}
+                    exit={{ opacity: 0, x: -60, rotateY: -20 }}
+                    transition={{ duration: 0.4 }}
                   >
                     <img
                       src={profiles[activeCard].image}
@@ -293,15 +296,15 @@ const Landing = () => {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
                     {/* Profile Info - Bottom Left */}
-                    <div className="absolute bottom-6 left-6 right-6">
-                      <h3 className="text-white font-display text-3xl font-bold mb-1">
+                    <div className="absolute bottom-4 left-4 right-4 lg:bottom-6 lg:left-6 lg:right-6">
+                      <h3 className="text-white font-display text-xl sm:text-2xl lg:text-3xl font-bold mb-1">
                         {profiles[activeCard].name}, {profiles[activeCard].age}
                       </h3>
-                      <div className="flex flex-wrap gap-2 mt-3">
+                      <div className="flex flex-wrap gap-1.5 lg:gap-2 mt-2 lg:mt-3">
                         {profiles[activeCard].tags.map((tag, idx) => (
                           <span
                             key={idx}
-                            className="bg-white/20 backdrop-blur-sm text-white text-sm px-3 py-1 rounded-full"
+                            className="bg-white/20 backdrop-blur-sm text-white text-xs lg:text-sm px-2 lg:px-3 py-0.5 lg:py-1 rounded-full"
                           >
                             {tag}
                           </span>
@@ -312,15 +315,15 @@ const Landing = () => {
                 </AnimatePresence>
 
                 {/* Card Indicators */}
-                <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 flex gap-2">
+                <div className="absolute -bottom-8 lg:-bottom-12 left-1/2 -translate-x-1/2 flex gap-1.5 lg:gap-2">
                   {profiles.map((_, idx) => (
                     <button
                       key={idx}
                       onClick={() => setActiveCard(idx)}
-                      className={`h-2 rounded-full transition-all duration-300 ${
+                      className={`h-1.5 lg:h-2 rounded-full transition-all duration-300 ${
                         idx === activeCard
-                          ? "bg-primary w-8"
-                          : "bg-muted-foreground/30 w-2 hover:bg-muted-foreground/50"
+                          ? "bg-primary w-6 lg:w-8"
+                          : "bg-muted-foreground/30 w-1.5 lg:w-2 hover:bg-muted-foreground/50"
                       }`}
                     />
                   ))}
