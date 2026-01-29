@@ -86,22 +86,24 @@ const Landing = () => {
 
       <ChatbotWidget />
 
-      {/* Navigation - Bumble Style */}
-      <header className="fixed top-0 left-0 right-0 z-50 px-4 py-3 sm:py-4">
+      {/* Navigation - Dark Theme Style */}
+      <header className="fixed top-0 left-0 right-0 z-50 px-4 py-4">
         <nav className="max-w-7xl mx-auto flex items-center justify-between">
-          {/* Logo - Wordmark style like Bumble */}
-          <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="Spaark" className="h-8 w-8 object-contain" />
-            <span className="text-2xl font-display font-bold text-foreground">Spaark</span>
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-white/90 rounded-xl flex items-center justify-center shadow-lg">
+              <img src={logo} alt="Spaark" className="h-8 w-8 object-contain" />
+            </div>
+            <span className="text-2xl font-display font-bold text-white">Spaark</span>
           </Link>
 
-          {/* Center Nav - Pill container like Bumble */}
-          <div className="hidden md:flex items-center bg-white/80 dark:bg-card/80 backdrop-blur-sm rounded-full px-2 py-1.5 shadow-sm border border-border/30">
+          {/* Center Nav - Desktop */}
+          <div className="hidden md:flex items-center gap-8">
             {["About", "Safety", "Stories", "Support"].map((item) => (
               <Link
                 key={item}
                 to={`/${item.toLowerCase() === "stories" ? "testimonials" : item.toLowerCase()}`}
-                className="px-5 py-2 text-foreground/80 hover:text-foreground font-medium transition-colors rounded-full hover:bg-muted/50"
+                className="text-white/80 hover:text-white font-medium transition-colors"
               >
                 {item}
               </Link>
@@ -109,44 +111,45 @@ const Landing = () => {
           </div>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-3">
             <ThemeToggle />
             <Link to="/auth" className="hidden sm:block">
-              <Button className="bg-foreground text-background hover:bg-foreground/90 rounded-full px-6 h-10 font-semibold">
+              <span className="text-white/80 hover:text-white font-medium transition-colors cursor-pointer">
                 Sign in
+              </span>
+            </Link>
+            <Link to="/auth" className="hidden sm:block">
+              <Button className="bg-white text-primary hover:bg-white/90 rounded-full px-6 font-semibold">
+                Join
               </Button>
             </Link>
 
-            {/* Mobile Menu Button */}
+            {/* Mobile Menu */}
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="md:hidden h-10 w-10 rounded-full hover:bg-muted/50"
-                >
-                  <Menu className="h-5 w-5" />
+                <Button variant="ghost" size="icon" className="md:hidden text-white hover:bg-white/10">
+                  <Menu className="h-6 w-6" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[280px] sm:w-[320px] bg-background p-0 [&>button]:hidden">
+              <SheetContent side="right" className="w-[300px] bg-primary border-l border-white/10 p-0 [&>button]:hidden">
                 <div className="flex flex-col h-full">
-                  {/* Header */}
-                  <div className="flex items-center justify-between p-5 border-b border-border/30">
-                    <div className="flex items-center gap-2">
-                      <img src={logo} alt="Spaark" className="h-7 w-7 object-contain" />
-                      <span className="text-xl font-display font-bold text-foreground">Spaark</span>
+                  <div className="flex items-center justify-between p-6 border-b border-white/10">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-white/10 p-2 rounded-xl">
+                        <img src={logo} alt="Spaark Logo" className="h-8 w-8 object-contain" />
+                      </div>
+                      <span className="text-xl font-display font-bold text-white">Spaark</span>
                     </div>
                     <Button 
                       variant="ghost" 
                       size="icon" 
                       onClick={() => setMobileMenuOpen(false)}
-                      className="h-9 w-9 rounded-full hover:bg-muted"
+                      className="h-8 w-8 rounded-full text-white hover:bg-white/10"
                     >
                       <X className="h-5 w-5" />
                     </Button>
                   </div>
                   
-                  {/* Navigation Links - Clean list */}
                   <nav className="flex-1 py-4">
                     {[
                       { to: "/about", label: "About" },
@@ -158,19 +161,23 @@ const Landing = () => {
                         key={item.to}
                         to={item.to}
                         onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center justify-between px-6 py-4 hover:bg-muted/50 transition-colors group"
+                        className="flex items-center justify-between px-6 py-4 hover:bg-white/10 transition-colors group"
                       >
-                        <span className="text-base font-medium text-foreground">{item.label}</span>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground group-hover:translate-x-0.5 transition-all" />
+                        <span className="text-base font-medium text-white">{item.label}</span>
+                        <ChevronRight className="h-4 w-4 text-white/50 group-hover:text-white group-hover:translate-x-1 transition-all" />
                       </Link>
                     ))}
                   </nav>
                   
-                  {/* Footer - Sign in button */}
-                  <div className="p-5 border-t border-border/30">
-                    <Link to="/auth" onClick={() => setMobileMenuOpen(false)} className="block">
-                      <Button className="w-full bg-foreground text-background hover:bg-foreground/90 rounded-full h-12 font-semibold text-base">
+                  <div className="p-4 border-t border-white/10 space-y-2">
+                    <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="ghost" className="w-full justify-start text-white hover:bg-white/10 px-4 py-4 h-auto text-base font-medium rounded-xl">
                         Sign in
+                      </Button>
+                    </Link>
+                    <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
+                      <Button className="w-full bg-white text-primary hover:bg-white/90 rounded-xl h-12 font-semibold">
+                        Join Spaark
                       </Button>
                     </Link>
                   </div>
@@ -181,40 +188,57 @@ const Landing = () => {
         </nav>
       </header>
 
-      {/* Hero Section - Bumble-Inspired Design */}
-      <section className="relative min-h-[100svh] overflow-hidden bg-gradient-to-b from-secondary/40 via-secondary/20 to-background">
-        {/* Giant Brand Text - Bumble Style */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
-          <motion.span 
-            className="text-[28vw] sm:text-[22vw] font-display font-black text-foreground/[0.08] dark:text-foreground/[0.06] whitespace-nowrap tracking-tighter"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8 }}
-          >
+      {/* Hero Section - Dark Theme with Watermark */}
+      <section className="relative min-h-screen bg-primary overflow-hidden">
+        {/* Giant Watermark Text */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
+          <span className="text-[30vw] sm:text-[25vw] font-display font-black text-white/[0.08] whitespace-nowrap tracking-tight">
             Spaark
-          </motion.span>
+          </span>
         </div>
 
-        {/* Main Content Container */}
-        <div className="relative z-10 min-h-[100svh] flex flex-col">
-          {/* Top spacing for navbar */}
-          <div className="h-20" />
-          
-          {/* Cards Section - Center of screen */}
-          <div className="flex-1 flex items-center justify-center px-4 py-8">
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center min-h-screen pt-24 pb-16">
+            {/* Left Content */}
             <motion.div
-              className="relative"
+              className="text-center lg:text-left"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-white mb-6 leading-[0.95] tracking-tight">
+                Make the
+                <br />
+                <span className="text-secondary">first move</span>
+              </h1>
+
+              <p className="text-white/70 text-lg sm:text-xl mb-8 max-w-lg mx-auto lg:mx-0">
+                Start something epic. Meet new people, build genuine connections, and find your person on Spaark.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                <Link to="/auth">
+                  <Button className="bg-white text-primary hover:bg-white/90 rounded-full h-14 px-8 text-lg font-semibold group">
+                    Get Started
+                    <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+              </div>
+            </motion.div>
+
+            {/* Right - Stacked Profile Cards */}
+            <motion.div
+              className="relative flex justify-center lg:justify-end"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              {/* Stacked Cards Container */}
-              <div className="relative w-[260px] h-[360px] sm:w-[300px] sm:h-[420px] lg:w-[380px] lg:h-[520px]">
-                {/* Background stacked cards */}
+              <div className="relative w-[280px] sm:w-[320px] h-[400px] sm:h-[480px]">
+                {/* Background Cards Stack */}
                 {[2, 1].map((offset) => (
                   <motion.div
                     key={`stack-${offset}`}
-                    className="absolute rounded-3xl bg-card/80 backdrop-blur-sm border border-border/50 shadow-xl overflow-hidden"
+                    className="absolute rounded-3xl bg-white/10 backdrop-blur-sm border border-white/20 shadow-xl overflow-hidden"
                     style={{
                       width: '100%',
                       height: '100%',
@@ -223,13 +247,13 @@ const Landing = () => {
                       zIndex: 3 - offset,
                     }}
                     initial={{ opacity: 0, x: 50 }}
-                    animate={{ opacity: 0.6 - offset * 0.15 }}
-                    transition={{ delay: 0.4 + offset * 0.1, duration: 0.5 }}
+                    animate={{ opacity: 0.5 - offset * 0.15 }}
+                    transition={{ delay: 0.3 + offset * 0.1 }}
                   >
                     <img
                       src={profiles[(activeCard + offset) % profiles.length].image}
                       alt=""
-                      className="w-full h-full object-cover opacity-70"
+                      className="w-full h-full object-cover opacity-60"
                     />
                   </motion.div>
                 ))}
@@ -238,93 +262,56 @@ const Landing = () => {
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeCard}
-                    className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl border-2 border-white/20"
+                    className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl border-2 border-white/30"
                     style={{ zIndex: 10 }}
-                    initial={{ opacity: 0, x: 80, rotate: 5 }}
-                    animate={{ opacity: 1, x: 0, rotate: 0 }}
-                    exit={{ opacity: 0, x: -80, rotate: -5 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    initial={{ opacity: 0, x: 100, rotateY: 10 }}
+                    animate={{ opacity: 1, x: 0, rotateY: 0 }}
+                    exit={{ opacity: 0, x: -100, rotateY: -10 }}
+                    transition={{ duration: 0.5 }}
                   >
                     <img
                       src={profiles[activeCard].image}
                       alt={profiles[activeCard].name}
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
                     {/* Profile Info */}
                     <div className="absolute bottom-6 left-6 right-6">
-                      <h3 className="text-white font-display text-2xl sm:text-3xl lg:text-4xl font-bold">
+                      <h3 className="text-white font-display text-3xl font-bold mb-1">
                         {profiles[activeCard].name}, {profiles[activeCard].age}
                       </h3>
                       <div className="flex flex-wrap gap-2 mt-3">
                         {profiles[activeCard].tags.map((tag, idx) => (
                           <span
                             key={idx}
-                            className="bg-white/25 backdrop-blur-sm text-white text-sm px-3 py-1 rounded-full font-medium"
+                            className="bg-white/20 backdrop-blur-sm text-white text-sm px-3 py-1 rounded-full"
                           >
                             {tag}
                           </span>
                         ))}
                       </div>
                     </div>
-
-                    {/* Card Dots */}
-                    <div className="absolute bottom-6 right-6 flex gap-1.5">
-                      {profiles.slice(0, 4).map((_, idx) => (
-                        <div
-                          key={idx}
-                          className={`w-2 h-2 rounded-full transition-all ${
-                            idx === activeCard % 4 ? "bg-white" : "bg-white/40"
-                          }`}
-                        />
-                      ))}
-                    </div>
                   </motion.div>
                 </AnimatePresence>
-              </div>
 
-              {/* Card Navigation Dots */}
-              <div className="flex justify-center gap-2 mt-8">
-                {profiles.map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setActiveCard(idx)}
-                    className={`h-2 rounded-full transition-all duration-300 ${
-                      idx === activeCard
-                        ? "bg-primary w-8"
-                        : "bg-foreground/20 w-2 hover:bg-foreground/40"
-                    }`}
-                  />
-                ))}
+                {/* Card Indicators */}
+                <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 flex gap-2">
+                  {profiles.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setActiveCard(idx)}
+                      className={`h-2 rounded-full transition-all duration-300 ${
+                        idx === activeCard
+                          ? "bg-secondary w-8"
+                          : "bg-white/30 w-2 hover:bg-white/50"
+                      }`}
+                    />
+                  ))}
+                </div>
               </div>
             </motion.div>
           </div>
-
-          {/* Bottom Content - Tagline and CTA */}
-          <motion.div
-            className="px-4 pb-12 sm:pb-16 text-center"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-          >
-            <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4 leading-tight">
-              We exist to bring people
-              <br />
-              <span className="text-primary">closer to love.</span>
-            </h1>
-            
-            <p className="text-muted-foreground text-base sm:text-lg mb-8 max-w-md mx-auto">
-              Find meaningful connections that ignite confidence and joy.
-            </p>
-
-            <Link to="/auth">
-              <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full h-14 px-10 text-lg font-semibold shadow-lg hover:shadow-xl transition-all group">
-                Get Started
-                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
-          </motion.div>
         </div>
       </section>
 
