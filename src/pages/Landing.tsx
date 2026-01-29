@@ -189,55 +189,55 @@ const Landing = () => {
       </header>
 
       {/* Hero Section - Light Theme with Watermark */}
-      <section className="relative flex items-center overflow-hidden pt-20 sm:pt-24 pb-6 sm:pb-12 sm:min-h-screen">
+      <section className="relative flex items-center overflow-hidden pt-24 pb-8 sm:pt-28 sm:pb-16 sm:min-h-screen">
         {/* Subtle gradient background */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.03] via-transparent to-secondary/[0.05] pointer-events-none" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/50 pointer-events-none" />
         
         {/* Giant Watermark Text */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
-          <span className="text-[22vw] sm:text-[28vw] font-display font-black text-primary/[0.07] dark:text-primary/[0.10] whitespace-nowrap tracking-tight">
+          <span className="text-[20vw] sm:text-[28vw] font-display font-black text-primary/[0.07] dark:text-primary/[0.10] whitespace-nowrap tracking-tight">
             Spaark
           </span>
         </div>
 
         <div className="container mx-auto px-4 sm:px-6 relative z-10">
-          {/* Side-by-side on all screens */}
-          <div className="grid grid-cols-2 gap-4 sm:gap-8 lg:gap-16 items-center">
+          {/* Stack on mobile, side-by-side on tablet+ */}
+          <div className="flex flex-col sm:grid sm:grid-cols-2 gap-6 sm:gap-8 lg:gap-16 items-center">
             {/* Left Content */}
             <motion.div
-              className="text-left py-4 sm:py-0 relative z-0"
+              className="text-center sm:text-left w-full order-2 sm:order-1"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <h1 className="font-display text-2xl sm:text-5xl lg:text-7xl xl:text-8xl font-bold text-foreground mb-3 sm:mb-6 leading-[0.95] tracking-tight">
+              <h1 className="font-display text-[clamp(1.75rem,6vw,5rem)] font-bold text-foreground mb-3 sm:mb-6 leading-[1.1] tracking-tight">
                 Make the
                 <br />
                 <span className="text-primary">first move</span>
               </h1>
 
-              <p className="text-muted-foreground text-[11px] sm:text-lg lg:text-xl mb-4 sm:mb-8 max-w-md leading-relaxed">
+              <p className="text-muted-foreground text-[clamp(0.75rem,2.5vw,1.25rem)] mb-4 sm:mb-8 max-w-md mx-auto sm:mx-0 leading-relaxed">
                 Start something epic. Meet new people, build genuine connections, and find your person on Spaark.
               </p>
 
               <Link to="/auth">
-                <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full h-9 sm:h-14 px-4 sm:px-8 text-xs sm:text-lg font-semibold group">
+                <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full h-10 sm:h-14 px-5 sm:px-8 text-sm sm:text-lg font-semibold group">
                   Get Started
-                  <ArrowRight className="w-3.5 h-3.5 sm:w-5 sm:h-5 ml-1 sm:ml-2 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
             </motion.div>
 
             {/* Right - Stacked Profile Cards */}
             <motion.div
-              className="relative flex justify-end items-center z-10"
+              className="relative flex justify-center sm:justify-end items-center order-1 sm:order-2"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              {/* Responsive card sizing - no 3D transform on mobile to avoid overlap */}
-              <div className="relative w-[130px] h-[185px] sm:w-[280px] sm:h-[400px] lg:w-[320px] lg:h-[480px]">
+              {/* Responsive card sizing */}
+              <div className="relative w-[200px] h-[280px] sm:w-[280px] sm:h-[400px] lg:w-[320px] lg:h-[480px]">
                 {/* Background Cards Stack - simpler on mobile */}
                 {[2, 1].map((offset) => (
                   <motion.div
