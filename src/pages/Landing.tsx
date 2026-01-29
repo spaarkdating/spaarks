@@ -206,76 +206,95 @@ const Landing = () => {
         </nav>
       </header>
 
-      {/* Hero Section - Bumble Style with Watermark */}
-      <section className="relative min-h-screen flex items-center overflow-hidden pt-20">
-        {/* Subtle gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.03] via-transparent to-secondary/[0.05] pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/50 pointer-events-none" />
+      {/* Hero Section - Premium Side-by-Side Layout */}
+      <section className="relative min-h-screen flex items-center overflow-hidden pt-24 pb-16">
+        {/* Premium gradient background layers */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.04] via-background to-secondary/[0.06] pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/30 pointer-events-none" />
         
-        {/* Giant Watermark Text - More visible */}
+        {/* Decorative gradient orbs */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-secondary/10 rounded-full blur-3xl pointer-events-none" />
+        
+        {/* Giant Watermark Text */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
-          <span className="text-[25vw] sm:text-[30vw] font-display font-black text-primary/[0.08] dark:text-primary/[0.12] whitespace-nowrap tracking-tight drop-shadow-sm">
+          <span className="text-[20vw] sm:text-[25vw] lg:text-[30vw] font-display font-black text-primary/[0.06] dark:text-primary/[0.10] whitespace-nowrap tracking-tight">
             Spaark
           </span>
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center min-h-[80vh]">
+          {/* Mobile & Tablet: Side by Side | Desktop: Two Column */}
+          <div className="flex flex-row items-center gap-4 sm:gap-6 lg:gap-16 min-h-[70vh] lg:min-h-[80vh]">
+            
             {/* Left Content */}
             <motion.div
-              className="text-center lg:text-left order-2 lg:order-1"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
+              className="flex-1 text-left"
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-foreground mb-6 leading-[0.95] tracking-tight">
+              <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-7xl xl:text-8xl font-bold text-foreground mb-3 sm:mb-4 lg:mb-6 leading-[0.95] tracking-tight">
                 Make the
                 <br />
-                <span className="text-primary">first move</span>
+                <span className="text-primary bg-gradient-to-r from-primary to-primary/80 bg-clip-text">first move</span>
               </h1>
 
-              <p className="text-muted-foreground text-lg sm:text-xl mb-8 max-w-lg mx-auto lg:mx-0">
+              <p className="text-muted-foreground text-sm sm:text-base lg:text-xl mb-4 sm:mb-6 lg:mb-8 max-w-md leading-relaxed">
                 Start something epic. Meet new people, build genuine connections, and find your person on Spaark.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <Link to="/auth">
-                  <Button className="bg-foreground text-background hover:bg-foreground/90 rounded-full h-14 px-8 text-lg font-semibold group">
+                  <Button className="bg-foreground text-background hover:bg-foreground/90 rounded-full h-11 sm:h-12 lg:h-14 px-5 sm:px-6 lg:px-8 text-sm sm:text-base lg:text-lg font-semibold group shadow-lg hover:shadow-xl transition-all duration-300">
                     Get Started
-                    <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight className="w-4 h-4 lg:w-5 lg:h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </Link>
+              </div>
+
+              {/* Trust indicators - Hidden on very small screens */}
+              <div className="hidden sm:flex items-center gap-4 mt-6 lg:mt-8 text-xs sm:text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  <span>1000+ Active Users</span>
+                </div>
+                <div className="w-px h-4 bg-border" />
+                <span>100% Verified Profiles</span>
               </div>
             </motion.div>
 
             {/* Right - 3D Stacked Profile Cards */}
             <motion.div
-              className="relative order-1 lg:order-2 flex justify-center"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
+              className="flex-shrink-0"
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <div className="relative w-[280px] sm:w-[320px] h-[420px] sm:h-[480px]" style={{ perspective: "1000px" }}>
-                {/* Background Cards Stack */}
+              <div 
+                className="relative w-[140px] h-[200px] sm:w-[180px] sm:h-[260px] md:w-[240px] md:h-[340px] lg:w-[320px] lg:h-[480px]" 
+                style={{ perspective: "1000px" }}
+              >
+                {/* Background Cards Stack with glassmorphism */}
                 {[2, 1, 0].map((offset) => (
                   <motion.div
                     key={`stack-${offset}`}
-                    className="absolute inset-0 rounded-3xl bg-card border border-border shadow-xl"
+                    className="absolute inset-0 rounded-2xl sm:rounded-3xl bg-card/80 backdrop-blur-sm border border-border/50 shadow-xl"
                     style={{
-                      transform: `translateX(${offset * 15}px) translateY(${offset * 10}px) rotateY(-5deg) rotateX(2deg)`,
+                      transform: `translateX(${offset * 8}px) translateY(${offset * 6}px) rotateY(-5deg) rotateX(2deg)`,
                       zIndex: 3 - offset,
                     }}
                     initial={{ opacity: 0, x: 50 }}
-                    animate={{ opacity: 0.3 + 0.2 * (3 - offset), x: offset * 15 }}
+                    animate={{ opacity: 0.3 + 0.2 * (3 - offset), x: offset * 8 }}
                     transition={{ delay: 0.3 + offset * 0.1 }}
                   />
                 ))}
 
-                {/* Main Active Card */}
+                {/* Main Active Card with premium styling */}
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeCard}
-                    className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl"
+                    className="absolute inset-0 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl ring-1 ring-white/10"
                     style={{
                       transform: "rotateY(-5deg) rotateX(2deg)",
                       zIndex: 10,
@@ -290,37 +309,41 @@ const Landing = () => {
                       alt={profiles[activeCard].name}
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                    {/* Premium gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
-                    {/* Profile Info - Bottom Left */}
-                    <div className="absolute bottom-6 left-6 right-6">
-                      <h3 className="text-white font-display text-3xl font-bold mb-1">
+                    {/* Profile Info - Bottom with premium styling */}
+                    <div className="absolute bottom-2 sm:bottom-4 lg:bottom-6 left-2 sm:left-4 lg:left-6 right-2 sm:right-4 lg:right-6">
+                      <h3 className="text-white font-display text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-0.5 sm:mb-1 drop-shadow-lg">
                         {profiles[activeCard].name}, {profiles[activeCard].age}
                       </h3>
-                      <div className="flex flex-wrap gap-2 mt-3">
-                        {profiles[activeCard].tags.map((tag, idx) => (
+                      <div className="flex flex-wrap gap-1 sm:gap-1.5 lg:gap-2 mt-1 sm:mt-2 lg:mt-3">
+                        {profiles[activeCard].tags.slice(0, 3).map((tag, idx) => (
                           <span
                             key={idx}
-                            className="bg-white/20 backdrop-blur-sm text-white text-sm px-3 py-1 rounded-full"
+                            className="bg-white/20 backdrop-blur-md text-white text-[10px] sm:text-xs lg:text-sm px-1.5 sm:px-2 lg:px-3 py-0.5 sm:py-1 rounded-full border border-white/10"
                           >
                             {tag}
                           </span>
                         ))}
                       </div>
                     </div>
+
+                    {/* Subtle shine effect */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent pointer-events-none" />
                   </motion.div>
                 </AnimatePresence>
 
-                {/* Card Indicators */}
-                <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 flex gap-2">
+                {/* Card Indicators - Premium style */}
+                <div className="absolute -bottom-8 sm:-bottom-10 lg:-bottom-12 left-1/2 -translate-x-1/2 flex gap-1.5 sm:gap-2">
                   {profiles.map((_, idx) => (
                     <button
                       key={idx}
                       onClick={() => setActiveCard(idx)}
-                      className={`h-2 rounded-full transition-all duration-300 ${
+                      className={`h-1.5 sm:h-2 rounded-full transition-all duration-300 ${
                         idx === activeCard
-                          ? "bg-primary w-8"
-                          : "bg-muted-foreground/30 w-2 hover:bg-muted-foreground/50"
+                          ? "bg-primary w-5 sm:w-6 lg:w-8 shadow-lg shadow-primary/30"
+                          : "bg-muted-foreground/30 w-1.5 sm:w-2 hover:bg-muted-foreground/50"
                       }`}
                     />
                   ))}
