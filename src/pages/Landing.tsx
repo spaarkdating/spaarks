@@ -87,115 +87,90 @@ const Landing = () => {
       <ChatbotWidget />
 
       {/* Navigation - Bumble Style */}
-      <header className="fixed top-0 left-0 right-0 z-50 px-4 py-4">
-        <nav className="max-w-7xl mx-auto grid grid-cols-[auto_1fr_auto] items-center gap-4">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 group justify-self-start">
-            <div className="w-12 h-12 bg-white/90 rounded-xl flex items-center justify-center shadow-lg">
-              <img src={logo} alt="Spaark" className="h-8 w-8 object-contain" />
-            </div>
-            <span className="text-2xl font-display font-bold text-foreground hidden sm:block">Spaark</span>
+      <header className="fixed top-0 left-0 right-0 z-50 px-4 py-3 sm:py-4">
+        <nav className="max-w-7xl mx-auto flex items-center justify-between">
+          {/* Logo - Wordmark style like Bumble */}
+          <Link to="/" className="flex items-center gap-2">
+            <img src={logo} alt="Spaark" className="h-8 w-8 object-contain" />
+            <span className="text-2xl font-display font-bold text-foreground">Spaark</span>
           </Link>
 
-          {/* Center Nav - Desktop */}
-          <div className="hidden md:flex items-center justify-center gap-8">
-            <Link to="/about" className="text-foreground/80 hover:text-foreground font-medium transition-colors">
-              About
-            </Link>
-            <Link to="/safety" className="text-foreground/80 hover:text-foreground font-medium transition-colors">
-              Safety
-            </Link>
-            <Link to="/testimonials" className="text-foreground/80 hover:text-foreground font-medium transition-colors">
-              Stories
-            </Link>
-            <Link to="/support" className="text-foreground/80 hover:text-foreground font-medium transition-colors">
-              Support
-            </Link>
+          {/* Center Nav - Pill container like Bumble */}
+          <div className="hidden md:flex items-center bg-white/80 dark:bg-card/80 backdrop-blur-sm rounded-full px-2 py-1.5 shadow-sm border border-border/30">
+            {["About", "Safety", "Stories", "Support"].map((item) => (
+              <Link
+                key={item}
+                to={`/${item.toLowerCase() === "stories" ? "testimonials" : item.toLowerCase()}`}
+                className="px-5 py-2 text-foreground/80 hover:text-foreground font-medium transition-colors rounded-full hover:bg-muted/50"
+              >
+                {item}
+              </Link>
+            ))}
           </div>
 
           {/* Right Actions */}
-          <div className="flex items-center justify-end gap-3 justify-self-end">
+          <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
             <Link to="/auth" className="hidden sm:block">
-              <span className="text-foreground/80 hover:text-foreground font-medium transition-colors cursor-pointer">
+              <Button className="bg-foreground text-background hover:bg-foreground/90 rounded-full px-6 h-10 font-semibold">
                 Sign in
-              </span>
-            </Link>
-            <Link to="/auth" className="hidden sm:block">
-              <Button className="bg-foreground text-background hover:bg-foreground/90 rounded-full px-6 font-semibold">
-                Join
               </Button>
             </Link>
 
-            {/* Mobile Menu - Using Sheet like other pages */}
+            {/* Mobile Menu Button */}
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden hover:bg-primary/10 transition-colors duration-200">
-                  <Menu className="h-6 w-6" />
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="md:hidden h-10 w-10 rounded-full hover:bg-muted/50"
+                >
+                  <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] bg-background border-l border-border/30 p-0 [&>button]:hidden">
+              <SheetContent side="right" className="w-[280px] sm:w-[320px] bg-background p-0 [&>button]:hidden">
                 <div className="flex flex-col h-full">
-                  {/* Header with close button */}
-                  <div className="flex items-center justify-between p-6 border-b border-border/30">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-muted p-2 rounded-xl">
-                        <img src={logo} alt="Spaark Logo" className="h-8 w-8 object-contain" />
-                      </div>
+                  {/* Header */}
+                  <div className="flex items-center justify-between p-5 border-b border-border/30">
+                    <div className="flex items-center gap-2">
+                      <img src={logo} alt="Spaark" className="h-7 w-7 object-contain" />
                       <span className="text-xl font-display font-bold text-foreground">Spaark</span>
                     </div>
                     <Button 
                       variant="ghost" 
                       size="icon" 
                       onClick={() => setMobileMenuOpen(false)}
-                      className="h-8 w-8 rounded-full hover:bg-muted"
+                      className="h-9 w-9 rounded-full hover:bg-muted"
                     >
                       <X className="h-5 w-5" />
                     </Button>
                   </div>
                   
-                  {/* Navigation Links */}
-                  <motion.nav 
-                    className="flex flex-col gap-1 p-4 flex-1"
-                    initial="hidden"
-                    animate="show"
-                    variants={{
-                      hidden: { opacity: 0 },
-                      show: { opacity: 1, transition: { staggerChildren: 0.05, delayChildren: 0.1 } },
-                    }}
-                  >
+                  {/* Navigation Links - Clean list */}
+                  <nav className="flex-1 py-4">
                     {[
                       { to: "/about", label: "About" },
                       { to: "/safety", label: "Safety" },
                       { to: "/testimonials", label: "Stories" },
                       { to: "/support", label: "Support" },
                     ].map((item) => (
-                      <motion.div
+                      <Link
                         key={item.to}
-                        variants={{ hidden: { opacity: 0, x: -20 }, show: { opacity: 1, x: 0 } }}
+                        to={item.to}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center justify-between px-6 py-4 hover:bg-muted/50 transition-colors group"
                       >
-                        <Link
-                          to={item.to}
-                          onClick={() => setMobileMenuOpen(false)}
-                          className="flex items-center justify-between gap-3 px-4 py-4 rounded-xl hover:bg-primary/10 transition-all duration-200 group"
-                        >
-                          <span className="text-base font-medium text-foreground">{item.label}</span>
-                          <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-                        </Link>
-                      </motion.div>
+                        <span className="text-base font-medium text-foreground">{item.label}</span>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground group-hover:translate-x-0.5 transition-all" />
+                      </Link>
                     ))}
-                  </motion.nav>
+                  </nav>
                   
-                  {/* Footer Actions */}
-                  <div className="p-4 border-t border-border/50 space-y-2">
-                    <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
-                      <Button variant="ghost" className="w-full justify-start gap-3 px-4 py-4 h-auto text-base font-medium rounded-xl">
+                  {/* Footer - Sign in button */}
+                  <div className="p-5 border-t border-border/30">
+                    <Link to="/auth" onClick={() => setMobileMenuOpen(false)} className="block">
+                      <Button className="w-full bg-foreground text-background hover:bg-foreground/90 rounded-full h-12 font-semibold text-base">
                         Sign in
-                      </Button>
-                    </Link>
-                    <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
-                      <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl h-12 font-semibold">
-                        Join Spaark
                       </Button>
                     </Link>
                   </div>
