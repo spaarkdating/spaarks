@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, ArrowLeft, LogOut, Crown, UserCog, Headset, IdCard, CreditCard, Settings, IndianRupee, Package, FileSpreadsheet } from "lucide-react";
+import { Shield, ArrowLeft, LogOut, Crown, UserCog, Headset, IdCard, CreditCard, Settings, IndianRupee, Package, FileSpreadsheet, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import UserManagement from "@/components/admin/UserManagement";
@@ -20,6 +20,7 @@ import { IdCardVerification } from "@/components/admin/IdCardVerification";
 import { PaymentRequests } from "@/components/admin/PaymentRequests";
 import PaymentSettings from "@/components/admin/PaymentSettings";
 import { BankStatementProcessor } from "@/components/admin/BankStatementProcessor";
+import { BankEmailConfig } from "@/components/admin/BankEmailConfig";
 import Revenue from "@/components/admin/Revenue";
 import DangerZone from "@/components/admin/DangerZone";
 import SubscriptionPlansManagement from "@/components/admin/SubscriptionPlansManagement";
@@ -151,10 +152,22 @@ const Admin = () => {
 
           {isSuperAdmin && (
             <TabsContent value="payment-settings">
-              <div className="space-y-6">
-                <PaymentSettings />
-                <BankStatementProcessor />
-              </div>
+              <Tabs defaultValue="upi-settings" className="space-y-4">
+                <TabsList>
+                  <TabsTrigger value="upi-settings">UPI & Bank Settings</TabsTrigger>
+                  <TabsTrigger value="bank-statements">Statement Upload</TabsTrigger>
+                  <TabsTrigger value="auto-verify">Auto-Verification Setup</TabsTrigger>
+                </TabsList>
+                <TabsContent value="upi-settings">
+                  <PaymentSettings />
+                </TabsContent>
+                <TabsContent value="bank-statements">
+                  <BankStatementProcessor />
+                </TabsContent>
+                <TabsContent value="auto-verify">
+                  <BankEmailConfig />
+                </TabsContent>
+              </Tabs>
             </TabsContent>
           )}
 

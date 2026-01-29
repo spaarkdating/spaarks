@@ -63,6 +63,9 @@ port = 54321
 [functions.create-video-room]
 verify_jwt = true
 
+[functions.fetch-bank-emails]
+verify_jwt = false
+
 [functions.ai-chatbot]
 verify_jwt = false
 
