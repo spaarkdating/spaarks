@@ -234,9 +234,11 @@ export function useSubscription() {
 
   const canViewProfileViews = (): { canView: boolean; limit: number | null } => {
     if (!limits) return { canView: false, limit: 0 };
+    // null means unlimited, 0 means no access, positive number means limited access
+    const limit = limits.profile_views_limit;
     return {
-      canView: (limits.profile_views_limit || 0) > 0,
-      limit: limits.profile_views_limit,
+      canView: limit === null || limit > 0,
+      limit: limit,
     };
   };
 
