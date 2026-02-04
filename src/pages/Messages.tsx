@@ -8,6 +8,10 @@ import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/navigation/PullToRefreshIndicator";
 import { AppHeader } from "@/components/navigation/AppHeader";
 import { useVerificationGuard } from "@/hooks/useVerificationGuard";
+import { useWebRTC, CallType } from "@/hooks/useWebRTC";
+import { CallUI } from "@/components/calls/CallUI";
+import { IncomingCallModal } from "@/components/calls/IncomingCallModal";
+import { AnimatePresence } from "framer-motion";
 
 const Messages = () => {
   const { isLoading: isVerifying, isVerified, user } = useVerificationGuard(true);
@@ -16,6 +20,20 @@ const Messages = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // WebRTC calling hook
+  const webrtc = useWebRTC({
+    currentUserId: user?.id || '',
+    onCallEnded: () => {
+      // Optionally refresh matches or do something after call ends
+    },
+  });
+
+  const handleStartCall = (type: CallType) => {
+    if (selectedMatch) {
+      webrtc.startCall(selectedMatch.liked_user_id, type);
+    }
+  };
 
   const handleRefresh = async () => {
     if (user) {
@@ -267,10 +285,42 @@ const Messages = () => {
                 setSelectedMatch(null);
                 setSearchParams({});
               }}
+              onStartCall={handleStartCall}
             />
           </div>
         </div>
       </div>
+
+      {/* Call UI */}
+      <AnimatePresence>
+        {(webrtc.callStatus === 'calling' || webrtc.callStatus === 'active') && (
+          <CallUI
+            callStatus={webrtc.callStatus}
+            callType={webrtc.callType}
+            formattedDuration={webrtc.formattedDuration}
+            isMuted={webrtc.isMuted}
+            isVideoOff={webrtc.isVideoOff}
+            profile={selectedMatch?.profile}
+            onEndCall={() => webrtc.endCall()}
+            onToggleMute={webrtc.toggleMute}
+            onToggleVideo={webrtc.toggleVideo}
+            setLocalVideoElement={webrtc.setLocalVideoElement}
+            setRemoteVideoElement={webrtc.setRemoteVideoElement}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Incoming call modal */}
+      <AnimatePresence>
+        {webrtc.incomingCall && (
+          <IncomingCallModal
+            callerProfile={webrtc.callerProfile}
+            callType={webrtc.incomingCall.call_type}
+            onAnswer={webrtc.answerCall}
+            onDecline={webrtc.declineCall}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };

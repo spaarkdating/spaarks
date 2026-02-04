@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, MessageCircle, Sparkles, Image, Video, Mic, X, ArrowLeft, Check, CheckCheck, Smile, Trash2, MoreVertical, Crown, Zap } from "lucide-react";
+import { Send, MessageCircle, Sparkles, Image, Video, Mic, X, ArrowLeft, Check, CheckCheck, Smile, Trash2, MoreVertical, Crown, Zap, Phone } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,12 +33,14 @@ import {
 } from "@/components/ui/popover";
 import { Progress } from "@/components/ui/progress";
 import { VoiceMessagePlayer } from "./VoiceMessagePlayer";
+import { CallButtons } from "@/components/calls/CallButtons";
 
 interface ChatWindowProps {
   match: any;
   currentUserId: string;
   onMessagesUpdate: () => void;
   onBack?: () => void;
+  onStartCall?: (type: 'audio' | 'video') => void;
 }
 
 // Common emoji reactions
@@ -47,7 +49,7 @@ const EMOJI_REACTIONS = ["❤️", "😂", "😮", "😢", "😡", "👍"];
 // Delete for everyone time window (15 minutes in milliseconds)
 const DELETE_FOR_EVERYONE_WINDOW = 15 * 60 * 1000;
 
-export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: ChatWindowProps) => {
+export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onStartCall }: ChatWindowProps) => {
   const [messages, setMessages] = useState<any[]>([]);
   const [reactions, setReactions] = useState<Record<string, any[]>>({});
   const [newMessage, setNewMessage] = useState("");
@@ -912,6 +914,15 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
             )}
           </div>
         </div>
+        
+        {/* Call buttons */}
+        {onStartCall && (
+          <CallButtons
+            onStartAudioCall={() => onStartCall('audio')}
+            onStartVideoCall={() => onStartCall('video')}
+            currentUserId={currentUserId}
+          />
+        )}
       </div>
 
       {/* Messages (scrollable middle section - smooth scroll for mobile) */}

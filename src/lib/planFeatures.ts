@@ -16,6 +16,12 @@ export interface SubscriptionPlanData {
   video_max_duration_seconds: number | null;
   audio_messages_per_day: number | null;
   who_liked_you_limit?: number | null;
+  // Call features
+  can_audio_call?: boolean;
+  can_video_call?: boolean;
+  audio_calls_per_day?: number | null;
+  video_calls_per_day?: number | null;
+  call_duration_limit_minutes?: number | null;
 }
 
 export function generatePlanFeatures(plan: SubscriptionPlanData): string[] {
@@ -93,6 +99,26 @@ export function generatePlanFeatures(plan: SubscriptionPlanData): string[] {
     }
   }
 
+  // Audio calls
+  if (plan.can_audio_call) {
+    if (plan.audio_calls_per_day === null) {
+      features.push('Unlimited audio calls');
+    } else if (plan.audio_calls_per_day && plan.audio_calls_per_day > 0) {
+      const durationInfo = plan.call_duration_limit_minutes ? ` (${plan.call_duration_limit_minutes}min)` : '';
+      features.push(`${plan.audio_calls_per_day} audio calls/day${durationInfo}`);
+    }
+  }
+
+  // Video calls
+  if (plan.can_video_call) {
+    if (plan.video_calls_per_day === null) {
+      features.push('Unlimited video calls');
+    } else if (plan.video_calls_per_day && plan.video_calls_per_day > 0) {
+      const durationInfo = plan.call_duration_limit_minutes ? ` (${plan.call_duration_limit_minutes}min)` : '';
+      features.push(`${plan.video_calls_per_day} video calls/day${durationInfo}`);
+    }
+  }
+
   // Priority support for elite
   if (plan.name === 'elite') {
     features.push('Priority support');
@@ -155,6 +181,17 @@ export function generateShortFeatures(plan: SubscriptionPlanData): string[] {
     }
     if (mediaParts.length > 0) {
       features.push(mediaParts.join(' + '));
+    }
+  }
+
+  // Calls summary
+  if (plan.can_audio_call || plan.can_video_call) {
+    if (plan.can_video_call && plan.video_calls_per_day === null) {
+      features.push('Unlimited calls');
+    } else if (plan.can_video_call) {
+      features.push('Audio + Video calls');
+    } else if (plan.can_audio_call) {
+      features.push('Audio calls');
     }
   }
 

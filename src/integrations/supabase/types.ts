@@ -222,6 +222,60 @@ export type Database = {
           },
         ]
       }
+      call_sessions: {
+        Row: {
+          call_type: string
+          caller_id: string
+          created_at: string
+          duration_seconds: number | null
+          end_reason: string | null
+          ended_at: string | null
+          id: string
+          receiver_id: string
+          started_at: string | null
+          status: string
+        }
+        Insert: {
+          call_type: string
+          caller_id: string
+          created_at?: string
+          duration_seconds?: number | null
+          end_reason?: string | null
+          ended_at?: string | null
+          id?: string
+          receiver_id: string
+          started_at?: string | null
+          status?: string
+        }
+        Update: {
+          call_type?: string
+          caller_id?: string
+          created_at?: string
+          duration_seconds?: number | null
+          end_reason?: string | null
+          ended_at?: string | null
+          id?: string
+          receiver_id?: string
+          started_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_sessions_caller_id_fkey"
+            columns: ["caller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_sessions_receiver_id_fkey"
+            columns: ["receiver_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_inquiries: {
         Row: {
           admin_reply: string | null
@@ -1123,10 +1177,14 @@ export type Database = {
       subscription_plans: {
         Row: {
           active_matches_limit: number | null
+          audio_calls_per_day: number | null
           audio_messages_per_day: number | null
+          call_duration_limit_minutes: number | null
+          can_audio_call: boolean | null
           can_send_images: boolean | null
           can_send_video: boolean | null
           can_send_voice: boolean | null
+          can_video_call: boolean | null
           created_at: string | null
           daily_swipes_limit: number | null
           display_name: string
@@ -1136,16 +1194,21 @@ export type Database = {
           name: Database["public"]["Enums"]["subscription_plan"]
           price_inr: number
           profile_views_limit: number | null
+          video_calls_per_day: number | null
           video_max_duration_seconds: number | null
           videos_per_chat_per_day: number | null
           who_liked_you_limit: number | null
         }
         Insert: {
           active_matches_limit?: number | null
+          audio_calls_per_day?: number | null
           audio_messages_per_day?: number | null
+          call_duration_limit_minutes?: number | null
+          can_audio_call?: boolean | null
           can_send_images?: boolean | null
           can_send_video?: boolean | null
           can_send_voice?: boolean | null
+          can_video_call?: boolean | null
           created_at?: string | null
           daily_swipes_limit?: number | null
           display_name: string
@@ -1155,16 +1218,21 @@ export type Database = {
           name: Database["public"]["Enums"]["subscription_plan"]
           price_inr?: number
           profile_views_limit?: number | null
+          video_calls_per_day?: number | null
           video_max_duration_seconds?: number | null
           videos_per_chat_per_day?: number | null
           who_liked_you_limit?: number | null
         }
         Update: {
           active_matches_limit?: number | null
+          audio_calls_per_day?: number | null
           audio_messages_per_day?: number | null
+          call_duration_limit_minutes?: number | null
+          can_audio_call?: boolean | null
           can_send_images?: boolean | null
           can_send_video?: boolean | null
           can_send_voice?: boolean | null
+          can_video_call?: boolean | null
           created_at?: string | null
           daily_swipes_limit?: number | null
           display_name?: string
@@ -1174,6 +1242,7 @@ export type Database = {
           name?: Database["public"]["Enums"]["subscription_plan"]
           price_inr?: number
           profile_views_limit?: number | null
+          video_calls_per_day?: number | null
           video_max_duration_seconds?: number | null
           videos_per_chat_per_day?: number | null
           who_liked_you_limit?: number | null
@@ -1370,6 +1439,7 @@ export type Database = {
       }
       usage_tracking: {
         Row: {
+          audio_calls_made: number | null
           audio_messages_sent: number | null
           created_at: string | null
           date: string
@@ -1377,9 +1447,11 @@ export type Database = {
           images_sent: Json | null
           swipes_count: number | null
           user_id: string
+          video_calls_made: number | null
           videos_sent: Json | null
         }
         Insert: {
+          audio_calls_made?: number | null
           audio_messages_sent?: number | null
           created_at?: string | null
           date?: string
@@ -1387,9 +1459,11 @@ export type Database = {
           images_sent?: Json | null
           swipes_count?: number | null
           user_id: string
+          video_calls_made?: number | null
           videos_sent?: Json | null
         }
         Update: {
+          audio_calls_made?: number | null
           audio_messages_sent?: number | null
           created_at?: string | null
           date?: string
@@ -1397,6 +1471,7 @@ export type Database = {
           images_sent?: Json | null
           swipes_count?: number | null
           user_id?: string
+          video_calls_made?: number | null
           videos_sent?: Json | null
         }
         Relationships: []
