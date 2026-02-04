@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Heart, RefreshCw, Crown, Zap, X, MapPin, Briefcase, GraduationCap, Heart as HeartIcon } from "lucide-react";
+import { Heart, RefreshCw, Crown, Zap, X, MapPin, Briefcase, GraduationCap, Heart as HeartIcon, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -439,6 +439,16 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
               </div>
             ) : hasMoreProfiles ? (
               <div className="space-y-6">
+                {/* Who Liked You Button - Always visible */}
+                <Button
+                  variant="outline"
+                  onClick={() => navigate("/who-liked-you")}
+                  className="w-full bg-gradient-to-r from-pink-500/10 to-rose-500/10 border-pink-500/30 hover:border-pink-500/50 hover:bg-pink-500/20"
+                >
+                  <Sparkles className="h-4 w-4 mr-2 text-pink-500" />
+                  See Who Liked You
+                </Button>
+
                 <div className="relative h-[500px] sm:h-[550px]">
                   <AnimatePresence>
                     {profiles.slice(currentIndex, currentIndex + 2).map((profile, index) => (
@@ -472,16 +482,26 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
                 <Heart className="h-24 w-24 text-muted-foreground mx-auto" />
                 <h3 className="text-2xl font-display font-bold text-foreground">No more profiles</h3>
                 <p className="text-muted-foreground">Check back later for new matches!</p>
-                <Button
-                  onClick={() => {
-                    setCurrentIndex(0);
-                    fetchProfiles(user.id);
-                  }}
-                  className="rounded-full"
-                >
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Refresh
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <Button
+                    onClick={() => {
+                      setCurrentIndex(0);
+                      fetchProfiles(user.id);
+                    }}
+                    className="rounded-full"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Refresh
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate("/who-liked-you")}
+                    className="rounded-full bg-gradient-to-r from-pink-500/10 to-rose-500/10 border-pink-500/30 hover:border-pink-500/50"
+                  >
+                    <Sparkles className="h-4 w-4 mr-2 text-pink-500" />
+                    Who Liked You
+                  </Button>
+                </div>
               </div>
             )}
           </div>

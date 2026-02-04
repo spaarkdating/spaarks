@@ -264,12 +264,22 @@ const Matches = () => {
             <p className="text-muted-foreground mb-6">
               Start swiping to find your perfect match!
             </p>
-            <Button
-              onClick={() => navigate("/dashboard")}
-              className="bg-gradient-to-r from-primary to-secondary hover:opacity-90"
-            >
-              Start Swiping
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button
+                onClick={() => navigate("/dashboard")}
+                className="bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+              >
+                Start Swiping
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/who-liked-you")}
+                className="bg-gradient-to-r from-pink-500/10 to-rose-500/10 border-pink-500/30 hover:border-pink-500/50"
+              >
+                <Sparkles className="h-4 w-4 mr-2 text-pink-500" />
+                Who Liked You
+              </Button>
+            </div>
           </div>
         ) : (
           <div>
