@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, MessageCircle, Sparkles, Image, Video, Mic, X, ArrowLeft, Check, CheckCheck, Smile, Trash2, MoreVertical, Crown, Zap, Phone } from "lucide-react";
+import { Send, MessageCircle, Sparkles, Image, Video, Mic, X, ArrowLeft, Check, CheckCheck, Smile, Trash2, MoreVertical, Crown, Zap, History, Phone } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -928,7 +928,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
             onClick={() => setShowCallHistory(!showCallHistory)}
             title="Call history"
           >
-            <Phone className="h-4 w-4" />
+            <History className="h-4 w-4" />
           </Button>
           
           {/* Call buttons */}
@@ -947,7 +947,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
         <div className="border-b border-border bg-muted/30 shrink-0">
           <div className="px-4 py-2 flex items-center justify-between">
             <h3 className="text-sm font-medium flex items-center gap-2">
-              <Phone className="h-4 w-4" />
+              <History className="h-4 w-4" />
               Call History
             </h3>
             <Button
