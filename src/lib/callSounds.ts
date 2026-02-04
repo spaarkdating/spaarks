@@ -169,6 +169,16 @@ class CallSounds {
       this.gainNode.disconnect();
       this.gainNode = null;
     }
+    
+    // Also close and recreate audio context to ensure complete stop
+    if (this.audioContext) {
+      try {
+        this.audioContext.close();
+      } catch (e) {
+        // Ignore if already closed
+      }
+      this.audioContext = null;
+    }
   }
 }
 

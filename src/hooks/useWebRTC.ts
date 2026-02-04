@@ -61,8 +61,12 @@ export function useWebRTC({ currentUserId, onCallEnded }: UseWebRTCOptions) {
 
   // Cleanup function
   const cleanup = useCallback(() => {
-    // Stop any playing sounds
-    callSounds.stop();
+    // Stop any playing sounds immediately and completely
+    try {
+      callSounds.stop();
+    } catch (e) {
+      console.error('Error stopping call sounds:', e);
+    }
     
     // Clear call timeout
     if (callTimeoutRef.current) {
@@ -517,8 +521,21 @@ export function useWebRTC({ currentUserId, onCallEnded }: UseWebRTCOptions) {
 
   // End call
   const endCall = useCallback(async (reason?: string) => {
-    // Stop any sounds immediately
-    callSounds.stop();
+    // Stop any sounds immediately and completely
+    try {
+      callSounds.stop();
+    } catch (e) {
+      console.error('Error stopping sounds:', e);
+    }
+    
+    // Play ended sound after stopping all other sounds
+    setTimeout(() => {
+      try {
+        callSounds.playEndedSound();
+      } catch (e) {
+        // Ignore
+      }
+    }, 100);
     
     if (!callSession) {
       cleanup();
