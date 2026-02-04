@@ -289,10 +289,15 @@ export function useWebRTC({ currentUserId, onCallEnded }: UseWebRTCOptions) {
       // Start playing calling sound
       callSounds.playCallingSound();
 
-      // Get media stream
-      const constraints = {
+      // Get media stream with HD video constraints
+      const constraints: MediaStreamConstraints = {
         audio: true,
-        video: type === 'video',
+        video: type === 'video' ? {
+          width: { ideal: 1280, min: 640 },
+          height: { ideal: 720, min: 480 },
+          frameRate: { ideal: 30, min: 15 },
+          facingMode: 'user',
+        } : false,
       };
       
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -410,10 +415,15 @@ export function useWebRTC({ currentUserId, onCallEnded }: UseWebRTCOptions) {
       setCallStatus('active');
       setCallSession(incomingCall);
 
-      // Get media stream
-      const constraints = {
+      // Get media stream with HD video constraints
+      const constraints: MediaStreamConstraints = {
         audio: true,
-        video: incomingCall.call_type === 'video',
+        video: incomingCall.call_type === 'video' ? {
+          width: { ideal: 1280, min: 640 },
+          height: { ideal: 720, min: 480 },
+          frameRate: { ideal: 30, min: 15 },
+          facingMode: 'user',
+        } : false,
       };
       
       const stream = await navigator.mediaDevices.getUserMedia(constraints);

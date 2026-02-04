@@ -9,6 +9,7 @@ interface IncomingCallModalProps {
   callType: CallType;
   onAnswer: () => void;
   onDecline: () => void;
+  isVisible?: boolean;
 }
 
 export const IncomingCallModal = ({
@@ -16,15 +17,31 @@ export const IncomingCallModal = ({
   callType,
   onAnswer,
   onDecline,
+  isVisible = true,
 }: IncomingCallModalProps) => {
   const profilePhoto = callerProfile?.photos?.sort((a: any, b: any) => a.display_order - b.display_order)[0]?.photo_url;
+
+  // Handle answer with immediate visual feedback
+  const handleAnswer = () => {
+    console.log('IncomingCallModal: Answer button clicked');
+    onAnswer();
+  };
+
+  // Handle decline with immediate visual feedback  
+  const handleDecline = () => {
+    console.log('IncomingCallModal: Decline button clicked');
+    onDecline();
+  };
+
+  if (!isVisible) return null;
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
+      className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center"
+      onClick={(e) => e.stopPropagation()}
     >
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
@@ -77,16 +94,18 @@ export const IncomingCallModal = ({
           <Button
             variant="destructive"
             size="lg"
-            className="h-20 w-20 rounded-full"
-            onClick={onDecline}
+            className="h-20 w-20 rounded-full active:scale-95 transition-transform"
+            onClick={handleDecline}
+            type="button"
           >
             <PhoneOff className="h-8 w-8" />
           </Button>
 
           <Button
             size="lg"
-            className="h-20 w-20 rounded-full bg-green-500 hover:bg-green-600"
-            onClick={onAnswer}
+            className="h-20 w-20 rounded-full bg-green-500 hover:bg-green-600 active:scale-95 transition-transform"
+            onClick={handleAnswer}
+            type="button"
           >
             {callType === 'video' ? (
               <Video className="h-8 w-8" />
