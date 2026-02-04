@@ -45,16 +45,30 @@ export function useWebRTC({ currentUserId, onCallEnded }: UseWebRTCOptions) {
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const callTimerRef = useRef<NodeJS.Timeout | null>(null);
   const channelRef = useRef<any>(null);
+  const callTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // Use ref to track current call status for callbacks (avoids stale closure)
+  const callStatusRef = useRef<CallStatus>('idle');
   
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
 
   const { toast } = useToast();
 
+  // Keep ref in sync with state
+  useEffect(() => {
+    callStatusRef.current = callStatus;
+  }, [callStatus]);
+
   // Cleanup function
   const cleanup = useCallback(() => {
     // Stop any playing sounds
     callSounds.stop();
+    
+    // Clear call timeout
+    if (callTimeoutRef.current) {
+      clearTimeout(callTimeoutRef.current);
+      callTimeoutRef.current = null;
+    }
     
     if (callTimerRef.current) {
       clearInterval(callTimerRef.current);
@@ -258,6 +272,16 @@ export function useWebRTC({ currentUserId, onCallEnded }: UseWebRTCOptions) {
 
   // Start a call
   const startCall = useCallback(async (receiverId: string, type: CallType) => {
+    // Prevent starting a call if not idle
+    if (callStatusRef.current !== 'idle') {
+      toast({
+        title: 'Cannot start call',
+        description: 'Please wait for the current call to end.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
     try {
       setCallType(type);
       setCallStatus('calling');
@@ -311,16 +335,22 @@ export function useWebRTC({ currentUserId, onCallEnded }: UseWebRTCOptions) {
       
       // Wait for channel to be subscribed before sending
       await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Connection timeout'));
+        }, 10000);
+        
         notifyChannel.subscribe((status) => {
           if (status === 'SUBSCRIBED') {
+            clearTimeout(timeout);
             resolve();
           } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            clearTimeout(timeout);
             reject(new Error('Failed to connect signaling channel'));
           }
         });
       });
       
-      // Use httpSend for reliable delivery
+      // Send the call notification
       await notifyChannel.send({
         type: 'broadcast',
         event: 'incoming-call',
@@ -335,17 +365,21 @@ export function useWebRTC({ currentUserId, onCallEnded }: UseWebRTCOptions) {
         supabase.removeChannel(notifyChannel);
       }, 1000);
 
-      // Timeout after 30 seconds
-      setTimeout(() => {
-        if (callStatus === 'calling') {
+      // Timeout after 30 seconds - use ref to check current status
+      callTimeoutRef.current = setTimeout(() => {
+        // Use ref to get current status (avoids stale closure)
+        if (callStatusRef.current === 'calling') {
           endCall('no_answer');
         }
       }, 30000);
 
     } catch (error: any) {
       console.error('Error starting call:', error);
+      callSounds.stop();
       cleanup();
       setCallStatus('idle');
+      setCallType(null);
+      setCallSession(null);
       
       if (error.name === 'NotAllowedError') {
         toast({
@@ -361,7 +395,7 @@ export function useWebRTC({ currentUserId, onCallEnded }: UseWebRTCOptions) {
         });
       }
     }
-  }, [currentUserId, callStatus, createPeerConnection, setupSignalingChannel, cleanup, toast]);
+  }, [currentUserId, createPeerConnection, setupSignalingChannel, cleanup, toast]);
 
   // Answer incoming call
   const answerCall = useCallback(async () => {
@@ -459,11 +493,15 @@ export function useWebRTC({ currentUserId, onCallEnded }: UseWebRTCOptions) {
       });
 
       supabase.removeChannel(channel);
-      setIncomingCall(null);
-      setCallerProfile(null);
 
     } catch (error) {
       console.error('Error declining call:', error);
+    } finally {
+      // Always reset state
+      setIncomingCall(null);
+      setCallerProfile(null);
+      setCallStatus('idle');
+      setCallType(null);
     }
   }, [incomingCall, currentUserId]);
 
@@ -546,13 +584,16 @@ export function useWebRTC({ currentUserId, onCallEnded }: UseWebRTCOptions) {
     }
   }, [isVideoOff]);
 
-  // Listen for incoming calls
+  // Listen for incoming calls - only depend on currentUserId to avoid re-subscribing
   useEffect(() => {
+    if (!currentUserId) return;
+    
     const channel = supabase.channel(`user:${currentUserId}`);
 
     channel
       .on('broadcast', { event: 'incoming-call' }, async ({ payload }) => {
-        if (callStatus !== 'idle') {
+        // Use ref to check current status (avoids stale closure and re-subscription issues)
+        if (callStatusRef.current !== 'idle') {
           // User is busy
           const busyChannel = supabase.channel(`call:${payload.session.id}`);
           await busyChannel.subscribe();
@@ -594,7 +635,7 @@ export function useWebRTC({ currentUserId, onCallEnded }: UseWebRTCOptions) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [currentUserId, callStatus]);
+  }, [currentUserId]); // Only re-subscribe when user changes, not on every status change
 
   // Format duration
   const formatDuration = (seconds: number) => {
