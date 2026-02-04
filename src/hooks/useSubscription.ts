@@ -18,6 +18,12 @@ export interface PlanLimits {
   video_max_duration_seconds: number | null;
   audio_messages_per_day: number | null;
   who_liked_you_limit: number | null;
+  // Call limits
+  can_audio_call: boolean;
+  can_video_call: boolean;
+  audio_calls_per_day: number | null;
+  video_calls_per_day: number | null;
+  call_duration_limit_minutes: number | null;
 }
 
 export interface SubscriptionData {
