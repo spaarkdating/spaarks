@@ -214,7 +214,9 @@ export function useWebRTC({ currentUserId, onCallEnded }: UseWebRTCOptions) {
           description: payload.reason || 'The call has ended',
         });
         cleanup();
-        setCallStatus('ended');
+        // Reset to idle so user can make/receive new calls
+        setCallStatus('idle');
+        setCallType(null);
         setCallSession(null);
         setIncomingCall(null);
         onCallEnded?.();
@@ -467,9 +469,13 @@ export function useWebRTC({ currentUserId, onCallEnded }: UseWebRTCOptions) {
 
   // End call
   const endCall = useCallback(async (reason?: string) => {
+    // Stop any sounds immediately
+    callSounds.stop();
+    
     if (!callSession) {
       cleanup();
       setCallStatus('idle');
+      setCallType(null);
       return;
     }
 
@@ -510,7 +516,9 @@ export function useWebRTC({ currentUserId, onCallEnded }: UseWebRTCOptions) {
       console.error('Error ending call:', error);
     } finally {
       cleanup();
-      setCallStatus('ended');
+      // Reset to idle so user can make/receive new calls
+      setCallStatus('idle');
+      setCallType(null);
       setCallSession(null);
       onCallEnded?.();
     }
