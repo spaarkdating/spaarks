@@ -17,6 +17,7 @@ export interface PlanLimits {
   videos_per_chat_per_day: number | null;
   video_max_duration_seconds: number | null;
   audio_messages_per_day: number | null;
+  who_liked_you_limit: number | null;
 }
 
 export interface SubscriptionData {
@@ -242,6 +243,16 @@ export function useSubscription() {
     };
   };
 
+  const canViewWhoLikedYou = (): { canView: boolean; limit: number | null } => {
+    if (!limits) return { canView: false, limit: 0 };
+    // null means unlimited, 0 means no access, positive number means limited access
+    const limit = limits.who_liked_you_limit;
+    return {
+      canView: limit === null || limit > 0,
+      limit: limit,
+    };
+  };
+
   return {
     subscription,
     limits,
@@ -254,6 +265,7 @@ export function useSubscription() {
     checkVideoLimit,
     checkAudioLimit,
     canViewProfileViews,
+    canViewWhoLikedYou,
     refetch: fetchSubscription,
   };
 }

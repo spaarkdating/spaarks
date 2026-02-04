@@ -1138,6 +1138,7 @@ export type Database = {
           profile_views_limit: number | null
           video_max_duration_seconds: number | null
           videos_per_chat_per_day: number | null
+          who_liked_you_limit: number | null
         }
         Insert: {
           active_matches_limit?: number | null
@@ -1156,6 +1157,7 @@ export type Database = {
           profile_views_limit?: number | null
           video_max_duration_seconds?: number | null
           videos_per_chat_per_day?: number | null
+          who_liked_you_limit?: number | null
         }
         Update: {
           active_matches_limit?: number | null
@@ -1174,6 +1176,7 @@ export type Database = {
           profile_views_limit?: number | null
           video_max_duration_seconds?: number | null
           videos_per_chat_per_day?: number | null
+          who_liked_you_limit?: number | null
         }
         Relationships: []
       }
