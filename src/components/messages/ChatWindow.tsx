@@ -1161,7 +1161,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
       </div>
 
       {/* Input (fixed at bottom; above bottom nav on mobile) */}
-      <div className="shrink-0 p-3 border-t border-border space-y-2 bg-card z-10 md:pb-3 pb-20 relative">
+      <div className="shrink-0 p-2 md:p-3 border-t border-border space-y-2 bg-card z-10 relative">
         {/* Icebreakers - shown above input area (overlay style when toggled) */}
         {showIcebreakers && messages.length > 0 && (
           <div className="absolute bottom-full left-3 right-3 mb-2 bg-card border border-border rounded-lg shadow-lg p-2 z-20 max-h-[200px] overflow-y-auto">
