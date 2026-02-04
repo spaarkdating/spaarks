@@ -1,5 +1,5 @@
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { Heart, Users, MessageCircle, User as UserIcon, Settings, LogOut, Filter, Eye, Bell } from "lucide-react";
+import { Heart, Users, MessageCircle, User as UserIcon, Settings, LogOut, Filter, Eye, Bell, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/spaark-logo.png";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
@@ -73,6 +73,13 @@ export function AppHeader({ userId, onLogout, onFilterClick, title }: AppHeaderP
                 </button>
               )}
               <button
+                onClick={() => navigate("/who-liked-you")}
+                className="flex items-center justify-center w-9 h-9 rounded-full border border-pink-500/30 bg-gradient-to-r from-pink-500/10 to-rose-500/10 hover:from-pink-500/20 hover:to-rose-500/20 text-pink-500 transition-all"
+                title="Who Liked You"
+              >
+                <Sparkles className="h-4 w-4" />
+              </button>
+              <button
                 onClick={() => navigate("/profile-views")}
                 className="flex items-center justify-center w-9 h-9 rounded-full border border-border bg-card hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all"
                 title="Profile Views"
@@ -111,6 +118,7 @@ export function AppHeader({ userId, onLogout, onFilterClick, title }: AppHeaderP
                 isAuthenticated
                 onLogout={onLogout}
                 links={[
+                  { to: "/who-liked-you", label: "Who Liked You", icon: <Sparkles className="h-5 w-5 text-pink-500" />, onClick: () => navigate("/who-liked-you") },
                   { to: "/profile-views", label: "Profile Views", icon: <Eye className="h-5 w-5" />, onClick: () => navigate("/profile-views") },
                   { to: "/matches", label: "Matches", icon: <Heart className="h-5 w-5" />, onClick: () => navigate("/matches") },
                   { to: "/messages", label: "Messages", icon: <MessageCircle className="h-5 w-5" />, onClick: () => navigate("/messages") },
