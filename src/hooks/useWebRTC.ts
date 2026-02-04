@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { callSounds } from '@/lib/callSounds';
 
 export type CallStatus = 'idle' | 'calling' | 'ringing' | 'active' | 'ended';
 export type CallType = 'audio' | 'video';
@@ -52,6 +53,9 @@ export function useWebRTC({ currentUserId, onCallEnded }: UseWebRTCOptions) {
 
   // Cleanup function
   const cleanup = useCallback(() => {
+    // Stop any playing sounds
+    callSounds.stop();
+    
     if (callTimerRef.current) {
       clearInterval(callTimerRef.current);
       callTimerRef.current = null;
@@ -174,6 +178,10 @@ export function useWebRTC({ currentUserId, onCallEnded }: UseWebRTCOptions) {
       .on('broadcast', { event: 'call-accepted' }, async ({ payload }) => {
         if (payload.to !== currentUserId) return;
         
+        // Stop calling sound and play connected sound
+        callSounds.stop();
+        callSounds.playConnectedSound();
+        
         setCallStatus('active');
         startCallTimer();
         
@@ -197,6 +205,10 @@ export function useWebRTC({ currentUserId, onCallEnded }: UseWebRTCOptions) {
       .on('broadcast', { event: 'call-ended' }, ({ payload }) => {
         if (payload.to !== currentUserId) return;
         
+        // Stop sounds and play ended sound
+        callSounds.stop();
+        callSounds.playEndedSound();
+        
         toast({
           title: 'Call ended',
           description: payload.reason || 'The call has ended',
@@ -209,6 +221,9 @@ export function useWebRTC({ currentUserId, onCallEnded }: UseWebRTCOptions) {
       })
       .on('broadcast', { event: 'call-declined' }, ({ payload }) => {
         if (payload.to !== currentUserId) return;
+        
+        // Stop calling sound
+        callSounds.stop();
         
         toast({
           title: 'Call declined',
@@ -244,6 +259,9 @@ export function useWebRTC({ currentUserId, onCallEnded }: UseWebRTCOptions) {
     try {
       setCallType(type);
       setCallStatus('calling');
+      
+      // Start playing calling sound
+      callSounds.playCallingSound();
 
       // Get media stream
       const constraints = {
@@ -348,6 +366,10 @@ export function useWebRTC({ currentUserId, onCallEnded }: UseWebRTCOptions) {
     if (!incomingCall) return;
 
     try {
+      // Stop ringtone and play connected sound
+      callSounds.stop();
+      callSounds.playConnectedSound();
+      
       setCallType(incomingCall.call_type as CallType);
       setCallStatus('active');
       setCallSession(incomingCall);
@@ -411,6 +433,9 @@ export function useWebRTC({ currentUserId, onCallEnded }: UseWebRTCOptions) {
   // Decline incoming call
   const declineCall = useCallback(async () => {
     if (!incomingCall) return;
+    
+    // Stop ringtone
+    callSounds.stop();
 
     try {
       await supabase
@@ -552,6 +577,9 @@ export function useWebRTC({ currentUserId, onCallEnded }: UseWebRTCOptions) {
 
         setCallerProfile(profile);
         setIncomingCall(payload.session);
+        
+        // Start playing ringtone for incoming call
+        callSounds.playRingtone();
       })
       .subscribe();
 

@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Phone, Video, PhoneIncoming, PhoneOutgoing, PhoneMissed, Clock } from "lucide-react";
+import { Video, PhoneIncoming, PhoneOutgoing, PhoneMissed, Clock, History } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 interface CallHistoryProps {
@@ -26,6 +25,7 @@ interface CallSession {
 export const CallHistory = ({ currentUserId, otherUserId }: CallHistoryProps) => {
   const [calls, setCalls] = useState<CallSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchCallHistory();
@@ -40,7 +40,7 @@ export const CallHistory = ({ currentUserId, otherUserId }: CallHistoryProps) =>
           `and(caller_id.eq.${currentUserId},receiver_id.eq.${otherUserId}),and(caller_id.eq.${otherUserId},receiver_id.eq.${currentUserId})`
         )
         .order("created_at", { ascending: false })
-        .limit(20);
+        .limit(50);
 
       if (error) throw error;
       setCalls(data || []);
@@ -117,58 +117,68 @@ export const CallHistory = ({ currentUserId, otherUserId }: CallHistoryProps) =>
 
   if (calls.length === 0) {
     return (
-      <div className="p-4 text-center text-muted-foreground text-sm">
-        <Phone className="h-8 w-8 mx-auto mb-2 opacity-50" />
-        <p>No calls yet</p>
-        <p className="text-xs mt-1">Start a call using the buttons above</p>
+      <div className="p-6 text-center text-muted-foreground text-sm">
+        <History className="h-10 w-10 mx-auto mb-3 opacity-40" />
+        <p className="font-medium">No calls yet</p>
+        <p className="text-xs mt-1 opacity-70">Start a call using the buttons above</p>
       </div>
     );
   }
 
   return (
-    <ScrollArea className="h-48">
-      <div className="space-y-1 p-2">
-        {calls.map((call) => {
-          const isOutgoing = call.caller_id === currentUserId;
-          const isMissed = call.status === "missed" || call.status === "declined" || call.status === "no_answer";
+    <div 
+      ref={scrollRef}
+      className="max-h-52 overflow-y-auto overflow-x-hidden px-2 py-1 space-y-1 scrollbar-thin overscroll-contain"
+      style={{ 
+        WebkitOverflowScrolling: 'touch',
+        scrollBehavior: 'smooth',
+      }}
+    >
+      {calls.map((call) => {
+        const isOutgoing = call.caller_id === currentUserId;
+        const isMissed = call.status === "missed" || call.status === "declined" || call.status === "no_answer";
 
-          return (
-            <div
-              key={call.id}
-              className={cn(
-                "flex items-center gap-3 p-2 rounded-lg transition-colors",
-                isMissed ? "bg-destructive/5" : "hover:bg-muted/50"
-              )}
-            >
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                {getCallIcon(call)}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className={cn(
-                  "text-sm font-medium truncate",
-                  isMissed && "text-destructive"
-                )}>
-                  {isOutgoing ? "Outgoing" : "Incoming"}
-                </p>
-                <p className="text-xs text-muted-foreground truncate">
-                  {getCallDescription(call)}
-                </p>
-              </div>
-              <div className="flex-shrink-0 text-right">
-                <p className="text-xs text-muted-foreground">
-                  {formatDistanceToNow(new Date(call.created_at), { addSuffix: true })}
-                </p>
-                {call.started_at && (
-                  <p className="text-xs text-muted-foreground flex items-center gap-1 justify-end">
-                    <Clock className="h-3 w-3" />
-                    {format(new Date(call.started_at), "HH:mm")}
-                  </p>
-                )}
-              </div>
+        return (
+          <div
+            key={call.id}
+            className={cn(
+              "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200",
+              isMissed 
+                ? "bg-destructive/10 border border-destructive/20" 
+                : "bg-card hover:bg-muted/60 border border-border/50"
+            )}
+          >
+            <div className={cn(
+              "flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center",
+              isMissed ? "bg-destructive/20" : isOutgoing ? "bg-blue-500/20" : "bg-green-500/20"
+            )}>
+              {getCallIcon(call)}
             </div>
-          );
-        })}
-      </div>
-    </ScrollArea>
+            <div className="flex-1 min-w-0">
+              <p className={cn(
+                "text-sm font-medium truncate",
+                isMissed && "text-destructive"
+              )}>
+                {isOutgoing ? "Outgoing" : "Incoming"} {call.call_type === "video" ? "video" : "voice"} call
+              </p>
+              <p className="text-xs text-muted-foreground truncate">
+                {getCallDescription(call)}
+              </p>
+            </div>
+            <div className="flex-shrink-0 text-right">
+              <p className="text-xs text-muted-foreground">
+                {formatDistanceToNow(new Date(call.created_at), { addSuffix: true })}
+              </p>
+              {call.started_at && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1 justify-end mt-0.5">
+                  <Clock className="h-3 w-3" />
+                  {format(new Date(call.started_at), "HH:mm")}
+                </p>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 };
