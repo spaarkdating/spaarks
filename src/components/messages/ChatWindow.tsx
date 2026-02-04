@@ -68,6 +68,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
   const [pendingMedia, setPendingMedia] = useState<{ file: File; type: 'image' | 'video' | 'audio'; preview: string } | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [showCallHistory, setShowCallHistory] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -891,7 +892,6 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
   const profile = match.profile;
   const photo = profile?.photos?.[0]?.photo_url || "/placeholder.svg";
 
-  const [showCallHistory, setShowCallHistory] = useState(false);
 
   return (
     <div className="bg-card rounded-2xl border border-border flex flex-col h-full min-h-0 relative overflow-hidden">
