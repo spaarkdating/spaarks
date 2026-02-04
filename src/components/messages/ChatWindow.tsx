@@ -1160,7 +1160,8 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input (fixed at bottom; above bottom nav on mobile) */}
+      {/* Input (fixed at bottom; above bottom nav on mobile) - hidden when call history is open */}
+      {!showCallHistory && (
       <div className="shrink-0 p-2 md:p-3 border-t border-border space-y-2 bg-card z-10 relative">
         {/* Icebreakers - shown above input area (overlay style when toggled) */}
         {showIcebreakers && messages.length > 0 && (
@@ -1391,6 +1392,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
         )}
 
       </div>
+      )}
 
       {/* Media Preview Confirmation Dialog */}
       <AlertDialog open={!!pendingMedia} onOpenChange={(open) => !open && cancelMediaSend()}>
