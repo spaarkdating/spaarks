@@ -34,6 +34,8 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { VoiceMessagePlayer } from "./VoiceMessagePlayer";
 import { CallButtons } from "@/components/calls/CallButtons";
+import { CallHistory } from "./CallHistory";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ChatWindowProps {
   match: any;
@@ -889,6 +891,8 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
   const profile = match.profile;
   const photo = profile?.photos?.[0]?.photo_url || "/placeholder.svg";
 
+  const [showCallHistory, setShowCallHistory] = useState(false);
+
   return (
     <div className="bg-card rounded-2xl border border-border flex flex-col h-full min-h-0 relative overflow-hidden">
       {/* Chat Header - Fixed at top */}
@@ -915,15 +919,52 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
           </div>
         </div>
         
-        {/* Call buttons */}
-        {onStartCall && (
-          <CallButtons
-            onStartAudioCall={() => onStartCall('audio')}
-            onStartVideoCall={() => onStartCall('video')}
-            currentUserId={currentUserId}
-          />
-        )}
+        <div className="flex items-center gap-2">
+          {/* Call history toggle */}
+          <Button
+            variant={showCallHistory ? "secondary" : "ghost"}
+            size="icon"
+            className="h-9 w-9"
+            onClick={() => setShowCallHistory(!showCallHistory)}
+            title="Call history"
+          >
+            <Phone className="h-4 w-4" />
+          </Button>
+          
+          {/* Call buttons */}
+          {onStartCall && (
+            <CallButtons
+              onStartAudioCall={() => onStartCall('audio')}
+              onStartVideoCall={() => onStartCall('video')}
+              currentUserId={currentUserId}
+            />
+          )}
+        </div>
       </div>
+
+      {/* Call History Panel */}
+      {showCallHistory && (
+        <div className="border-b border-border bg-muted/30 shrink-0">
+          <div className="px-4 py-2 flex items-center justify-between">
+            <h3 className="text-sm font-medium flex items-center gap-2">
+              <Phone className="h-4 w-4" />
+              Call History
+            </h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0"
+              onClick={() => setShowCallHistory(false)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          <CallHistory
+            currentUserId={currentUserId}
+            otherUserId={match.liked_user_id}
+          />
+        </div>
+      )}
 
       {/* Messages (scrollable middle section - smooth scroll for mobile) */}
       <div 
