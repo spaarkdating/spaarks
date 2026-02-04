@@ -914,13 +914,15 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack }: C
         </div>
       </div>
 
-      {/* Messages (scrollable middle section - shows only few messages at once) */}
+      {/* Messages (scrollable middle section - smooth scroll for mobile) */}
       <div 
         ref={messagesContainerRef} 
-        className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 py-2 space-y-1.5 scrollbar-thin" 
+        className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 py-2 space-y-1.5 scrollbar-thin overscroll-contain touch-pan-y" 
         style={{ 
           maxHeight: '60vh', 
-          minHeight: '200px'
+          minHeight: '200px',
+          WebkitOverflowScrolling: 'touch',
+          scrollBehavior: 'smooth',
         }}
       >
         {messages.map((message) => {

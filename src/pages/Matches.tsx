@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Heart, MessageCircle, MapPin } from "lucide-react";
+import { Heart, MessageCircle, MapPin, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
@@ -273,11 +273,21 @@ const Matches = () => {
           </div>
         ) : (
           <div>
-            <div className="mb-6">
-              <h2 className="text-3xl font-bold mb-2">Your Matches</h2>
-              <p className="text-muted-foreground">
-                You have {matches.length} mutual {matches.length === 1 ? "match" : "matches"}
-              </p>
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <h2 className="text-3xl font-bold mb-2">Your Matches</h2>
+                <p className="text-muted-foreground">
+                  You have {matches.length} mutual {matches.length === 1 ? "match" : "matches"}
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/who-liked-you")}
+                className="bg-gradient-to-r from-pink-500/10 to-rose-500/10 border-pink-500/30 hover:border-pink-500/50"
+              >
+                <Sparkles className="h-4 w-4 mr-2 text-pink-500" />
+                Who Liked You
+              </Button>
             </div>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">

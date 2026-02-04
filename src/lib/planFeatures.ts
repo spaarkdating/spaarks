@@ -15,6 +15,7 @@ export interface SubscriptionPlanData {
   videos_per_chat_per_day: number | null;
   video_max_duration_seconds: number | null;
   audio_messages_per_day: number | null;
+  who_liked_you_limit?: number | null;
 }
 
 export function generatePlanFeatures(plan: SubscriptionPlanData): string[] {
@@ -54,6 +55,15 @@ export function generatePlanFeatures(plan: SubscriptionPlanData): string[] {
     features.push('Cannot see profile viewers');
   } else {
     features.push(`See last ${plan.profile_views_limit} profile viewers`);
+  }
+
+  // Who liked you
+  if (plan.who_liked_you_limit === null) {
+    features.push('See all who liked you');
+  } else if (plan.who_liked_you_limit === 0) {
+    // Don't add feature for free tier
+  } else {
+    features.push(`See ${plan.who_liked_you_limit} people who liked you`);
   }
 
   // Images
@@ -123,6 +133,13 @@ export function generateShortFeatures(plan: SubscriptionPlanData): string[] {
     features.push('All viewers + timestamps');
   } else if (plan.profile_views_limit > 0) {
     features.push(`See ${plan.profile_views_limit} viewers`);
+  }
+
+  // Who liked you
+  if (plan.who_liked_you_limit === null) {
+    features.push('See all likes');
+  } else if (plan.who_liked_you_limit && plan.who_liked_you_limit > 0) {
+    features.push(`See ${plan.who_liked_you_limit} likes`);
   }
 
   // Media summary

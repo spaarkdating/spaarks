@@ -21,7 +21,7 @@ export function BottomNav() {
   const isActive = (path: string) => location.pathname === path;
 
   // Only show on authenticated routes
-  const authenticatedRoutes = ["/dashboard", "/matches", "/messages", "/profile", "/settings", "/profile-views"];
+  const authenticatedRoutes = ["/dashboard", "/matches", "/messages", "/profile", "/settings", "/profile-views", "/who-liked-you"];
   const shouldShow = authenticatedRoutes.some((route) => location.pathname.startsWith(route));
 
   // Check verification status

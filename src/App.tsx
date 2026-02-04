@@ -30,6 +30,7 @@ import PaymentTerms from "./pages/PaymentTerms";
 import RefundPolicy from "./pages/RefundPolicy";
 import SafetyTips from "./pages/SafetyTips";
 import ProfileViews from "./pages/ProfileViews";
+import WhoLikedYou from "./pages/WhoLikedYou";
 import SubmitTestimonial from "./pages/SubmitTestimonial";
 import Testimonials from "./pages/Testimonials";
 import Unsubscribe from "./pages/Unsubscribe";
@@ -58,6 +59,7 @@ const AnimatedRoutes = () => {
         <Route path="/profile" element={<PageTransition><Profile /></PageTransition>} />
         <Route path="/profile/:id" element={<PageTransition><ViewProfile /></PageTransition>} />
         <Route path="/profile-views" element={<PageTransition><ProfileViews /></PageTransition>} />
+        <Route path="/who-liked-you" element={<PageTransition><WhoLikedYou /></PageTransition>} />
         <Route path="/submit-testimonial" element={<PageTransition><SubmitTestimonial /></PageTransition>} />
         <Route path="/testimonials" element={<PageTransition><Testimonials /></PageTransition>} />
         <Route path="/settings" element={<PageTransition><Settings /></PageTransition>} />
