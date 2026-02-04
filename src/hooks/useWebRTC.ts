@@ -127,7 +127,7 @@ export function useWebRTC({ currentUserId, onCallEnded }: UseWebRTCOptions) {
   }, [currentUserId]);
 
   // Setup signaling channel
-  const setupSignalingChannel = useCallback((sessionId: string, remoteUserId: string) => {
+  const setupSignalingChannel = useCallback(async (sessionId: string, remoteUserId: string) => {
     const channel = supabase.channel(`call:${sessionId}`);
 
     channel
@@ -217,8 +217,16 @@ export function useWebRTC({ currentUserId, onCallEnded }: UseWebRTCOptions) {
         cleanup();
         setCallStatus('idle');
         setCallSession(null);
-      })
-      .subscribe();
+      });
+
+    // Wait for channel to be properly subscribed
+    await new Promise<void>((resolve) => {
+      channel.subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          resolve();
+        }
+      });
+    });
 
     channelRef.current = channel;
     return channel;
@@ -276,13 +284,24 @@ export function useWebRTC({ currentUserId, onCallEnded }: UseWebRTCOptions) {
       });
 
       // Setup signaling
-      setupSignalingChannel(session.id, receiverId);
+      await setupSignalingChannel(session.id, receiverId);
 
       // Send call notification via realtime
       const notifyChannel = supabase.channel(`user:${receiverId}`);
-      await notifyChannel.subscribe();
       
-      notifyChannel.send({
+      // Wait for channel to be subscribed before sending
+      await new Promise<void>((resolve, reject) => {
+        notifyChannel.subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            resolve();
+          } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            reject(new Error('Failed to connect signaling channel'));
+          }
+        });
+      });
+      
+      // Use httpSend for reliable delivery
+      await notifyChannel.send({
         type: 'broadcast',
         event: 'incoming-call',
         payload: {
@@ -290,6 +309,11 @@ export function useWebRTC({ currentUserId, onCallEnded }: UseWebRTCOptions) {
           callerId: currentUserId,
         },
       });
+      
+      // Cleanup the notification channel after sending
+      setTimeout(() => {
+        supabase.removeChannel(notifyChannel);
+      }, 1000);
 
       // Timeout after 30 seconds
       setTimeout(() => {
@@ -351,7 +375,7 @@ export function useWebRTC({ currentUserId, onCallEnded }: UseWebRTCOptions) {
       });
 
       // Setup signaling
-      const channel = setupSignalingChannel(incomingCall.id, incomingCall.caller_id);
+      const channel = await setupSignalingChannel(incomingCall.id, incomingCall.caller_id);
 
       // Update call status in database
       await supabase
