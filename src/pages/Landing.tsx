@@ -35,6 +35,15 @@ const Landing = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeCard, setActiveCard] = useState(0);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [hasSession, setHasSession] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setHasSession(!!data.session));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setHasSession(!!session);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   const profiles = [
     { name: "Max", age: 24, image: person1, tags: ["Outdoors", "Music", "Travel"] },
@@ -113,16 +122,26 @@ const Landing = () => {
           {/* Right Actions */}
           <div className="flex items-center gap-3">
             <ThemeToggle />
-            <Link to="/auth" className="hidden sm:block">
-              <span className="text-foreground/80 hover:text-foreground font-medium transition-colors cursor-pointer">
-                Sign in
-              </span>
-            </Link>
-            <Link to="/auth" className="hidden sm:block">
-              <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6 font-semibold">
-                Join
-              </Button>
-            </Link>
+            {hasSession ? (
+              <Link to="/dashboard" className="hidden sm:block">
+                <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6 font-semibold">
+                  Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link to="/auth" className="hidden sm:block">
+                  <span className="text-foreground/80 hover:text-foreground font-medium transition-colors cursor-pointer">
+                    Sign in
+                  </span>
+                </Link>
+                <Link to="/auth" className="hidden sm:block">
+                  <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6 font-semibold">
+                    Join
+                  </Button>
+                </Link>
+              </>
+            )}
 
             {/* Mobile Menu */}
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -170,16 +189,26 @@ const Landing = () => {
                   </nav>
                   
                   <div className="p-4 border-t border-border/30 space-y-2">
-                    <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
-                      <Button variant="ghost" className="w-full justify-start px-4 py-4 h-auto text-base font-medium rounded-xl">
-                        Sign in
-                      </Button>
-                    </Link>
-                    <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
-                      <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl h-12 font-semibold">
-                        Join Spaark
-                      </Button>
-                    </Link>
+                    {hasSession ? (
+                      <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                        <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl h-12 font-semibold">
+                          Go to Dashboard
+                        </Button>
+                      </Link>
+                    ) : (
+                      <>
+                        <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
+                          <Button variant="ghost" className="w-full justify-start px-4 py-4 h-auto text-base font-medium rounded-xl">
+                            Sign in
+                          </Button>
+                        </Link>
+                        <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
+                          <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl h-12 font-semibold">
+                            Join Spaark
+                          </Button>
+                        </Link>
+                      </>
+                    )}
                   </div>
                 </div>
               </SheetContent>
