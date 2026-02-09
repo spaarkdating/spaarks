@@ -158,13 +158,18 @@ const Matches = () => {
       // Get last message for each match
       const matchesWithMessages = await Promise.all(
         allMatches.map(async (match) => {
-          const { data: lastMessage } = await supabase
+          const { data: recentMessages } = await supabase
             .from("messages")
-            .select("content, created_at, sender_id")
+            .select("content, created_at, sender_id, deleted_at, deleted_by, deleted_for_everyone")
             .or(`and(sender_id.eq.${userId},receiver_id.eq.${match.liked_user_id}),and(sender_id.eq.${match.liked_user_id},receiver_id.eq.${userId})`)
             .order("created_at", { ascending: false })
-            .limit(1)
-            .single();
+            .limit(10);
+
+          const lastMessage = (recentMessages || []).find(msg => {
+            if (msg.deleted_at && msg.deleted_by === userId && !msg.deleted_for_everyone) return false;
+            if (msg.deleted_for_everyone) return false;
+            return true;
+          }) || null;
 
           return {
             ...match,
