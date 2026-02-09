@@ -48,9 +48,6 @@ export const PhotoStep = ({ data, updateData }: PhotoStepProps) => {
   };
 
   const handleSkipCrop = () => {
-    if (cropFile) {
-      uploadFiles([cropFile]);
-    }
     setCropSrc(null);
     setCropFile(null);
   };
