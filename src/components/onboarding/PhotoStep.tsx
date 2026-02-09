@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Upload, X, Image as ImageIcon, Crop } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ImageCropper } from "./ImageCropper";
+import { compressImage } from "@/lib/imageCompression";
 
 interface PhotoStepProps {
   data: any;
@@ -61,12 +62,13 @@ export const PhotoStep = ({ data, updateData }: PhotoStepProps) => {
       const uploadedUrls: string[] = [];
 
       for (const file of files) {
-        const fileExt = file.name.split(".").pop();
-        const fileName = `${user.id}/${Math.random()}.${fileExt}`;
+        // Compress image before upload
+        const compressed = await compressImage(file, 1200, 1200, 0.8);
+        const fileName = `${user.id}/${Math.random()}.jpg`;
 
         const { error: uploadError } = await supabase.storage
           .from("profile-photos")
-          .upload(fileName, file);
+          .upload(fileName, compressed, { contentType: "image/jpeg" });
 
         if (uploadError) throw uploadError;
 
