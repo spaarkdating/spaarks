@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Upload, X, Image as ImageIcon } from "lucide-react";
+import { Upload, X, Image as ImageIcon, Crop } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { ImageCropper } from "./ImageCropper";
 
 interface PhotoStepProps {
   data: any;
@@ -12,61 +13,74 @@ interface PhotoStepProps {
 
 export const PhotoStep = ({ data, updateData }: PhotoStepProps) => {
   const [uploading, setUploading] = useState(false);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const [cropFile, setCropFile] = useState<File | null>(null);
   const { toast } = useToast();
   const photos = data.photos || [];
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
     if (photos.length + files.length > 6) {
-      toast({
-        title: "Too many photos",
-        description: "You can upload up to 6 photos",
-        variant: "destructive",
-      });
+      toast({ title: "Too many photos", description: "You can upload up to 6 photos", variant: "destructive" });
       return;
     }
 
-    setUploading(true);
+    // If single file, offer crop option
+    if (files.length === 1) {
+      const file = files[0];
+      setCropFile(file);
+      setCropSrc(URL.createObjectURL(file));
+    } else {
+      // Multiple files: upload directly
+      uploadFiles(Array.from(files));
+    }
+    // Reset input
+    e.target.value = "";
+  };
 
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    setCropSrc(null);
+    const file = new File([croppedBlob], cropFile?.name || "cropped.jpg", { type: "image/jpeg" });
+    setCropFile(null);
+    await uploadFiles([file]);
+  };
+
+  const handleSkipCrop = () => {
+    if (cropFile) {
+      uploadFiles([cropFile]);
+    }
+    setCropSrc(null);
+    setCropFile(null);
+  };
+
+  const uploadFiles = async (files: File[]) => {
+    setUploading(true);
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
       const uploadedUrls: string[] = [];
 
-      for (const file of Array.from(files)) {
+      for (const file of files) {
         const fileExt = file.name.split(".").pop();
         const fileName = `${user.id}/${Math.random()}.${fileExt}`;
 
-        const { error: uploadError, data: uploadData } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
           .from("profile-photos")
           .upload(fileName, file);
 
         if (uploadError) throw uploadError;
 
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from("profile-photos").getPublicUrl(fileName);
-
+        const { data: { publicUrl } } = supabase.storage.from("profile-photos").getPublicUrl(fileName);
         uploadedUrls.push(publicUrl);
       }
 
       updateData({ photos: [...photos, ...uploadedUrls] });
-
-      toast({
-        title: "Photos uploaded!",
-        description: `${uploadedUrls.length} photo(s) added to your profile`,
-      });
+      toast({ title: "Photos uploaded!", description: `${uploadedUrls.length} photo(s) added to your profile` });
     } catch (error: any) {
-      toast({
-        title: "Upload failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Upload failed", description: error.message, variant: "destructive" });
     } finally {
       setUploading(false);
     }
@@ -82,7 +96,7 @@ export const PhotoStep = ({ data, updateData }: PhotoStepProps) => {
       <div className="text-center">
         <ImageIcon className="h-16 w-16 text-primary mx-auto mb-4" />
         <h3 className="text-xl font-semibold mb-2">Add your best photos</h3>
-        <p className="text-muted-foreground">Upload at least 2 photos. You can add up to 6 photos.</p>
+        <p className="text-muted-foreground">Upload at least 2 photos. You can add up to 6 photos. Single photos can be cropped.</p>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
@@ -115,7 +129,7 @@ export const PhotoStep = ({ data, updateData }: PhotoStepProps) => {
               type="file"
               accept="image/*"
               multiple
-              onChange={handleFileUpload}
+              onChange={handleFileSelect}
               className="hidden"
               disabled={uploading}
             />
@@ -123,12 +137,23 @@ export const PhotoStep = ({ data, updateData }: PhotoStepProps) => {
             <span className="text-xs text-muted-foreground text-center px-2">
               {uploading ? "Uploading..." : "Add Photo"}
             </span>
+            <Crop className="h-3 w-3 text-muted-foreground mt-1" />
           </label>
         )}
       </div>
 
       {photos.length < 2 && (
         <p className="text-sm text-center text-muted-foreground">Add at least 2 photos to continue</p>
+      )}
+
+      {/* Image Cropper Dialog */}
+      {cropSrc && (
+        <ImageCropper
+          imageSrc={cropSrc}
+          open={!!cropSrc}
+          onClose={handleSkipCrop}
+          onCropComplete={handleCropComplete}
+        />
       )}
     </div>
   );

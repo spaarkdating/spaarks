@@ -208,7 +208,7 @@ const ViewProfile = () => {
 
       {/* Photo Carousel Dialog */}
       <Dialog open={showPhotoCarousel} onOpenChange={setShowPhotoCarousel}>
-        <DialogContent className="max-w-4xl h-[80vh] p-0 bg-background/95">
+        <DialogContent className="max-w-[95vw] md:max-w-4xl h-[80vh] max-h-[80vh] p-0 bg-background/95 overflow-hidden">
           <PhotoCarousel
             photos={photos}
             initialIndex={carouselStartIndex}
