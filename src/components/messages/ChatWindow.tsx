@@ -550,26 +550,89 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
       }
     }
 
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = type === 'image' ? 'image/*' : 'video/*';
-    input.setAttribute('capture', 'environment');
+    // Check if device has camera support via input capture (mobile)
+    const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     
-    input.onchange = async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (!file) return;
+    if (isMobile) {
+      // Mobile: use native camera via input capture
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = type === 'image' ? 'image/*' : 'video/*';
+      input.setAttribute('capture', 'environment');
       
-      if (file.size > 10 * 1024 * 1024) {
-        toast({ title: "File too large", description: "Please select a file under 10MB", variant: "destructive" });
-        return;
+      input.onchange = async (e) => {
+        const file = (e.target as HTMLInputElement).files?.[0];
+        if (!file) return;
+        if (file.size > 10 * 1024 * 1024) {
+          toast({ title: "File too large", description: "Please select a file under 10MB", variant: "destructive" });
+          return;
+        }
+        const preview = URL.createObjectURL(file);
+        setPendingMedia({ file, type, preview });
+        setShowMediaOptions(false);
+      };
+      input.click();
+    } else {
+      // Desktop: use getUserMedia to access webcam
+      try {
+        const constraints = type === 'image' 
+          ? { video: { facingMode: 'user' }, audio: false }
+          : { video: { facingMode: 'user' }, audio: true };
+        
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        
+        if (type === 'image') {
+          // Capture a single photo from webcam
+          const videoEl = document.createElement('video');
+          videoEl.srcObject = stream;
+          videoEl.autoplay = true;
+          await new Promise(resolve => videoEl.onloadedmetadata = resolve);
+          await videoEl.play();
+          
+          // Wait a moment for camera to adjust
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          const canvas = document.createElement('canvas');
+          canvas.width = videoEl.videoWidth;
+          canvas.height = videoEl.videoHeight;
+          canvas.getContext('2d')?.drawImage(videoEl, 0, 0);
+          stream.getTracks().forEach(t => t.stop());
+          
+          const blob = await new Promise<Blob>((resolve, reject) => {
+            canvas.toBlob(b => b ? resolve(b) : reject(new Error('Failed')), 'image/jpeg', 0.9);
+          });
+          const file = new File([blob], `camera-${Date.now()}.jpg`, { type: 'image/jpeg' });
+          const preview = URL.createObjectURL(file);
+          setPendingMedia({ file, type: 'image', preview });
+          setShowMediaOptions(false);
+        } else {
+          // Record video from webcam
+          const chunks: Blob[] = [];
+          const recorder = new MediaRecorder(stream);
+          recorder.ondataavailable = e => e.data.size > 0 && chunks.push(e.data);
+          recorder.onstop = () => {
+            stream.getTracks().forEach(t => t.stop());
+            const blob = new Blob(chunks, { type: 'video/webm' });
+            const file = new File([blob], `camera-${Date.now()}.webm`, { type: 'video/webm' });
+            const preview = URL.createObjectURL(file);
+            setPendingMedia({ file, type: 'video', preview });
+            setShowMediaOptions(false);
+          };
+          recorder.start();
+          // Record for max 30 seconds then stop
+          toast({ title: "Recording...", description: "Recording video. Click Send when the preview appears (max 30s)." });
+          setTimeout(() => {
+            if (recorder.state !== 'inactive') recorder.stop();
+          }, 30000);
+          // Also allow stopping early by clicking again - store ref
+          mediaRecorderRef.current = recorder;
+        }
+      } catch (err) {
+        console.error('Camera access error:', err);
+        toast({ title: "Camera not available", description: "Could not access camera. Please use Gallery instead.", variant: "destructive" });
+        setShowMediaOptions(false);
       }
-
-      const preview = URL.createObjectURL(file);
-      setPendingMedia({ file, type, preview });
-      setShowMediaOptions(false);
-    };
-    
-    input.click();
+    }
   };
 
   const cancelMediaSend = () => {
@@ -1344,35 +1407,30 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
                 
                 {showMediaOptions && (
                   <div className="absolute bottom-full left-0 mb-2 bg-card border border-border rounded-lg shadow-lg p-2 flex flex-col gap-1 animate-fade-in z-10 min-w-[160px]">
-                    {/* Camera options - only show on mobile/touch devices */}
-                    {'ontouchstart' in window || navigator.maxTouchPoints > 0 ? (
-                      <>
-                        <p className="text-[10px] font-medium text-muted-foreground px-2 pt-1">Camera</p>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="justify-start gap-2"
-                          onClick={() => handleCameraCapture('image')}
-                          disabled={isSending}
-                        >
-                          <Image className="h-4 w-4 text-primary" />
-                          <span>Take Photo</span>
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="justify-start gap-2"
-                          onClick={() => handleCameraCapture('video')}
-                          disabled={isSending}
-                        >
-                          <Video className="h-4 w-4 text-primary" />
-                          <span>Record Video</span>
-                        </Button>
-                        <div className="border-t border-border my-1" />
-                      </>
-                    ) : null}
+                    <p className="text-[10px] font-medium text-muted-foreground px-2 pt-1">Camera</p>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="justify-start gap-2"
+                      onClick={() => handleCameraCapture('image')}
+                      disabled={isSending}
+                    >
+                      <Image className="h-4 w-4 text-primary" />
+                      <span>Take Photo</span>
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="justify-start gap-2"
+                      onClick={() => handleCameraCapture('video')}
+                      disabled={isSending}
+                    >
+                      <Video className="h-4 w-4 text-primary" />
+                      <span>Record Video</span>
+                    </Button>
+                    <div className="border-t border-border my-1" />
                     <p className="text-[10px] font-medium text-muted-foreground px-2">Gallery</p>
                     <Button
                       type="button"
