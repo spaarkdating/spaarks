@@ -219,13 +219,21 @@ const Messages = () => {
       // Get last message for each match
       const matchesWithMessages = await Promise.all(
         allMatches.map(async (match) => {
-          const { data: lastMessage } = await supabase
+          // Fetch recent messages and find the first non-deleted one
+          const { data: recentMessages } = await supabase
             .from("messages")
-            .select("content, created_at, sender_id, read")
+            .select("content, created_at, sender_id, read, deleted_at, deleted_by, deleted_for_everyone")
             .or(`and(sender_id.eq.${userId},receiver_id.eq.${match.liked_user_id}),and(sender_id.eq.${match.liked_user_id},receiver_id.eq.${userId})`)
             .order("created_at", { ascending: false })
-            .limit(1)
-            .single();
+            .limit(10);
+
+          const lastMessage = (recentMessages || []).find(msg => {
+            // Skip messages deleted by current user (not deleted_for_everyone)
+            if (msg.deleted_at && msg.deleted_by === userId && !msg.deleted_for_everyone) return false;
+            // Skip messages deleted for everyone
+            if (msg.deleted_for_everyone) return false;
+            return true;
+          }) || null;
 
           return {
             ...match,

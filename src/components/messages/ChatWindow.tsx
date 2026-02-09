@@ -1344,30 +1344,35 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
                 
                 {showMediaOptions && (
                   <div className="absolute bottom-full left-0 mb-2 bg-card border border-border rounded-lg shadow-lg p-2 flex flex-col gap-1 animate-fade-in z-10 min-w-[160px]">
-                    <p className="text-[10px] font-medium text-muted-foreground px-2 pt-1">Camera</p>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="justify-start gap-2"
-                      onClick={() => handleCameraCapture('image')}
-                      disabled={isSending}
-                    >
-                      <Image className="h-4 w-4 text-primary" />
-                      <span>Take Photo</span>
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="justify-start gap-2"
-                      onClick={() => handleCameraCapture('video')}
-                      disabled={isSending}
-                    >
-                      <Video className="h-4 w-4 text-primary" />
-                      <span>Record Video</span>
-                    </Button>
-                    <div className="border-t border-border my-1" />
+                    {/* Camera options - only show on mobile/touch devices */}
+                    {'ontouchstart' in window || navigator.maxTouchPoints > 0 ? (
+                      <>
+                        <p className="text-[10px] font-medium text-muted-foreground px-2 pt-1">Camera</p>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="justify-start gap-2"
+                          onClick={() => handleCameraCapture('image')}
+                          disabled={isSending}
+                        >
+                          <Image className="h-4 w-4 text-primary" />
+                          <span>Take Photo</span>
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="justify-start gap-2"
+                          onClick={() => handleCameraCapture('video')}
+                          disabled={isSending}
+                        >
+                          <Video className="h-4 w-4 text-primary" />
+                          <span>Record Video</span>
+                        </Button>
+                        <div className="border-t border-border my-1" />
+                      </>
+                    ) : null}
                     <p className="text-[10px] font-medium text-muted-foreground px-2">Gallery</p>
                     <Button
                       type="button"
