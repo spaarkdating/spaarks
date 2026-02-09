@@ -89,7 +89,7 @@ export const PhotoCarousel = ({ photos, initialIndex = 0, onClose }: PhotoCarous
           <motion.img
             src={photos[currentIndex].photo_url}
             alt={`Photo ${currentIndex + 1}`}
-            className="max-w-full max-h-full object-contain rounded-lg cursor-zoom-in"
+            className="max-w-full max-h-[65vh] object-contain rounded-lg cursor-zoom-in"
             animate={{
               scale: isZoomed ? 1.5 : 1,
             }}
