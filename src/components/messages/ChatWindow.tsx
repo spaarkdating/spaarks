@@ -534,6 +534,44 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
     input.click();
   };
 
+  const handleCameraCapture = async (type: 'image' | 'video') => {
+    // Check limits
+    if (type === 'image') {
+      const canSend = await checkImageLimit(match.liked_user_id);
+      if (!canSend) {
+        toast({ title: "Image limit reached", description: "Upgrade for more.", variant: "destructive" });
+        return;
+      }
+    } else {
+      const canSend = await checkVideoLimit(match.liked_user_id);
+      if (!canSend) {
+        toast({ title: "Video limit reached", description: "Upgrade for more.", variant: "destructive" });
+        return;
+      }
+    }
+
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = type === 'image' ? 'image/*' : 'video/*';
+    input.setAttribute('capture', 'environment');
+    
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      
+      if (file.size > 10 * 1024 * 1024) {
+        toast({ title: "File too large", description: "Please select a file under 10MB", variant: "destructive" });
+        return;
+      }
+
+      const preview = URL.createObjectURL(file);
+      setPendingMedia({ file, type, preview });
+      setShowMediaOptions(false);
+    };
+    
+    input.click();
+  };
+
   const cancelMediaSend = () => {
     if (pendingMedia?.preview) {
       URL.revokeObjectURL(pendingMedia.preview);
@@ -612,7 +650,14 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
       .order("created_at", { ascending: true });
 
     if (data) {
-      setMessages(data);
+      // Filter out messages deleted by current user only (not deleted_for_everyone)
+      const filtered = data.filter(msg => {
+        if (msg.deleted_at && msg.deleted_by === currentUserId && !msg.deleted_for_everyone) {
+          return false;
+        }
+        return true;
+      });
+      setMessages(filtered);
       markMessagesAsRead();
     }
   };
@@ -1298,7 +1343,32 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
                 </Button>
                 
                 {showMediaOptions && (
-                  <div className="absolute bottom-full left-0 mb-2 bg-card border border-border rounded-lg shadow-lg p-2 flex flex-col gap-1 animate-fade-in z-10">
+                  <div className="absolute bottom-full left-0 mb-2 bg-card border border-border rounded-lg shadow-lg p-2 flex flex-col gap-1 animate-fade-in z-10 min-w-[160px]">
+                    <p className="text-[10px] font-medium text-muted-foreground px-2 pt-1">Camera</p>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="justify-start gap-2"
+                      onClick={() => handleCameraCapture('image')}
+                      disabled={isSending}
+                    >
+                      <Image className="h-4 w-4 text-primary" />
+                      <span>Take Photo</span>
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="justify-start gap-2"
+                      onClick={() => handleCameraCapture('video')}
+                      disabled={isSending}
+                    >
+                      <Video className="h-4 w-4 text-primary" />
+                      <span>Record Video</span>
+                    </Button>
+                    <div className="border-t border-border my-1" />
+                    <p className="text-[10px] font-medium text-muted-foreground px-2">Gallery</p>
                     <Button
                       type="button"
                       variant="ghost"
@@ -1308,7 +1378,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
                       disabled={isSending}
                     >
                       <Image className="h-4 w-4 text-primary" />
-                      <span>Photo</span>
+                      <span>Photo from Gallery</span>
                     </Button>
                     <Button
                       type="button"
@@ -1319,7 +1389,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
                       disabled={isSending}
                     >
                       <Video className="h-4 w-4 text-primary" />
-                      <span>Video</span>
+                      <span>Video from Gallery</span>
                     </Button>
                     <Button
                       type="button"
