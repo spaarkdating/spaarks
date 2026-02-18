@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Menu, ChevronRight, X } from "lucide-react";
+import { ArrowRight, Menu, ChevronRight, X, Smartphone, Download } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import logo from "@/assets/spaark-logo.png";
@@ -516,6 +516,58 @@ const Landing = () => {
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
+          </ScrollReveal>
+        </div>
+      </section>
+
+      {/* Download App Section */}
+      <section className="py-20 bg-card/30">
+        <div className="container mx-auto px-4">
+          <ScrollReveal>
+            <div className="max-w-3xl mx-auto text-center">
+              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Smartphone className="h-8 w-8 text-primary" />
+              </div>
+              <h2 className="font-display text-3xl sm:text-4xl font-bold text-foreground mb-4">
+                Get the Spaark App
+              </h2>
+              <p className="text-muted-foreground text-lg mb-8 max-w-xl mx-auto">
+                Download our app for a faster, smoother experience with instant notifications on your phone.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <a
+                  href="https://play.google.com/store/apps/details?id=app.lovable.cd7111eb27554ab1a11acbd30c682682"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button className="bg-foreground text-background hover:bg-foreground/90 rounded-xl h-14 px-8 text-base font-semibold gap-3 w-64">
+                    <Download className="h-5 w-5" />
+                    <div className="text-left">
+                      <div className="text-[10px] font-normal opacity-80">GET IT ON</div>
+                      <div className="text-sm font-semibold -mt-0.5">Google Play</div>
+                    </div>
+                  </Button>
+                </a>
+                <a
+                  href="https://apps.apple.com/app/spaark-dating/id0000000000"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button className="bg-foreground text-background hover:bg-foreground/90 rounded-xl h-14 px-8 text-base font-semibold gap-3 w-64">
+                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                    </svg>
+                    <div className="text-left">
+                      <div className="text-[10px] font-normal opacity-80">Download on the</div>
+                      <div className="text-sm font-semibold -mt-0.5">App Store</div>
+                    </div>
+                  </Button>
+                </a>
+              </div>
+              <p className="text-muted-foreground/60 text-xs mt-4">
+                Available on Android and iOS. You can also install directly from your browser.
+              </p>
+            </div>
           </ScrollReveal>
         </div>
       </section>
