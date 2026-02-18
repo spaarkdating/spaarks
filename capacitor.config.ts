@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'spaarks',
   webDir: 'dist',
   server: {
-    url: 'https://spaarks.lovable.app',
+    url: 'https://spaarkdating.com',
     cleartext: true
   }
 };
