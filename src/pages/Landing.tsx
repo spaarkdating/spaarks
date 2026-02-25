@@ -83,7 +83,7 @@ const Landing = () => {
     fetchTestimonials();
   }, []);
 
-  const apkDownloadUrl = "https://github.com/AmanSagar0607/spaark/releases/latest/download/spaark-debug.apk";
+  const apkDownloadUrl = "/spaark-debug.apk";
 
   return (
     <div className="min-h-screen bg-background font-body overflow-x-hidden safe-area-pb">
@@ -537,7 +537,7 @@ const Landing = () => {
                 Download our app for a faster, smoother experience with instant notifications on your phone.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <a href={apkDownloadUrl} target="_blank" rel="noopener noreferrer">
+                <a href={apkDownloadUrl} download="spaark-debug.apk">
                   <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl h-14 px-8 text-base font-semibold gap-3 w-64">
                     <Download className="h-5 w-5" />
                     <div className="text-left">
