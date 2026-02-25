@@ -77,29 +77,13 @@ jobs:
           name: spaark-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
 
-      - name: Get short SHA
-        id: slug
-        run: echo "sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - name: Copy APK to public folder
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk public/spaark-debug.apk
 
-      - name: Create or update latest release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: latest
-          name: Latest Build
-          body: "Auto-generated APK from commit ${{ steps.slug.outputs.sha }}"
-          files: android/app/build/outputs/apk/debug/app-debug.apk
-          make_latest: true
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Rename APK for release
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk spaark-debug.apk
-
-      - name: Update latest release with renamed APK
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: latest
-          files: spaark-debug.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Commit APK to repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/spaark-debug.apk
+          git commit -m "chore: update APK build [skip ci]" || echo "No changes to commit"
+          git push
