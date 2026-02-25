@@ -83,8 +83,10 @@ const Landing = () => {
     fetchTestimonials();
   }, []);
 
+  const apkDownloadUrl = "/spaark-debug.apk";
+
   return (
-    <div className="min-h-screen bg-background font-body overflow-x-hidden">
+    <div className="min-h-screen bg-background font-body overflow-x-hidden safe-area-pb">
       <SEO
         title="Find Your Perfect Match"
         description="Discover meaningful connections on Spaark. Meet real people, have real conversations, find real love."
@@ -534,7 +536,16 @@ const Landing = () => {
               <p className="text-muted-foreground text-lg mb-8 max-w-xl mx-auto">
                 Download our app for a faster, smoother experience with instant notifications on your phone.
               </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <div className="flex flex-col lg:flex-row items-center justify-center gap-4">
+                <a href={apkDownloadUrl} download>
+                  <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl h-14 px-8 text-base font-semibold gap-3 w-64">
+                    <Download className="h-5 w-5" />
+                    <div className="text-left">
+                      <div className="text-[10px] font-normal opacity-80">DIRECT INSTALL</div>
+                      <div className="text-sm font-semibold -mt-0.5">Android APK</div>
+                    </div>
+                  </Button>
+                </a>
                 <a
                   href="https://play.google.com/store/apps/details?id=app.lovable.cd7111eb27554ab1a11acbd30c682682"
                   target="_blank"

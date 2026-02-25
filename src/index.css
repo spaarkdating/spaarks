@@ -548,9 +548,18 @@ Color Scheme:
   /* Safe area utilities for Capacitor/native apps */
   .safe-area-pt {
     padding-top: env(safe-area-inset-top, 0px);
+    padding-top: max(env(safe-area-inset-top, 0px), 0.75rem);
   }
   
   .safe-area-pb {
     padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 0.75rem);
+  }
+
+  .safe-area-py {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-top: max(env(safe-area-inset-top, 0px), 0.75rem);
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 0.75rem);
   }
 }
