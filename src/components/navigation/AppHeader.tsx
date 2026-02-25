@@ -26,7 +26,7 @@ export function AppHeader({ userId, onLogout, onFilterClick, title }: AppHeaderP
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-lg border-b border-border">
+    <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-lg border-b border-border safe-area-pt">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-14 md:h-16">
           {/* Left: Logo */}
