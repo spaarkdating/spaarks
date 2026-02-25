@@ -51,33 +51,19 @@ jobs:
 
       - name: Replace default app icons with Spaark logo
         run: |
-          # Install ImageMagick for icon generation
-          sudo apt-get install -y imagemagick
+          sudo apt-get update && sudo apt-get install -y imagemagick
           
-          # Generate icons from logo.png at all required Android sizes
           ICON_SRC="public/logo.png"
           ANDROID_RES="android/app/src/main/res"
           
-          # mipmap directories and their sizes
-          convert "$ICON_SRC" -resize 48x48 "$ANDROID_RES/mipmap-mdpi/ic_launcher.png"
-          convert "$ICON_SRC" -resize 48x48 "$ANDROID_RES/mipmap-mdpi/ic_launcher_round.png"
-          convert "$ICON_SRC" -resize 48x48 "$ANDROID_RES/mipmap-mdpi/ic_launcher_foreground.png"
-          
-          convert "$ICON_SRC" -resize 72x72 "$ANDROID_RES/mipmap-hdpi/ic_launcher.png"
-          convert "$ICON_SRC" -resize 72x72 "$ANDROID_RES/mipmap-hdpi/ic_launcher_round.png"
-          convert "$ICON_SRC" -resize 72x72 "$ANDROID_RES/mipmap-hdpi/ic_launcher_foreground.png"
-          
-          convert "$ICON_SRC" -resize 96x96 "$ANDROID_RES/mipmap-xhdpi/ic_launcher.png"
-          convert "$ICON_SRC" -resize 96x96 "$ANDROID_RES/mipmap-xhdpi/ic_launcher_round.png"
-          convert "$ICON_SRC" -resize 96x96 "$ANDROID_RES/mipmap-xhdpi/ic_launcher_foreground.png"
-          
-          convert "$ICON_SRC" -resize 144x144 "$ANDROID_RES/mipmap-xxhdpi/ic_launcher.png"
-          convert "$ICON_SRC" -resize 144x144 "$ANDROID_RES/mipmap-xxhdpi/ic_launcher_round.png"
-          convert "$ICON_SRC" -resize 144x144 "$ANDROID_RES/mipmap-xxhdpi/ic_launcher_foreground.png"
-          
-          convert "$ICON_SRC" -resize 192x192 "$ANDROID_RES/mipmap-xxxhdpi/ic_launcher.png"
-          convert "$ICON_SRC" -resize 192x192 "$ANDROID_RES/mipmap-xxxhdpi/ic_launcher_round.png"
-          convert "$ICON_SRC" -resize 192x192 "$ANDROID_RES/mipmap-xxxhdpi/ic_launcher_foreground.png"
+          for size_dir in "mipmap-mdpi:48" "mipmap-hdpi:72" "mipmap-xhdpi:96" "mipmap-xxhdpi:144" "mipmap-xxxhdpi:192"; do
+            dir="${size_dir%%:*}"
+            size="${size_dir##*:}"
+            mkdir -p "$ANDROID_RES/$dir"
+            convert "$ICON_SRC" -resize "${size}x${size}" "$ANDROID_RES/$dir/ic_launcher.png"
+            cp "$ANDROID_RES/$dir/ic_launcher.png" "$ANDROID_RES/$dir/ic_launcher_round.png"
+            cp "$ANDROID_RES/$dir/ic_launcher.png" "$ANDROID_RES/$dir/ic_launcher_foreground.png"
+          done
 
       - name: Make gradlew executable
         run: chmod +x android/gradlew
