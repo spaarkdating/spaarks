@@ -152,6 +152,7 @@ const WhoLikedYou = () => {
         shouldTrigger={shouldTrigger}
       />
       <AppHeader userId={user.id} onLogout={handleLogout} title="Who Liked You" />
+      <div className="h-14 safe-area-pt" />
 
       <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 pb-24 md:pb-8">
         {!canView ? (

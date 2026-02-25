@@ -12,7 +12,7 @@ interface AppHeaderProps {
   title?: string;
 }
 
-export function AppHeader({ userId, onLogout, onFilterClick, title }: AppHeaderProps) {
+export function AppHeader({ userId, onLogout, onFilterClick, title = "Spaark" }: AppHeaderProps) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -26,7 +26,7 @@ export function AppHeader({ userId, onLogout, onFilterClick, title }: AppHeaderP
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <header className="sticky top-0 z-40 liquid-glass-strong !rounded-none" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+    <header className="fixed top-0 left-0 right-0 z-40 liquid-glass-strong !rounded-none safe-area-pt">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-14 md:h-16">
           {/* Left: Logo */}

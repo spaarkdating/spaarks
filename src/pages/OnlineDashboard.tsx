@@ -427,6 +427,7 @@ export const OnlineDashboard = ({ user, onLogout }: OnlineDashboardProps) => {
         onLogout={onLogout} 
         onFilterClick={() => setShowFilterDialog(true)} 
       />
+      <div className="h-14 safe-area-pt" />
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-6 pb-24 md:pb-8">

@@ -7,6 +7,7 @@ import { AnimatePresence } from "framer-motion";
 import { BottomNav } from "@/components/navigation/BottomNav";
 import { ScrollToTop } from "@/components/navigation/ScrollToTop";
 import { AuthHeartbeat } from "@/components/auth/AuthHeartbeat";
+import { UpdatePrompt } from "@/components/UpdatePrompt";
 import { PageTransition } from "@/components/PageTransition";
 import { lazy, Suspense, useMemo } from "react";
 import Landing from "./pages/Landing";
@@ -105,6 +106,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthHeartbeat />
+        <UpdatePrompt />
         <ScrollToTop />
         <AnimatedRoutes />
         <BottomNav />
