@@ -66,7 +66,7 @@ export function BottomNav() {
   if (isVerified === null) return null;
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-lg border-t border-border" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 liquid-glass-strong !rounded-none border-t border-border/20" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
       <div className="flex justify-around items-center h-16 px-2 max-w-md mx-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
