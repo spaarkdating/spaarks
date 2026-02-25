@@ -26,6 +26,7 @@ import { formatDistanceToNow, format } from "date-fns";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { getRandomIcebreakers } from "@/data/icebreakers";
 import { useNavigate } from "react-router-dom";
+import { compressImage } from "@/lib/imageCompression";
 import {
   Popover,
   PopoverContent,
@@ -646,13 +647,52 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
     if (!pendingMedia) return;
 
     setIsSending(true);
+    setIsUploading(true);
+    setUploadProgress(0);
+
     try {
-      const fileExt = pendingMedia.file.name.split('.').pop();
+      let fileToUpload: Blob = pendingMedia.file;
+      let contentType = pendingMedia.file.type || 'application/octet-stream';
+      let fileExt = pendingMedia.file.name.split('.').pop() || 'bin';
+
+      // Compress images before uploading
+      if (pendingMedia.type === 'image') {
+        try {
+          setUploadProgress(10);
+          const compressed = await compressImage(pendingMedia.file, 1200, 1200, 0.75);
+          fileToUpload = compressed;
+          contentType = 'image/jpeg';
+          fileExt = 'jpg';
+          setUploadProgress(30);
+        } catch (compressError) {
+          console.warn("Image compression failed, uploading original:", compressError);
+          setUploadProgress(30);
+        }
+      }
+
+      // Enforce 10MB limit after compression
+      if (fileToUpload.size > 10 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please select a file under 10MB.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const fileName = `${currentUserId}/${Date.now()}.${fileExt}`;
+
+      // Simulate progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => Math.min(prev + 10, 90));
+      }, 200);
       
       const { error: uploadError } = await supabase.storage
         .from('chat-media')
-        .upload(fileName, pendingMedia.file, { contentType: pendingMedia.file.type || undefined });
+        .upload(fileName, fileToUpload, { contentType });
+
+      clearInterval(progressInterval);
+      setUploadProgress(95);
       
       if (uploadError) throw uploadError;
       
@@ -669,6 +709,8 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
 
       if (error) throw error;
 
+      setUploadProgress(100);
+
       await (supabase as any).from("notifications").insert({
         user_id: match.liked_user_id,
         type: "message",
@@ -677,11 +719,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
         data: { match_id: match.id, sender_id: currentUserId },
       });
 
-      // Scroll to bottom after sending
-      setTimeout(() => {
-        scrollToBottom();
-      }, 300);
-
+      setTimeout(() => scrollToBottom(), 300);
       onMessagesUpdate();
       toast({
         title: "Sent!",
@@ -696,6 +734,8 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
       });
     } finally {
       setIsSending(false);
+      setIsUploading(false);
+      setUploadProgress(0);
       if (pendingMedia?.preview) {
         URL.revokeObjectURL(pendingMedia.preview);
       }
