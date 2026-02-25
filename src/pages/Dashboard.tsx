@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { OnlineDashboard } from "./OnlineDashboard";
 import { OfflineDashboard } from "./OfflineDashboard";
 import { VerificationPending } from "@/components/VerificationPending";
+import { useNotifications } from "@/hooks/useNotifications";
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -15,6 +16,7 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+  useNotifications(user?.id);
 
   useEffect(() => {
     const initUser = async () => {
