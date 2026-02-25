@@ -89,4 +89,5 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add public/spaark-debug.apk
           git commit -m "chore: update APK build [skip ci]" || echo "No changes to commit"
-          git push
+          git pull --rebase origin main || true
+          git push || echo "Push failed, skipping"
