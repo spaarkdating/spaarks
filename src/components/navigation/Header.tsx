@@ -27,7 +27,7 @@ export function Header({ showAuthButtons = true }: HeaderProps) {
   const backLabel = hasSession ? "Back to Dashboard" : "Back to Home";
 
   return (
-    <header className="container mx-auto px-4 py-4 flex justify-between items-center relative z-20 border-b border-border/30">
+    <header className="container mx-auto px-4 py-4 flex justify-between items-center relative z-20 border-b border-border/30 safe-area-pt">
       <Link to={backTo} className="flex items-center gap-2 group">
         <div className="bg-white/90 p-2 rounded-xl shadow-md">
           <img
