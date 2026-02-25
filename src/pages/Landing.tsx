@@ -98,7 +98,7 @@ const Landing = () => {
       <ChatbotWidget />
 
       {/* Navigation */}
-      <header className="fixed top-0 left-0 right-0 z-50 px-4 py-4 safe-area-pt">
+      <header className="fixed top-0 left-0 right-0 z-50 px-4 py-3 bg-background/80 backdrop-blur-lg border-b border-border/20" style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 0.75rem)' }}>
         <nav className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3">

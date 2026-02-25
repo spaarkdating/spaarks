@@ -8,7 +8,9 @@ import { BottomNav } from "@/components/navigation/BottomNav";
 import { ScrollToTop } from "@/components/navigation/ScrollToTop";
 import { AuthHeartbeat } from "@/components/auth/AuthHeartbeat";
 import { PageTransition } from "@/components/PageTransition";
+import { lazy, Suspense, useMemo } from "react";
 import Landing from "./pages/Landing";
+import AppLanding from "./pages/AppLanding";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Verify from "./pages/Verify";
@@ -45,11 +47,20 @@ const queryClient = new QueryClient();
 
 const AnimatedRoutes = () => {
   const location = useLocation();
+  
+  // Detect if running as installed app (PWA standalone or Capacitor)
+  const isApp = useMemo(() => {
+    return window.matchMedia("(display-mode: standalone)").matches ||
+      window.matchMedia("(display-mode: fullscreen)").matches ||
+      (window.navigator as any).standalone === true;
+  }, []);
+
+  const HomePage = isApp ? AppLanding : Landing;
 
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<PageTransition><Landing /></PageTransition>} />
+        <Route path="/" element={<PageTransition><HomePage /></PageTransition>} />
         <Route path="/auth" element={<PageTransition><Auth /></PageTransition>} />
         <Route path="/verify" element={<PageTransition><Verify /></PageTransition>} />
         <Route path="/onboarding" element={<PageTransition><Onboarding /></PageTransition>} />
