@@ -9,8 +9,8 @@ import { ScrollToTop } from "@/components/navigation/ScrollToTop";
 import { AuthHeartbeat } from "@/components/auth/AuthHeartbeat";
 import { UpdatePrompt } from "@/components/UpdatePrompt";
 import { PageTransition } from "@/components/PageTransition";
-import { lazy, Suspense, useMemo } from "react";
-import Landing from "./pages/Landing";
+
+
 import AppLanding from "./pages/AppLanding";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -49,14 +49,7 @@ const queryClient = new QueryClient();
 const AnimatedRoutes = () => {
   const location = useLocation();
   
-  // Detect if running as installed app (PWA standalone or Capacitor)
-  const isApp = useMemo(() => {
-    return window.matchMedia("(display-mode: standalone)").matches ||
-      window.matchMedia("(display-mode: fullscreen)").matches ||
-      (window.navigator as any).standalone === true;
-  }, []);
-
-  const HomePage = isApp ? AppLanding : Landing;
+  const HomePage = AppLanding;
 
   return (
     <AnimatePresence mode="wait">
