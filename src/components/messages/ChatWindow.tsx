@@ -51,6 +51,9 @@ const EMOJI_REACTIONS = ["❤️", "😂", "😮", "😢", "😡", "👍"];
 
 // Delete for everyone time window (15 minutes in milliseconds)
 const DELETE_FOR_EVERYONE_WINDOW = 15 * 60 * 1000;
+const MESSAGE_FETCH_LIMIT = 150;
+const MAX_MEDIA_UPLOAD_BYTES = 10 * 1024 * 1024;
+const MAX_IMAGE_PICK_BYTES = 25 * 1024 * 1024;
 
 export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onStartCall }: ChatWindowProps) => {
   const [messages, setMessages] = useState<any[]>([]);
@@ -76,6 +79,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  const messageIdsRef = useRef<Set<string>>(new Set());
   // Channel used for in-chat broadcasts (typing indicator)
   const channelRef = useRef<RealtimeChannel | null>(null);
   // Channels used for DB changes (messages + reactions)
@@ -153,20 +157,23 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
     }
   }, []);
 
-  const fetchReactions = async () => {
+  const fetchReactions = async (messageIds?: string[]) => {
     if (!match) return;
 
-    const messageIds = messages.map(m => m.id);
-    if (messageIds.length === 0) return;
+    const ids = messageIds ?? Array.from(messageIdsRef.current);
+    if (ids.length === 0) {
+      setReactions({});
+      return;
+    }
 
     const { data } = await supabase
       .from("message_reactions")
       .select("*")
-      .in("message_id", messageIds);
+      .in("message_id", ids);
 
     if (data) {
       const grouped: Record<string, any[]> = {};
-      data.forEach(reaction => {
+      data.forEach((reaction) => {
         if (!grouped[reaction.message_id]) {
           grouped[reaction.message_id] = [];
         }
@@ -177,9 +184,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
   };
 
   useEffect(() => {
-    if (messages.length > 0) {
-      fetchReactions();
-    }
+    messageIdsRef.current = new Set(messages.map((m) => m.id));
   }, [messages]);
 
   const handleAddReaction = async (messageId: string, emoji: string) => {
@@ -375,7 +380,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
           ? "ogg"
           : "webm";
 
-      if (audioBlob.size > 10 * 1024 * 1024) {
+      if (audioBlob.size > MAX_MEDIA_UPLOAD_BYTES) {
         toast({
           title: "Recording too long",
           description: "Please record a shorter message.",
@@ -392,18 +397,20 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
         const fileName = `${currentUserId}/${Date.now()}.${fileExt}`;
         
         // Simulate progress for voice upload (Supabase doesn't give real progress)
-        const progressInterval = setInterval(() => {
+        const progressInterval = window.setInterval(() => {
           setUploadProgress(prev => Math.min(prev + 15, 90));
         }, 100);
-        
-        const { error: uploadError } = await supabase.storage
-          .from('chat-media')
-          .upload(fileName, audioBlob, { contentType: mimeType });
-        
-        clearInterval(progressInterval);
-        setUploadProgress(100);
-        
-        if (uploadError) throw uploadError;
+
+        try {
+          const { error: uploadError } = await supabase.storage
+            .from('chat-media')
+            .upload(fileName, audioBlob, { contentType: mimeType });
+
+          if (uploadError) throw uploadError;
+          setUploadProgress(100);
+        } finally {
+          window.clearInterval(progressInterval);
+        }
         
         const { data: { publicUrl } } = supabase.storage
           .from('chat-media')
@@ -417,7 +424,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
 
         if (error) throw error;
 
-        await (supabase as any).from("notifications").insert({
+        void (supabase as any).from("notifications").insert({
           user_id: match.liked_user_id,
           type: "message",
           title: "New Voice Message",
@@ -517,10 +524,11 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
       
-      if (file.size > 10 * 1024 * 1024) {
+      const maxPickSize = type === 'image' ? MAX_IMAGE_PICK_BYTES : MAX_MEDIA_UPLOAD_BYTES;
+      if (file.size > maxPickSize) {
         toast({
           title: "File too large",
-          description: "Please select a file under 10MB",
+          description: type === 'image' ? "Please select an image under 25MB." : "Please select a file under 10MB.",
           variant: "destructive",
         });
         return;
@@ -564,8 +572,13 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
       input.onchange = async (e) => {
         const file = (e.target as HTMLInputElement).files?.[0];
         if (!file) return;
-        if (file.size > 10 * 1024 * 1024) {
-          toast({ title: "File too large", description: "Please select a file under 10MB", variant: "destructive" });
+        const maxPickSize = type === 'image' ? MAX_IMAGE_PICK_BYTES : MAX_MEDIA_UPLOAD_BYTES;
+        if (file.size > maxPickSize) {
+          toast({
+            title: "File too large",
+            description: type === 'image' ? "Please select an image under 25MB." : "Please select a file under 10MB.",
+            variant: "destructive",
+          });
           return;
         }
         const preview = URL.createObjectURL(file);
@@ -659,7 +672,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
       if (pendingMedia.type === 'image') {
         try {
           setUploadProgress(10);
-          const compressed = await compressImage(pendingMedia.file, 1200, 1200, 0.75);
+          const compressed = await compressImage(pendingMedia.file, 1080, 1080, 0.7);
           fileToUpload = compressed;
           contentType = 'image/jpeg';
           fileExt = 'jpg';
@@ -671,7 +684,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
       }
 
       // Enforce 10MB limit after compression
-      if (fileToUpload.size > 10 * 1024 * 1024) {
+      if (fileToUpload.size > MAX_MEDIA_UPLOAD_BYTES) {
         toast({
           title: "File too large",
           description: "Please select a file under 10MB.",
@@ -682,19 +695,20 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
 
       const fileName = `${currentUserId}/${Date.now()}.${fileExt}`;
 
-      // Simulate progress
-      const progressInterval = setInterval(() => {
+      const progressInterval = window.setInterval(() => {
         setUploadProgress(prev => Math.min(prev + 10, 90));
       }, 200);
-      
-      const { error: uploadError } = await supabase.storage
-        .from('chat-media')
-        .upload(fileName, fileToUpload, { contentType });
 
-      clearInterval(progressInterval);
-      setUploadProgress(95);
-      
-      if (uploadError) throw uploadError;
+      try {
+        const { error: uploadError } = await supabase.storage
+          .from('chat-media')
+          .upload(fileName, fileToUpload, { contentType });
+
+        if (uploadError) throw uploadError;
+        setUploadProgress(95);
+      } finally {
+        window.clearInterval(progressInterval);
+      }
       
       const { data: { publicUrl } } = supabase.storage
         .from('chat-media')
@@ -711,7 +725,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
 
       setUploadProgress(100);
 
-      await (supabase as any).from("notifications").insert({
+      void (supabase as any).from("notifications").insert({
         user_id: match.liked_user_id,
         type: "message",
         title: "New Message",
@@ -750,17 +764,20 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
       .from("messages")
       .select("*")
       .or(`and(sender_id.eq.${currentUserId},receiver_id.eq.${match.liked_user_id}),and(sender_id.eq.${match.liked_user_id},receiver_id.eq.${currentUserId})`)
-      .order("created_at", { ascending: true });
+      .order("created_at", { ascending: false })
+      .limit(MESSAGE_FETCH_LIMIT);
 
     if (data) {
+      const orderedMessages = [...data].reverse();
       // Filter out messages deleted by current user only (not deleted_for_everyone)
-      const filtered = data.filter(msg => {
+      const filtered = orderedMessages.filter(msg => {
         if (msg.deleted_at && msg.deleted_by === currentUserId && !msg.deleted_for_everyone) {
           return false;
         }
         return true;
       });
       setMessages(filtered);
+      fetchReactions(filtered.map((msg) => msg.id));
       markMessagesAsRead();
     }
   };
@@ -894,7 +911,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
       )
       .subscribe();
 
-    // Reactions (no easy filter, keep light)
+    // Reactions (only refetch when the event is for a message in this chat)
     const reactionsChannel = supabase
       .channel(`reactions:${match.id}`)
       .on(
@@ -904,8 +921,10 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
           schema: "public",
           table: "message_reactions",
         },
-        () => {
-          fetchReactions();
+        (payload) => {
+          const messageId = (payload.new as any)?.message_id || (payload.old as any)?.message_id;
+          if (!messageId || !messageIdsRef.current.has(messageId)) return;
+          fetchReactions(Array.from(messageIdsRef.current));
         }
       )
       .subscribe();
@@ -970,7 +989,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
 
       if (error) throw error;
 
-      await (supabase as any).from("notifications").insert({
+      void (supabase as any).from("notifications").insert({
         user_id: match.liked_user_id,
         type: "message",
         title: "New Message",
@@ -1195,12 +1214,16 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
                       src={mediaUrl} 
                       alt="Shared image" 
                       className="max-w-[250px] max-h-[300px] rounded-lg cursor-pointer hover:opacity-90 transition-opacity object-cover"
+                      loading="lazy"
+                      decoding="async"
                       onClick={() => window.open(mediaUrl, '_blank')}
                     />
                   ) : isVideo && mediaUrl ? (
                     <video 
                       src={mediaUrl} 
-                      controls 
+                      controls
+                      playsInline
+                      preload="metadata"
                       className="max-w-[250px] rounded-lg"
                     />
                   ) : (isAudio || isVoice) && mediaUrl ? (

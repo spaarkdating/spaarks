@@ -1,14 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, Heart, Lock, MessageCircle, Shield, Sparkles, Users } from "lucide-react";
+import { ArrowRight, Heart, Lock, MessageCircle, Shield, Sparkles, Users, Mail } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import logo from "@/assets/spaark-logo.png";
-import person1 from "@/assets/person-1.jpg";
-import person2 from "@/assets/person-2.jpg";
-import person3 from "@/assets/person-3.jpg";
-import person4 from "@/assets/person-4.jpg";
-import person5 from "@/assets/person-5.jpg";
-import person6 from "@/assets/person-6.jpg";
 import { supabase } from "@/integrations/supabase/client";
 
 type PublicStats = {
@@ -23,14 +17,12 @@ type LandingStory = {
   name: string;
 };
 
-const fallbackProfiles = [person1, person2, person3, person4, person5, person6];
-
 const AppLanding = () => {
   const navigate = useNavigate();
   const shouldReduceMotion = useReducedMotion();
   const [checking, setChecking] = useState(true);
   const [stats, setStats] = useState({ activeUsers: 0, totalMatches: 0 });
-  const [heroPhotos, setHeroPhotos] = useState<string[]>(fallbackProfiles);
+  const [heroPhotos, setHeroPhotos] = useState<string[]>([]);
   const [stories, setStories] = useState<LandingStory[]>([]);
 
   useEffect(() => {
@@ -73,9 +65,7 @@ const AppLanding = () => {
           .map((item) => item.photo_url)
           .filter((url): url is string => Boolean(url));
 
-        if (livePhotos.length > 0) {
-          setHeroPhotos([...livePhotos, ...fallbackProfiles].slice(0, 6));
-        }
+        setHeroPhotos(livePhotos.slice(0, 6));
 
         const liveStories: LandingStory[] = (storiesResult.data ?? [])
           .filter((item) => Boolean(item.story))
@@ -145,25 +135,31 @@ const AppLanding = () => {
           className="relative z-10"
         >
           <div className="relative w-full h-[260px] mb-5 overflow-hidden rounded-3xl">
-            <div className="absolute inset-0 grid grid-cols-3 grid-rows-2 gap-1">
-              {heroPhotos.map((src, i) => (
-                <motion.div
-                  key={`${src}-${i}`}
-                  initial={{ opacity: 0, scale: 0.86 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: i * 0.06, duration: 0.35 }}
-                  className="relative overflow-hidden rounded-2xl"
-                >
-                  <img
-                    src={src}
-                    alt={`Spaark member profile ${i + 1}`}
-                    className="w-full h-full object-cover"
-                    loading={i < 3 ? "eager" : "lazy"}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-primary/30 to-transparent" />
-                </motion.div>
-              ))}
-            </div>
+            {heroPhotos.length > 0 ? (
+              <div className="absolute inset-0 grid grid-cols-3 grid-rows-2 gap-1">
+                {heroPhotos.map((src, i) => (
+                  <motion.div
+                    key={`${src}-${i}`}
+                    initial={{ opacity: 0, scale: 0.86 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: i * 0.06, duration: 0.35 }}
+                    className="relative overflow-hidden rounded-2xl"
+                  >
+                    <img
+                      src={src}
+                      alt={`Spaark member profile ${i + 1}`}
+                      className="w-full h-full object-cover"
+                      loading={i < 3 ? "eager" : "lazy"}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-primary/30 to-transparent" />
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-primary/15 via-secondary/10 to-accent/10 border border-border/40 flex items-center justify-center text-center p-6">
+                <p className="text-sm text-muted-foreground">Live member photos will appear here as users upload profiles.</p>
+              </div>
+            )}
 
             {stats.activeUsers > 0 && (
               <motion.div
@@ -234,30 +230,32 @@ const AppLanding = () => {
         </motion.div>
       </section>
 
-      <section className="px-5 pb-5 relative z-10">
-        <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-thin">
-          {heroPhotos.slice(0, 6).map((src, idx) => (
-            <motion.div
-              key={`${src}-strip-${idx}`}
-              initial={{ opacity: 0, scale: 0.92 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.28 + idx * 0.08 }}
-              className="liquid-glass !rounded-2xl p-1.5 min-w-[120px] flex-shrink-0"
-            >
-              <img
-                src={src}
-                alt={`Online member ${idx + 1}`}
-                className="w-full h-[140px] rounded-xl object-cover"
-                loading="lazy"
-              />
-              <div className="flex items-center gap-1 mt-1.5 px-1">
-                <div className="w-2 h-2 rounded-full bg-primary" />
-                <span className="text-[10px] text-muted-foreground font-medium">Active now</span>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </section>
+      {heroPhotos.length > 0 && (
+        <section className="px-5 pb-5 relative z-10">
+          <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-thin">
+            {heroPhotos.slice(0, 6).map((src, idx) => (
+              <motion.div
+                key={`${src}-strip-${idx}`}
+                initial={{ opacity: 0, scale: 0.92 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.28 + idx * 0.08 }}
+                className="liquid-glass !rounded-2xl p-1.5 min-w-[120px] flex-shrink-0"
+              >
+                <img
+                  src={src}
+                  alt={`Online member ${idx + 1}`}
+                  className="w-full h-[140px] rounded-xl object-cover"
+                  loading="lazy"
+                />
+                <div className="flex items-center gap-1 mt-1.5 px-1">
+                  <div className="w-2 h-2 rounded-full bg-primary" />
+                  <span className="text-[10px] text-muted-foreground font-medium">Active now</span>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="px-5 pb-5 relative z-10">
         <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-thin">
@@ -293,12 +291,18 @@ const AppLanding = () => {
                 transition={{ delay: 0.2 + idx * 0.08 }}
                 className="liquid-glass-subtle !rounded-2xl p-3 flex items-start gap-3"
               >
-                <img
-                  src={story.photoUrl || heroPhotos[idx]}
-                  alt={`${story.name} testimonial photo`}
-                  className="w-16 h-16 rounded-xl object-cover flex-shrink-0"
-                  loading="lazy"
-                />
+                {story.photoUrl ? (
+                  <img
+                    src={story.photoUrl}
+                    alt={`${story.name} testimonial photo`}
+                    className="w-16 h-16 rounded-xl object-cover flex-shrink-0"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <span className="text-sm font-bold text-primary">{story.name.charAt(0)}</span>
+                  </div>
+                )}
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-foreground">{story.name}</p>
                   <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
@@ -310,6 +314,28 @@ const AppLanding = () => {
           </div>
         </section>
       )}
+
+      <section className="px-5 pb-5 relative z-10">
+        <div className="liquid-glass-subtle !rounded-2xl p-4 border border-primary/20">
+          <div className="flex items-start gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Mail className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-foreground">Need help or want to enquire?</h3>
+              <p className="text-xs text-muted-foreground mt-1">Send us your question or track an existing inquiry reply.</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Link to="/contact" className="liquid-glass !rounded-xl p-3 text-center">
+              <span className="text-xs font-semibold text-foreground">Contact Us</span>
+            </Link>
+            <Link to="/inquiry-status" className="liquid-glass !rounded-xl p-3 text-center">
+              <span className="text-xs font-semibold text-foreground">Inquiry Status</span>
+            </Link>
+          </div>
+        </div>
+      </section>
 
       <section className="px-5 pb-5 relative z-10">
         <div className="grid grid-cols-3 gap-2">
