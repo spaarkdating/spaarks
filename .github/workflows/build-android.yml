@@ -83,11 +83,23 @@ jobs:
       - name: Copy APK to public folder
         run: cp android/app/build/outputs/apk/debug/app-debug.apk public/spaark-debug.apk
 
-      - name: Commit APK to repo
+      - name: Bump version.json build number
+        run: |
+          CURRENT_BUILD=$(jq '.build' public/version.json)
+          NEW_BUILD=$((CURRENT_BUILD + 1))
+          jq --arg v "1.0.$NEW_BUILD" --argjson b "$NEW_BUILD" '.version = $v | .build = $b' public/version.json > tmp.json && mv tmp.json public/version.json
+          echo "Bumped build from $CURRENT_BUILD to $NEW_BUILD"
+
+      - name: Update CURRENT_BUILD in UpdatePrompt.tsx
+        run: |
+          NEW_BUILD=$(jq '.build' public/version.json)
+          sed -i "s/const CURRENT_BUILD = [0-9]*/const CURRENT_BUILD = $NEW_BUILD/" src/components/UpdatePrompt.tsx
+
+      - name: Commit APK and version bump to repo
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add public/spaark-debug.apk
-          git commit -m "chore: update APK build [skip ci]" || echo "No changes to commit"
+          git add public/spaark-debug.apk public/version.json src/components/UpdatePrompt.tsx
+          git commit -m "chore: update APK build & bump version to $(jq '.build' public/version.json) [skip ci]" || echo "No changes to commit"
           git pull --rebase origin main || true
           git push || echo "Push failed, skipping"
