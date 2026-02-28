@@ -27,6 +27,7 @@ import { RealtimeChannel } from "@supabase/supabase-js";
 import { getRandomIcebreakers } from "@/data/icebreakers";
 import { useNavigate } from "react-router-dom";
 import { compressImage } from "@/lib/imageCompression";
+import { compressVideo } from "@/lib/videoCompression";
 import {
   Popover,
   PopoverContent,
@@ -51,7 +52,7 @@ const EMOJI_REACTIONS = ["❤️", "😂", "😮", "😢", "😡", "👍"];
 
 // Delete for everyone time window (15 minutes in milliseconds)
 const DELETE_FOR_EVERYONE_WINDOW = 15 * 60 * 1000;
-const MESSAGE_FETCH_LIMIT = 150;
+const MESSAGE_PAGE_SIZE = 40;
 const MAX_MEDIA_UPLOAD_BYTES = 10 * 1024 * 1024;
 const MAX_IMAGE_PICK_BYTES = 25 * 1024 * 1024;
 
@@ -73,6 +74,8 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [showCallHistory, setShowCallHistory] = useState(false);
+  const [hasMoreMessages, setHasMoreMessages] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -683,6 +686,23 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
         }
       }
 
+      // Compress videos before uploading
+      if (pendingMedia.type === 'video') {
+        try {
+          setUploadProgress(10);
+          const compressed = await compressVideo(pendingMedia.file, 720, 720, 800_000);
+          if (compressed !== pendingMedia.file) {
+            fileToUpload = compressed;
+            contentType = compressed.type || 'video/webm';
+            fileExt = contentType.includes('mp4') ? 'mp4' : 'webm';
+          }
+          setUploadProgress(30);
+        } catch (compressError) {
+          console.warn("Video compression failed, uploading original:", compressError);
+          setUploadProgress(30);
+        }
+      }
+
       // Enforce 10MB limit after compression
       if (fileToUpload.size > MAX_MEDIA_UPLOAD_BYTES) {
         toast({
@@ -765,11 +785,13 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
       .select("*")
       .or(`and(sender_id.eq.${currentUserId},receiver_id.eq.${match.liked_user_id}),and(sender_id.eq.${match.liked_user_id},receiver_id.eq.${currentUserId})`)
       .order("created_at", { ascending: false })
-      .limit(MESSAGE_FETCH_LIMIT);
+      .limit(MESSAGE_PAGE_SIZE + 1);
 
     if (data) {
-      const orderedMessages = [...data].reverse();
-      // Filter out messages deleted by current user only (not deleted_for_everyone)
+      const hasMore = data.length > MESSAGE_PAGE_SIZE;
+      const sliced = hasMore ? data.slice(0, MESSAGE_PAGE_SIZE) : data;
+      setHasMoreMessages(hasMore);
+      const orderedMessages = [...sliced].reverse();
       const filtered = orderedMessages.filter(msg => {
         if (msg.deleted_at && msg.deleted_by === currentUserId && !msg.deleted_for_everyone) {
           return false;
@@ -779,6 +801,48 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
       setMessages(filtered);
       fetchReactions(filtered.map((msg) => msg.id));
       markMessagesAsRead();
+    }
+  };
+
+  const loadOlderMessages = async () => {
+    if (!match || isLoadingMore || !hasMoreMessages || messages.length === 0) return;
+    setIsLoadingMore(true);
+
+    const oldestDate = messages[0]?.created_at;
+    const container = messagesContainerRef.current;
+    const prevScrollHeight = container?.scrollHeight || 0;
+
+    try {
+      const { data } = await supabase
+        .from("messages")
+        .select("*")
+        .or(`and(sender_id.eq.${currentUserId},receiver_id.eq.${match.liked_user_id}),and(sender_id.eq.${match.liked_user_id},receiver_id.eq.${currentUserId})`)
+        .lt("created_at", oldestDate)
+        .order("created_at", { ascending: false })
+        .limit(MESSAGE_PAGE_SIZE + 1);
+
+      if (data) {
+        const hasMore = data.length > MESSAGE_PAGE_SIZE;
+        const sliced = hasMore ? data.slice(0, MESSAGE_PAGE_SIZE) : data;
+        setHasMoreMessages(hasMore);
+        const older = [...sliced].reverse().filter(msg => {
+          if (msg.deleted_at && msg.deleted_by === currentUserId && !msg.deleted_for_everyone) return false;
+          return true;
+        });
+        setMessages(prev => [...older, ...prev]);
+        fetchReactions([...older.map(m => m.id), ...Array.from(messageIdsRef.current)]);
+
+        // Preserve scroll position
+        requestAnimationFrame(() => {
+          if (container) {
+            container.scrollTop = container.scrollHeight - prevScrollHeight;
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Error loading older messages:", error);
+    } finally {
+      setIsLoadingMore(false);
     }
   };
 
@@ -1144,6 +1208,20 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
           scrollBehavior: 'smooth',
         }}
       >
+        {/* Load older messages button */}
+        {hasMoreMessages && (
+          <div className="flex justify-center py-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={loadOlderMessages}
+              disabled={isLoadingMore}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              {isLoadingMore ? "Loading..." : "Load older messages"}
+            </Button>
+          </div>
+        )}
         {messages.map((message) => {
           const isSender = message.sender_id === currentUserId;
           const content = message.content;
