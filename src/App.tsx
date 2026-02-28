@@ -5,12 +5,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { BottomNav } from "@/components/navigation/BottomNav";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { ScrollToTop } from "@/components/navigation/ScrollToTop";
 import { AuthHeartbeat } from "@/components/auth/AuthHeartbeat";
 import { UpdatePrompt } from "@/components/UpdatePrompt";
 import { PageTransition } from "@/components/PageTransition";
 
 
+import Landing from "./pages/Landing";
 import AppLanding from "./pages/AppLanding";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -48,8 +50,10 @@ const queryClient = new QueryClient();
 
 const AnimatedRoutes = () => {
   const location = useLocation();
+  const isMobile = useIsMobile();
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
   
-  const HomePage = AppLanding;
+  const HomePage = (isMobile || isStandalone) ? AppLanding : Landing;
 
   return (
     <AnimatePresence mode="wait">
