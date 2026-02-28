@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 
 // This must match the "build" number in public/version.json at build time.
 // Increment this value AND the one in public/version.json together when releasing.
-const CURRENT_BUILD = 1;
+const CURRENT_BUILD = 2;
 
 const APK_ORIGIN = "https://spaarks.lovable.app";
 
