@@ -55,11 +55,6 @@ const AppLanding = () => {
           });
         }
 
-        const livePhotos = (photosResult.data ?? [])
-          .map((item) => item.photo_url)
-          .filter((url): url is string => Boolean(url));
-
-        setHeroPhotos(livePhotos.slice(0, 6));
 
         const liveStories: LandingStory[] = (storiesResult.data ?? [])
           .filter((item) => Boolean(item.story))
