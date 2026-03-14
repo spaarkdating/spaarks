@@ -134,58 +134,6 @@ const AppLanding = () => {
           transition={{ duration: 0.5 }}
           className="relative z-10"
         >
-          <div className="relative w-full h-[260px] mb-5 overflow-hidden rounded-3xl">
-            {heroPhotos.length > 0 ? (
-              <div className="absolute inset-0 grid grid-cols-3 grid-rows-2 gap-1">
-                {heroPhotos.map((src, i) => (
-                  <motion.div
-                    key={`${src}-${i}`}
-                    initial={{ opacity: 0, scale: 0.86 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: i * 0.06, duration: 0.35 }}
-                    className="relative overflow-hidden rounded-2xl"
-                  >
-                    <img
-                      src={src}
-                      alt={`Spaark member profile ${i + 1}`}
-                      className="w-full h-full object-cover"
-                      loading={i < 3 ? "eager" : "lazy"}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-primary/30 to-transparent" />
-                  </motion.div>
-                ))}
-              </div>
-            ) : (
-              <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-primary/15 via-secondary/10 to-accent/10 border border-border/40 flex items-center justify-center text-center p-6">
-                <p className="text-sm text-muted-foreground">Live member photos will appear here as users upload profiles.</p>
-              </div>
-            )}
-
-            {stats.activeUsers > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.45 }}
-                className="absolute bottom-3 left-3 liquid-glass !rounded-full px-3 py-1.5 flex items-center gap-1.5"
-              >
-                <Users className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-bold text-foreground">{stats.activeUsers}+ Active Members</span>
-              </motion.div>
-            )}
-
-            {stats.totalMatches > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.52 }}
-                className="absolute bottom-3 right-3 liquid-glass !rounded-full px-3 py-1.5 flex items-center gap-1.5"
-              >
-                <Heart className="h-3.5 w-3.5 text-primary fill-primary" />
-                <span className="text-xs font-bold text-foreground">{stats.totalMatches}+ Real Matches</span>
-              </motion.div>
-            )}
-          </div>
-
           <h1 className="font-display text-[28px] font-bold text-foreground leading-tight">
             Find Your
             <br />
@@ -194,6 +142,23 @@ const AppLanding = () => {
           <p className="text-muted-foreground text-sm mt-2 leading-relaxed max-w-[300px]">
             Real profiles. Verified users. Real conversations.
           </p>
+
+          {(stats.activeUsers > 0 || stats.totalMatches > 0) && (
+            <div className="flex gap-3 mt-4">
+              {stats.activeUsers > 0 && (
+                <div className="liquid-glass !rounded-full px-3 py-1.5 flex items-center gap-1.5">
+                  <Users className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-xs font-bold text-foreground">{stats.activeUsers}+ Active</span>
+                </div>
+              )}
+              {stats.totalMatches > 0 && (
+                <div className="liquid-glass !rounded-full px-3 py-1.5 flex items-center gap-1.5">
+                  <Heart className="h-3.5 w-3.5 text-primary fill-primary" />
+                  <span className="text-xs font-bold text-foreground">{stats.totalMatches}+ Matches</span>
+                </div>
+              )}
+            </div>
+          )}
         </motion.div>
       </section>
 
