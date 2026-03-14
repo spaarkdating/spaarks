@@ -671,37 +671,19 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
       let contentType = pendingMedia.file.type || 'application/octet-stream';
       let fileExt = pendingMedia.file.name.split('.').pop() || 'bin';
 
-      // Compress images before uploading
+      // Compress images before uploading (fast canvas resize)
       if (pendingMedia.type === 'image') {
         try {
-          setUploadProgress(10);
+          setUploadProgress(15);
           const compressed = await compressImage(pendingMedia.file, 1080, 1080, 0.7);
           fileToUpload = compressed;
           contentType = 'image/jpeg';
           fileExt = 'jpg';
-          setUploadProgress(30);
         } catch (compressError) {
           console.warn("Image compression failed, uploading original:", compressError);
-          setUploadProgress(30);
         }
       }
-
-      // Compress videos before uploading
-      if (pendingMedia.type === 'video') {
-        try {
-          setUploadProgress(10);
-          const compressed = await compressVideo(pendingMedia.file, 720, 720, 800_000);
-          if (compressed !== pendingMedia.file) {
-            fileToUpload = compressed;
-            contentType = compressed.type || 'video/webm';
-            fileExt = contentType.includes('mp4') ? 'mp4' : 'webm';
-          }
-          setUploadProgress(30);
-        } catch (compressError) {
-          console.warn("Video compression failed, uploading original:", compressError);
-          setUploadProgress(30);
-        }
-      }
+      setUploadProgress(30);
 
       // Enforce 10MB limit after compression
       if (fileToUpload.size > MAX_MEDIA_UPLOAD_BYTES) {
