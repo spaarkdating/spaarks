@@ -195,32 +195,6 @@ const AppLanding = () => {
         </motion.div>
       </section>
 
-      {heroPhotos.length > 0 && (
-        <section className="px-5 pb-5 relative z-10">
-          <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-thin">
-            {heroPhotos.slice(0, 6).map((src, idx) => (
-              <motion.div
-                key={`${src}-strip-${idx}`}
-                initial={{ opacity: 0, scale: 0.92 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.28 + idx * 0.08 }}
-                className="liquid-glass !rounded-2xl p-1.5 min-w-[120px] flex-shrink-0"
-              >
-                <img
-                  src={src}
-                  alt={`Online member ${idx + 1}`}
-                  className="w-full h-[140px] rounded-xl object-cover"
-                  loading="lazy"
-                />
-                <div className="flex items-center gap-1 mt-1.5 px-1">
-                  <div className="w-2 h-2 rounded-full bg-primary" />
-                  <span className="text-[10px] text-muted-foreground font-medium">Active now</span>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </section>
-      )}
 
       <section className="px-5 pb-5 relative z-10">
         <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-thin">
