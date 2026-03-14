@@ -68,7 +68,8 @@ export function UpdatePrompt() {
 
   // Service Worker update detection (for PWA / web users)
   useEffect(() => {
-    if (!("serviceWorker" in navigator)) return;
+    // Only show SW updates in app mode
+    if (!("serviceWorker" in navigator) || !isAppMode) return;
 
     let checkInterval: number | undefined;
 
