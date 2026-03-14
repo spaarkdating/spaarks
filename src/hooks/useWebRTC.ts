@@ -45,7 +45,7 @@ export function useWebRTC({ currentUserId, onCallEnded }: UseWebRTCOptions) {
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const callTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const channelRef = useRef<any>(null);
-  const callTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const callTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Use ref to track current call status for callbacks (avoids stale closure)
   const callStatusRef = useRef<CallStatus>('idle');
   

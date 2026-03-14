@@ -5,7 +5,7 @@ class CallSounds {
   private oscillator: OscillatorNode | null = null;
   private gainNode: GainNode | null = null;
   private isPlaying = false;
-  private intervalId: NodeJS.Timeout | null = null;
+  private intervalId: ReturnType<typeof setInterval> | null = null;
 
   private getAudioContext(): AudioContext {
     if (!this.audioContext) {

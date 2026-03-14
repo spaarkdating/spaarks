@@ -81,7 +81,7 @@ export const ChatWindow = ({ match, currentUserId, onMessagesUpdate, onBack, onS
   const recordingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const messageIdsRef = useRef<Set<string>>(new Set());
   // Channel used for in-chat broadcasts (typing indicator)
   const channelRef = useRef<RealtimeChannel | null>(null);
