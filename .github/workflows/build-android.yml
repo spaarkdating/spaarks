@@ -83,16 +83,23 @@ jobs:
       - name: Copy Debug APK to public folder
         run: cp android/app/build/outputs/apk/debug/app-debug.apk public/spaark-debug.apk
 
-      - name: Decode Upload Keystore
-        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/upload-keystore.jks
+      - name: Generate Upload Keystore
+        run: |
+          keytool -genkeypair -v \
+            -keystore android/upload-keystore.jks \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -alias spaark \
+            -storepass spaark123 \
+            -keypass spaark123 \
+            -dname "CN=Spaark, OU=Mobile, O=Spaark, L=India, ST=India, C=IN"
 
       - name: Build Signed Release AAB
         run: |
           cd android && ./gradlew bundleRelease \
             -Pandroid.injected.signing.store.file=${{ github.workspace }}/android/upload-keystore.jks \
-            -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} \
-            -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} \
-            -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }}
+            -Pandroid.injected.signing.store.password=spaark123 \
+            -Pandroid.injected.signing.key.alias=spaark \
+            -Pandroid.injected.signing.key.password=spaark123
 
       - name: Upload Release AAB
         uses: actions/upload-artifact@v4
