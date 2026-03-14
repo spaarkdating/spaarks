@@ -22,7 +22,6 @@ const AppLanding = () => {
   const shouldReduceMotion = useReducedMotion();
   const [checking, setChecking] = useState(true);
   const [stats, setStats] = useState({ activeUsers: 0, totalMatches: 0 });
-  const [heroPhotos, setHeroPhotos] = useState<string[]>([]);
   const [stories, setStories] = useState<LandingStory[]>([]);
 
   useEffect(() => {
