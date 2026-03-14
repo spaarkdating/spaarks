@@ -29,14 +29,9 @@ const AppLanding = () => {
 
     const loadLandingData = async () => {
       try {
-        const [sessionResult, statsResult, photosResult, storiesResult] = await Promise.all([
+        const [sessionResult, statsResult, storiesResult] = await Promise.all([
           supabase.auth.getSession(),
           supabase.rpc("get_public_stats"),
-          supabase
-            .from("photos")
-            .select("photo_url")
-            .order("created_at", { ascending: false })
-            .limit(9),
           supabase
             .from("testimonials")
             .select("id, story, photo_url, user:profiles!testimonials_user_id_fkey(display_name)")
