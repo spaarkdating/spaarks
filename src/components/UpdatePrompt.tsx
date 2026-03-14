@@ -51,6 +51,9 @@ export function UpdatePrompt() {
   }, []);
 
   useEffect(() => {
+    // Only check for updates in app mode (PWA / Capacitor), not on the website
+    if (!isAppMode) return;
+
     // Initial check after a short delay
     const initialTimer = window.setTimeout(checkForUpdate, 3000);
 
@@ -61,11 +64,12 @@ export function UpdatePrompt() {
       window.clearTimeout(initialTimer);
       window.clearInterval(interval);
     };
-  }, [checkForUpdate]);
+  }, [checkForUpdate, isAppMode]);
 
   // Service Worker update detection (for PWA / web users)
   useEffect(() => {
-    if (!("serviceWorker" in navigator)) return;
+    // Only show SW updates in app mode
+    if (!("serviceWorker" in navigator) || !isAppMode) return;
 
     let checkInterval: number | undefined;
 
